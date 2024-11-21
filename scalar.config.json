@@ -1,0 +1,15 @@
+{
+    "subdomain": "datum-cloud",
+    "guides": [
+      {
+        "name": "datum-cloud",
+        "sidebar": [
+          {
+            "path": "docs/introduction.md",
+            "type": "page"
+          }
+        ]
+      }
+    ],
+    "references": []
+  }
