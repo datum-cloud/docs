@@ -1,15 +1,29 @@
 {
-    "subdomain": "datum-cloud",
-    "guides": [
-      {
-        "name": "datum-cloud",
-        "sidebar": [
-          {
-            "path": "docs/introduction.md",
-            "type": "page"
-          }
-        ]
-      }
-    ],
-    "references": []
-  }
+  "subdomain": "datum-cloud.apidocumentation.com",
+  "guides": [
+    {
+      "name": "Guide",
+      "sidebar": [
+        {
+          "path": "guide/introduction.md",
+          "type": "page"
+        }
+      ]
+    },
+    {
+      "name": "Handbook",
+      "sidebar": [
+        {
+          "path": "handbook/welcome.md",
+          "type": "page"
+        }
+      ]
+    }
+  ],
+  "references": [
+    {
+      "name": "API Reference",
+      "path": "https://petstore.swagger.io/v2/swagger.json"
+    }
+  ]
+}
