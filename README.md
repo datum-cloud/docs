@@ -6,7 +6,7 @@ This is the documentation site for Datum Cloud. It is built with Scalar. For mor
 
 ### Local development
 
-The structure, theme and deployment options for the docs site are handled inside the `scalar.config.json` file. A complete list of the available options can be found here.
+The structure, theme and deployment options for the docs site are handled inside the `scalar.config.json` file. A complete list of the available options can be found [here](https://github.com/scalar/scalar/blob/main/documentation/configuration.md).
 
 Please note that guides and references are the two types of "pages" that are available on the site and they will appear as tabs in the header. References can point to local files or remote URLs and are best used for API references, while guides are used for more free-form content.
 
@@ -21,9 +21,18 @@ To edit the content of the guides, please create/edit markdown files inside this
   ]
 ```
 
-### For less technical folk
+To add a reference tab, you need to add an entry to the `references` array in the `scalar.config.json` file in a similar way, but the path needs to point to a valid OpenAPI file. 
 
-To update the Scalar docs/guides etc. non-technical editors can make changes directly in Scalar at 
+```json
+  "references": [
+    {
+        "name": "API Reference",
+        "path": "api/sample-openapi.yaml"
+    }
+  ]
+```
+
+**NOTE:** Only `.yaml` files seems to work here.
 
 #### Sidenote: the Scalar CLI
 

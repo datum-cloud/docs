@@ -22,8 +22,8 @@
   ],
   "references": [
     {
-      "name": "API Reference",
-      "path": "https://petstore.swagger.io/v2/swagger.json"
+        "name": "API Reference",
+        "path": "api/sample-openapi.yaml"
     }
   ]
 }
