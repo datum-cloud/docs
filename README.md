@@ -1,6 +1,6 @@
 # Datum Cloud Documentation Site
 
-This is the documentation site for Datum Cloud. It is built with Scalar and currently hosted [here](https://datum-cloud.apidocumentation.com/). For more information, see the [Scalar Documentation](https://guides.scalar.com/scalar/scalar-docs/getting-started).
+This is the documentation site for Datum Cloud. It is built with Scalar and currently hosted [here](https://datum-docs.apidocumentation.com/). For more information, see the [Scalar Documentation](https://guides.scalar.com/scalar/scalar-docs/getting-started).
 
 ## Making changes
 
