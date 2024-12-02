@@ -1,30 +1,24 @@
 {
-  "subdomain": "datum-docs.apidocumentation.com",
-  "publishOnMerge": true,
-  "guides": [
-    {
-      "name": "Guide",
-      "sidebar": [
+    "customDomain": "docs.datum.net",
+    "subdomain": "datum-docs.apidocumentation.com",
+    "publishOnMerge": true,
+    "guides": [{
+            "name": "Guide",
+            "sidebar": [{
+                "path": "guide/introduction.md",
+                "type": "page"
+            }]
+        },
         {
-          "path": "guide/introduction.md",
-          "type": "page"
+            "name": "Handbook",
+            "sidebar": [{
+                "path": "handbook/welcome.md",
+                "type": "page"
+            }]
         }
-      ]
-    },
-    {
-      "name": "Handbook",
-      "sidebar": [
-        {
-          "path": "handbook/welcome.md",
-          "type": "page"
-        }
-      ]
-    }
-  ],
-  "references": [
-    {
+    ],
+    "references": [{
         "name": "API Reference",
         "path": "api/openapi.yaml"
-    }
-  ]
+    }]
 }
