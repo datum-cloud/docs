@@ -1,4 +1,8 @@
 {
+    "siteMeta": {
+        "title": "Datum Documentation",
+        "description": "Guides and references for Datum Cloud & OS"
+    },
     "customDomain": "docs.datum.net",
     "subdomain": "datum-docs.apidocumentation.com",
     "publishOnMerge": true,
@@ -20,5 +24,12 @@
     "references": [{
         "name": "API Reference",
         "path": "api/openapi.yaml"
-    }]
+    }],
+    "siteConfig": {
+        "logo": {
+            "darkMode": "https://scalar.com/logo-light.svg",
+            "lightMode": "https://scalar.com/logo-dark.svg"
+        },
+        "footer": ""
+    }
 }
