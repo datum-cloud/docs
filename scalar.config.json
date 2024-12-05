@@ -26,6 +26,10 @@
         "path": "api/openapi.yaml"
     }],
     "siteConfig": {
+        "logo": {
+            "darkMode": "https://cloud.datum.net/icons/docs-logo.png",
+            "lightMode": "https://cloud.datum.net/icons/docs-logo.png"
+        },
         "footer": ""
     }
 }
