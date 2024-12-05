@@ -30,6 +30,15 @@
             "darkMode": "https://cloud.datum.net/icons/docs-logo.png",
             "lightMode": "https://cloud.datum.net/icons/docs-logo.png"
         },
+        "favicon": "favicon.ico",
+        "metaData": {
+            "title": "Datum Documentation",
+            "description": "Guides and references for Datum Cloud & Datum OS",
+            "ogDescription": "Guides and references for Datum Cloud & Datum OS",
+            "ogTitle": "Datum Documentation",
+            "ogImage": "https://cloud.datum.net/icons/docs-logo.png",
+            "twitterCard": "summary_large_image"
+        },
         "footer": ""
     }
 }
