@@ -1,0 +1,2144 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Datum OS API",
+        "description": "API for the Datum OS",
+        "termsOfService": "https://datum.net/terms",
+        "version": "1.0.0",
+        "contact": {
+            "name": "API Support",
+            "url": "https://support.datum.net",
+            "email": "support@datum.net"
+        }
+    },
+    "tags": [{
+            "name": "Organizations"
+        },
+        {
+            "name": "Projects"
+        },
+        {
+            "name": "Users"
+        }
+    ],
+    "schemes": [
+        "https"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/v1alpha/folders/{folder}/projects": {
+            "get": {
+                "summary": "Lists projects under a parent resource.",
+                "description": "Projects can be organized into Folders or set at the root of the\nOrganizatino's heirarchy.",
+                "operationId": "Projects_ListProjects2",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.ListProjectsResponse"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "folder",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "pageSize",
+                        "description": "Optional. The maximum number of projects to return. If unspecified,\ndefaults to 50.",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    {
+                        "name": "pageToken",
+                        "description": "Optional. A token identifying a page of results to return.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "filter",
+                        "description": "Optional. A filter to apply to the results.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "showDeleted",
+                        "description": "Optional. When set to true, the response will include deleted projects.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Projects"
+                ]
+            },
+            "post": {
+                "summary": "Creates a project within the resource hierarchy.",
+                "operationId": "Projects_CreateProject2",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "folder",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "project",
+                        "description": "The project to create.",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Project",
+                            "required": [
+                                "project"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "projectId",
+                        "description": "Set the ID to use for the project. This will be used as the last section of\nthe project's resource name.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "When set to true, the request will be validated but the project will not be\ncreated within the system. This is helpful to perform server-side\nvalidation of resources and show validation errors to users prior to\nallowing them to submit the creation request.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Projects"
+                ]
+            }
+        },
+        "/v1alpha/organizations": {
+            "get": {
+                "summary": "ListOrganizations lists all Organizations.",
+                "operationId": "Organizations_ListOrganizations",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.ListOrganizationsResponse"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "parent",
+                        "description": "The parent organization where the Organizations will be listed.\nIf not specified, the current user's organization will be used.",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "pageSize",
+                        "description": "The maximum number of Organizations to return. The service may return fewer\nthan this value. If unspecified, at most 50 Organizations will be returned.\nThe maximum value is 1000; values above 1000 will be coerced to 1000.",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    {
+                        "name": "pageToken",
+                        "description": "A page token, received from a previous `ListOrganizations` call. Provide\nthis to retrieve the subsequent page. When paginating, all other parameters\nmust match the call that provided the page token.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "filter",
+                        "description": "A filter expression that filters the Organizations to be listed.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "orderBy",
+                        "description": "The order by fields for the Organizations. The default order is ascending.\nThere is no descending order.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "showDeleted",
+                        "description": "Show deleted Organizations.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Organizations"
+                ]
+            },
+            "post": {
+                "summary": "CreateOrganization creates a new Organization.",
+                "operationId": "Organizations_CreateOrganization",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "parent",
+                        "description": "The parent resource where the Organization will be created. Defaults to the\ncurrent user's organization. Format: organizations",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "organization",
+                        "description": "The Organization to create.",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Organization",
+                            "required": [
+                                "organization"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "organizationId",
+                        "description": "The ID to use for the Organization. If not specified, an ID will be\nautomatically generated. If the ID is automatically generated, the Client\nis responsible for reconciliation.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "If true, the request is validated and nothing is persisted.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Organizations"
+                ]
+            }
+        },
+        "/v1alpha/organizations/{organization}": {
+            "get": {
+                "summary": "GetOrganization gets an Organization by name.",
+                "operationId": "Organizations_GetOrganization",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Organization"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                    "name": "organization",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }],
+                "tags": [
+                    "Organizations"
+                ]
+            },
+            "delete": {
+                "summary": "DeleteOrganization deletes an Organization by name.",
+                "operationId": "Organizations_DeleteOrganization",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "organization",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "etag",
+                        "description": "The etag of the Organization to delete. If this is not the same etag as the\ncurrently stored Organization, the request will be rejected. If not\nprovided, the Organization will be deleted unconditionally.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "If true, the request is validated and nothing is persisted.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "allowMissing",
+                        "description": "If true, an organization that is missing or previously deleted will be\ndeleted successfully.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Organizations"
+                ]
+            },
+            "patch": {
+                "summary": "UpdateOrganization updates an Organization.",
+                "operationId": "Organizations_UpdateOrganization",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "organization",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "organization",
+                        "description": "The Organization to update.",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "organizationId": {
+                                    "type": "string",
+                                    "description": "The resource ID of this Organization within its parent resource.",
+                                    "readOnly": true
+                                },
+                                "uid": {
+                                    "type": "string",
+                                    "description": "Server assigned unique identifier for the Organization. The value\nis a UUID4 string and guaranteed to remain unchanged until the resource is\ndeleted.",
+                                    "readOnly": true
+                                },
+                                "displayName": {
+                                    "type": "string",
+                                    "description": "Human-readable display name of this Organization that you can modify.\nThe maximum length is 63 characters."
+                                },
+                                "annotations": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "description": "Annotations is an unstructured key-value map stored with a Organization\nthat may be set by external tools to store and retrieve arbitrary metadata.\nThey are not queryable and should be preserved when modifying objects."
+                                },
+                                "labels": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "description": "Labels is an unstructured key-value map stored with a Organization that\nmay be set by external tools to enable platform features which identify\nOrganizations via label selections."
+                                },
+                                "createTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Output only. The time when the Organization is created.",
+                                    "readOnly": true
+                                },
+                                "updateTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Output only. The last time that the Organization is updated.",
+                                    "readOnly": true
+                                },
+                                "deleteTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Output only. For a deleted resource, the deletion time. It is only\npopulated as a response to a Delete request.",
+                                    "readOnly": true
+                                },
+                                "reconciling": {
+                                    "type": "boolean",
+                                    "description": "Output only. If set, there are currently changes in flight to the\nOrganization.",
+                                    "readOnly": true
+                                },
+                                "etag": {
+                                    "type": "string",
+                                    "description": "This checksum is computed by the server based on the value of\nother fields, and might be sent on update requests to ensure the client has\nan up-to-date value before proceeding.",
+                                    "readOnly": true
+                                },
+                                "spec": {
+                                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Organization.Spec",
+                                    "description": "The specifications of the Organization."
+                                },
+                                "status": {
+                                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Organization.Status",
+                                    "description": "The status of the Organization.",
+                                    "readOnly": true
+                                }
+                            },
+                            "title": "The Organization to update.",
+                            "required": [
+                                "spec",
+                                "organization"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "allowMissing",
+                        "description": "Allow missing Organization. If true, the Organization will be created if it\ndoes not exist. In this case, field_mask is ignored.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "If true, the request is validated and nothing is persisted.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Organizations"
+                ]
+            }
+        },
+        "/v1alpha/organizations/{organization}/projects": {
+            "get": {
+                "summary": "Lists projects under a parent resource.",
+                "description": "Projects can be organized into Folders or set at the root of the\nOrganizatino's heirarchy.",
+                "operationId": "Projects_ListProjects",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.ListProjectsResponse"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "organization",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "pageSize",
+                        "description": "Optional. The maximum number of projects to return. If unspecified,\ndefaults to 50.",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    {
+                        "name": "pageToken",
+                        "description": "Optional. A token identifying a page of results to return.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "filter",
+                        "description": "Optional. A filter to apply to the results.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "showDeleted",
+                        "description": "Optional. When set to true, the response will include deleted projects.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Projects"
+                ]
+            },
+            "post": {
+                "summary": "Creates a project within the resource hierarchy.",
+                "operationId": "Projects_CreateProject",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "organization",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "project",
+                        "description": "The project to create.",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Project",
+                            "required": [
+                                "project"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "projectId",
+                        "description": "Set the ID to use for the project. This will be used as the last section of\nthe project's resource name.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "When set to true, the request will be validated but the project will not be\ncreated within the system. This is helpful to perform server-side\nvalidation of resources and show validation errors to users prior to\nallowing them to submit the creation request.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Projects"
+                ]
+            }
+        },
+        "/v1alpha/organizations/{organization}/users": {
+            "get": {
+                "summary": "ListUsers lists all Users.",
+                "operationId": "Users_ListUsers2",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.ListUsersResponse"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "organization",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "pageSize",
+                        "description": "The maximum number of Users to return. The service may return fewer than\nthis value. If unspecified, at most 50 Users will be returned. The maximum\nvalue is 1000; values above 1000 will be coerced to 1000.",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    {
+                        "name": "pageToken",
+                        "description": "A page token, received from a previous `ListUsers` call. Provide this to\nretrieve the subsequent page. When paginating, all other parameters must\nmatch the call that provided the page token.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "filter",
+                        "description": "A filter expression that filters the Users to be listed.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "orderBy",
+                        "description": "The order by fields for the Users. The default order is ascending. There is\nno descending order.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "showDeleted",
+                        "description": "If true, the deleted Users will be included in the response.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Users"
+                ]
+            },
+            "post": {
+                "summary": "CreateUser creates a new User.",
+                "operationId": "Users_CreateUser2",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "organization",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "user",
+                        "description": "The User to create.",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.User",
+                            "required": [
+                                "user"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "description": "The ID to use for the User. If not specified, an ID will be automatically\ngenerated. If the ID is automatically generated, the Client is responsible\nfor reconciliation.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "If true, the request is validated and nothing is persisted.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Users"
+                ]
+            }
+        },
+        "/v1alpha/organizations/{organization}/users/{user}": {
+            "get": {
+                "summary": "GetUser gets a User by name.",
+                "operationId": "Users_GetUser2",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.User"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "organization",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    }
+                ],
+                "tags": [
+                    "Users"
+                ]
+            },
+            "delete": {
+                "summary": "DeleteUser deletes a User by name.",
+                "operationId": "Users_DeleteUser2",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "organization",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "etag",
+                        "description": "The etag of the User to delete. If this is not the same etag as the\ncurrently stored User, the request will be rejected. If not provided, the\nUser will be deleted unconditionally.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "If true, the request is validated and nothing is persisted.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "allowMissing",
+                        "description": "If true, the User will be deleted successfully even if it does not exist.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "force",
+                        "description": "If true, the User will be deleted even if it has child resources still\nexisting.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Users"
+                ]
+            },
+            "patch": {
+                "summary": "UpdateUser updates a User.",
+                "operationId": "Users_UpdateUser2",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "organization",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "user",
+                        "description": "The User to update.",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "userId": {
+                                    "type": "string",
+                                    "description": "The resource ID of this User within its parent resource.",
+                                    "readOnly": true
+                                },
+                                "uid": {
+                                    "type": "string",
+                                    "description": "Server assigned unique identifier for the User. The value\nis a UUID4 string and guaranteed to remain unchanged until the resource is\ndeleted.",
+                                    "readOnly": true
+                                },
+                                "displayName": {
+                                    "type": "string",
+                                    "description": "Human-readable display name of this User that you can modify.\nThe maximum length is 63 characters."
+                                },
+                                "annotations": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "description": "Annotations is an unstructured key-value map stored with a User that\nmay be set by external tools to store and retrieve arbitrary metadata.\nThey are not queryable and should be preserved when modifying objects."
+                                },
+                                "labels": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "description": "Labels is an unstructured key-value map stored with a User that\nmay be set by external tools to enable platform features which identify\nUsers via label selections."
+                                },
+                                "createTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Output only. The time when the User is created.",
+                                    "readOnly": true
+                                },
+                                "updateTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Output only. The last time that the User is updated.",
+                                    "readOnly": true
+                                },
+                                "deleteTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Output only. For a deleted resource, the deletion time. It is only\npopulated as a response to a Delete request.",
+                                    "readOnly": true
+                                },
+                                "reconciling": {
+                                    "type": "boolean",
+                                    "description": "Output only. If set, there are currently changes in flight to the User.",
+                                    "readOnly": true
+                                },
+                                "etag": {
+                                    "type": "string",
+                                    "description": "This checksum is computed by the server based on the value of\nother fields, and might be sent on update requests to ensure the client has\nan up-to-date value before proceeding.",
+                                    "readOnly": true
+                                },
+                                "spec": {
+                                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.UserSpec",
+                                    "description": "The specification of the user."
+                                },
+                                "status": {
+                                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.UserStatus",
+                                    "description": "The status of the user.",
+                                    "readOnly": true
+                                }
+                            },
+                            "title": "The User to update.",
+                            "required": [
+                                "spec",
+                                "user"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "allowMissing",
+                        "description": "If true, the User will be created if it does not exist. In this case,\nfield_mask is ignored.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "If true, the request is validated and nothing is persisted.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Users"
+                ]
+            }
+        },
+        "/v1alpha/projects/{project}": {
+            "get": {
+                "summary": "Retrieves a project by its name.",
+                "description": "This will always return the expected state of the project. The project's\nstatus will always reflect the last observed status of the project.",
+                "operationId": "Projects_GetProject",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Project"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                    "name": "project",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }],
+                "tags": [
+                    "Projects"
+                ]
+            },
+            "delete": {
+                "summary": "Delete a project from the platform.",
+                "description": "A project will not be deleted until all resources have been removed from\nthe project. Deleting a project will not immediately stop the billing for\nany resources provisioned within the project. Billing for a resource\nprovisioned within a project will only stop once the resource has been\nremoved.\n\nProjects can be scheduled for deletion in the future but no guarantees are\nprovided on when the deletion will start after the requested deletion time\nhas passed.",
+                "operationId": "Projects_DeleteProject",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "project",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "Indicates the request to update the project should only be validated and\nchanges must not actually take effect on the resource. API consumers can\nleverage this option to perform validation and present errors to users\nbefore submitting a real update request.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "etag",
+                        "description": "Optionally provide the computed checksum value of the current resource to\nensure updates only take effect when the latest resource was provided by\nthe caller.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "allowMissing",
+                        "description": "When set to true, the request will still succeed if the project does not\nexist.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Projects"
+                ]
+            },
+            "patch": {
+                "summary": "Updates an existing Project",
+                "operationId": "Projects_UpdateProject",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "project",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "project",
+                        "description": "Required. The project to update.",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "parent": {
+                                    "type": "string",
+                                    "description": "The resource name of the Project's parent in the resource hierarchy. This\nvalue will change if the project is moved in the resource hierachy. The\nparent will always be a folder (e.g. `folders/{folder}`) or organization\n(e.g. `organizations/{organization}`).\n\nThe [MoveProject] method can be used to move the Project to a new parent.",
+                                    "readOnly": true
+                                },
+                                "uid": {
+                                    "type": "string",
+                                    "description": "A system-generated UUIDv4 that uniquely identifies the resource.",
+                                    "readOnly": true
+                                },
+                                "etag": {
+                                    "type": "string",
+                                    "description": "A checksum calculated by the server based on the current state of the\nproject resource. This value can be sent on update and delete requests to\nensure the client has an up-to-date value before proceeding with the mutate\ncall.",
+                                    "readOnly": true
+                                },
+                                "createTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "The time when the project was created.",
+                                    "readOnly": true
+                                },
+                                "updateTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "The time when the project was last updated.",
+                                    "readOnly": true
+                                },
+                                "deleteTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "The time when the project was deleted.",
+                                    "readOnly": true
+                                },
+                                "reconciling": {
+                                    "type": "boolean",
+                                    "description": "Inidicates whether the project is being reconciled because the current\nstate of the project does not match the desired state.",
+                                    "readOnly": true
+                                },
+                                "annotations": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "description": "Annotations are an unstructured key-value map stored with a project that\nmay be set by external tools to store and retrieve arbitrary metadata.\nThey are not queryable and will be preserved when modifying objects.\n\nAnnotation keys must be in a fully-qualified domain format.\n\n  annotations:\n    resourcemanager.datumapis.com/project-id: some-value\n    extensions.calico.com/network: some-network"
+                                },
+                                "labels": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "description": "Labels are an unstructured key-value map that can be used to categorizing\nthe resource. Eventually the system will allow filtering on project labels."
+                                },
+                                "displayName": {
+                                    "type": "string",
+                                    "description": "A user-provided name for the project. This must be unique within the parent\nresource."
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "description": "An optional description for the project."
+                                }
+                            },
+                            "title": "Required. The project to update.",
+                            "required": [
+                                "displayName",
+                                "project"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "Indicates the request to update the project should only be validated and\nchanges must not actually take effect on the resource. API consumers can\nleverage this option to perform validation and present errors to users\nbefore submitting a real update request.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "allowMissing",
+                        "description": "Set to true to indicate that a new Project should be created if the\nprovided project doesn't already exist.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Projects"
+                ]
+            }
+        },
+        "/v1alpha/projects/{project}:move": {
+            "post": {
+                "summary": "Move a project to a new location in the resource hierarchy.",
+                "description": "Users can move projects new locations in the resource hierarchy based on\ntheir organizational needs. Changing the location in the hierarchy can have\nadverse affects on IAM policies inherited by the project. Users must be\ncareful that IAM policies applied from the existing parent are also set on\nthe new parent **before** moving the project, otherwise they risk access\ngranted through a parent's policies being removed.",
+                "operationId": "Projects_MoveProject",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "project",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Projects.MoveProjectBody"
+                        }
+                    }
+                ],
+                "tags": [
+                    "Projects"
+                ]
+            }
+        },
+        "/v1alpha/users": {
+            "get": {
+                "summary": "ListUsers lists all Users.",
+                "operationId": "Users_ListUsers",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.ListUsersResponse"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "parent",
+                        "description": "The parent resource of the Users.",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "pageSize",
+                        "description": "The maximum number of Users to return. The service may return fewer than\nthis value. If unspecified, at most 50 Users will be returned. The maximum\nvalue is 1000; values above 1000 will be coerced to 1000.",
+                        "in": "query",
+                        "required": false,
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    {
+                        "name": "pageToken",
+                        "description": "A page token, received from a previous `ListUsers` call. Provide this to\nretrieve the subsequent page. When paginating, all other parameters must\nmatch the call that provided the page token.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "filter",
+                        "description": "A filter expression that filters the Users to be listed.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "orderBy",
+                        "description": "The order by fields for the Users. The default order is ascending. There is\nno descending order.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "showDeleted",
+                        "description": "If true, the deleted Users will be included in the response.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Users"
+                ]
+            },
+            "post": {
+                "summary": "CreateUser creates a new User.",
+                "operationId": "Users_CreateUser",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "parent",
+                        "description": "The parent resource of the User.",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "user",
+                        "description": "The User to create.",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.User",
+                            "required": [
+                                "user"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "userId",
+                        "description": "The ID to use for the User. If not specified, an ID will be automatically\ngenerated. If the ID is automatically generated, the Client is responsible\nfor reconciliation.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "If true, the request is validated and nothing is persisted.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Users"
+                ]
+            }
+        },
+        "/v1alpha/users/{user}": {
+            "get": {
+                "summary": "GetUser gets a User by name.",
+                "operationId": "Users_GetUser",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.User"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                    "name": "user",
+                    "in": "path",
+                    "required": true,
+                    "type": "string"
+                }],
+                "tags": [
+                    "Users"
+                ]
+            },
+            "delete": {
+                "summary": "DeleteUser deletes a User by name.",
+                "operationId": "Users_DeleteUser",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "etag",
+                        "description": "The etag of the User to delete. If this is not the same etag as the\ncurrently stored User, the request will be rejected. If not provided, the\nUser will be deleted unconditionally.",
+                        "in": "query",
+                        "required": false,
+                        "type": "string"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "If true, the request is validated and nothing is persisted.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "allowMissing",
+                        "description": "If true, the User will be deleted successfully even if it does not exist.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "force",
+                        "description": "If true, the User will be deleted even if it has child resources still\nexisting.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Users"
+                ]
+            },
+            "patch": {
+                "summary": "UpdateUser updates a User.",
+                "operationId": "Users_UpdateUser",
+                "responses": {
+                    "200": {
+                        "description": "A successful response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.longrunning.Operation"
+                        }
+                    },
+                    "default": {
+                        "description": "An unexpected error response.",
+                        "schema": {
+                            "$ref": "#/definitions/google.rpc.Status"
+                        }
+                    }
+                },
+                "parameters": [{
+                        "name": "user",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "user",
+                        "description": "The User to update.",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "userId": {
+                                    "type": "string",
+                                    "description": "The resource ID of this User within its parent resource.",
+                                    "readOnly": true
+                                },
+                                "uid": {
+                                    "type": "string",
+                                    "description": "Server assigned unique identifier for the User. The value\nis a UUID4 string and guaranteed to remain unchanged until the resource is\ndeleted.",
+                                    "readOnly": true
+                                },
+                                "displayName": {
+                                    "type": "string",
+                                    "description": "Human-readable display name of this User that you can modify.\nThe maximum length is 63 characters."
+                                },
+                                "annotations": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "description": "Annotations is an unstructured key-value map stored with a User that\nmay be set by external tools to store and retrieve arbitrary metadata.\nThey are not queryable and should be preserved when modifying objects."
+                                },
+                                "labels": {
+                                    "type": "object",
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "description": "Labels is an unstructured key-value map stored with a User that\nmay be set by external tools to enable platform features which identify\nUsers via label selections."
+                                },
+                                "createTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Output only. The time when the User is created.",
+                                    "readOnly": true
+                                },
+                                "updateTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Output only. The last time that the User is updated.",
+                                    "readOnly": true
+                                },
+                                "deleteTime": {
+                                    "type": "string",
+                                    "format": "date-time",
+                                    "description": "Output only. For a deleted resource, the deletion time. It is only\npopulated as a response to a Delete request.",
+                                    "readOnly": true
+                                },
+                                "reconciling": {
+                                    "type": "boolean",
+                                    "description": "Output only. If set, there are currently changes in flight to the User.",
+                                    "readOnly": true
+                                },
+                                "etag": {
+                                    "type": "string",
+                                    "description": "This checksum is computed by the server based on the value of\nother fields, and might be sent on update requests to ensure the client has\nan up-to-date value before proceeding.",
+                                    "readOnly": true
+                                },
+                                "spec": {
+                                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.UserSpec",
+                                    "description": "The specification of the user."
+                                },
+                                "status": {
+                                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.UserStatus",
+                                    "description": "The status of the user.",
+                                    "readOnly": true
+                                }
+                            },
+                            "title": "The User to update.",
+                            "required": [
+                                "spec",
+                                "user"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "allowMissing",
+                        "description": "If true, the User will be created if it does not exist. In this case,\nfield_mask is ignored.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    },
+                    {
+                        "name": "validateOnly",
+                        "description": "If true, the request is validated and nothing is persisted.",
+                        "in": "query",
+                        "required": false,
+                        "type": "boolean"
+                    }
+                ],
+                "tags": [
+                    "Users"
+                ]
+            }
+        }
+    },
+    "definitions": {
+        "datum.os.resourcemanager.v1alpha.AuthProvider": {
+            "type": "string",
+            "enum": [
+                "AUTH_PROVIDER_UNSPECIFIED",
+                "AUTH_PROVIDER_CREDENTIALS",
+                "AUTH_PROVIDER_GOOGLE",
+                "AUTH_PROVIDER_GITHUB",
+                "AUTH_PROVIDER_WEBAUTHN"
+            ],
+            "default": "AUTH_PROVIDER_UNSPECIFIED",
+            "description": "AuthProvider is the auth provider used to register the account.\n\n - AUTH_PROVIDER_UNSPECIFIED: The auth provider is not specified.\n - AUTH_PROVIDER_CREDENTIALS: The auth provider is credentials (email and password).\n - AUTH_PROVIDER_GOOGLE: The auth provider is Google.\n - AUTH_PROVIDER_GITHUB: The auth provider is GitHub.\n - AUTH_PROVIDER_WEBAUTHN: The auth provider is WebAuthn."
+        },
+        "datum.os.resourcemanager.v1alpha.ListOrganizationsResponse": {
+            "type": "object",
+            "properties": {
+                "organizations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Organization"
+                    },
+                    "description": "The list of Organizations."
+                },
+                "nextPageToken": {
+                    "type": "string",
+                    "description": "A token to retrieve the next page of results.\nPass this value in the ListOrganizationsRequest.page_token field in a\nsubsequent call to `ListOrganizations` to retrieve the next page of\nresults. If the page token is not set, there are no more results."
+                }
+            },
+            "description": "ListOrganizationsResponse is the response for listing Organizations."
+        },
+        "datum.os.resourcemanager.v1alpha.ListProjectsResponse": {
+            "type": "object",
+            "properties": {
+                "projects": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Project"
+                    },
+                    "description": "The list of projects."
+                },
+                "nextPageToken": {
+                    "type": "string",
+                    "description": "A token to retrieve the next page of results."
+                }
+            },
+            "description": "The response message for listing projects."
+        },
+        "datum.os.resourcemanager.v1alpha.ListUsersResponse": {
+            "type": "object",
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.User"
+                    },
+                    "description": "The list of Users."
+                },
+                "nextPageToken": {
+                    "type": "string",
+                    "description": "A token to retrieve the next page of results.\nPass this value in the ListUsersRequest.page_token field in a subsequent\ncall to `ListUsers` to retrieve the next page of results. If the page token\nis not set, there are no more results."
+                }
+            },
+            "description": "ListUsersResponse is the response for listing Users."
+        },
+        "datum.os.resourcemanager.v1alpha.Organization": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The resource name of this Organization.",
+                    "readOnly": true
+                },
+                "organizationId": {
+                    "type": "string",
+                    "description": "The resource ID of this Organization within its parent resource.",
+                    "readOnly": true
+                },
+                "uid": {
+                    "type": "string",
+                    "description": "Server assigned unique identifier for the Organization. The value\nis a UUID4 string and guaranteed to remain unchanged until the resource is\ndeleted.",
+                    "readOnly": true
+                },
+                "displayName": {
+                    "type": "string",
+                    "description": "Human-readable display name of this Organization that you can modify.\nThe maximum length is 63 characters."
+                },
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Annotations is an unstructured key-value map stored with a Organization\nthat may be set by external tools to store and retrieve arbitrary metadata.\nThey are not queryable and should be preserved when modifying objects."
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Labels is an unstructured key-value map stored with a Organization that\nmay be set by external tools to enable platform features which identify\nOrganizations via label selections."
+                },
+                "createTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Output only. The time when the Organization is created.",
+                    "readOnly": true
+                },
+                "updateTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Output only. The last time that the Organization is updated.",
+                    "readOnly": true
+                },
+                "deleteTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Output only. For a deleted resource, the deletion time. It is only\npopulated as a response to a Delete request.",
+                    "readOnly": true
+                },
+                "reconciling": {
+                    "type": "boolean",
+                    "description": "Output only. If set, there are currently changes in flight to the\nOrganization.",
+                    "readOnly": true
+                },
+                "etag": {
+                    "type": "string",
+                    "description": "This checksum is computed by the server based on the value of\nother fields, and might be sent on update requests to ensure the client has\nan up-to-date value before proceeding.",
+                    "readOnly": true
+                },
+                "spec": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Organization.Spec",
+                    "description": "The specifications of the Organization."
+                },
+                "status": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Organization.Status",
+                    "description": "The status of the Organization.",
+                    "readOnly": true
+                }
+            },
+            "description": "Organization is a resource representing an Organization.",
+            "required": [
+                "spec"
+            ]
+        },
+        "datum.os.resourcemanager.v1alpha.Organization.OrgUser": {
+            "type": "object",
+            "properties": {
+                "uid": {
+                    "type": "string",
+                    "description": "The uid of the user.",
+                    "readOnly": true
+                },
+                "firstname": {
+                    "type": "string",
+                    "description": "The first name of the user.",
+                    "readOnly": true
+                },
+                "lastname": {
+                    "type": "string",
+                    "description": "The last name of the user.",
+                    "readOnly": true
+                },
+                "email": {
+                    "type": "string",
+                    "description": "The email of the user.",
+                    "readOnly": true
+                }
+            },
+            "description": "OrgUser is a user of an organization. It is a subset of the User resource\nmeant for convenience only."
+        },
+        "datum.os.resourcemanager.v1alpha.Organization.Spec": {
+            "type": "object",
+            "properties": {
+                "parentOrganizationId": {
+                    "type": "string",
+                    "description": "The ID of the parent organization for the organization."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "A description of the organization."
+                },
+                "avatarRemoteUri": {
+                    "type": "string",
+                    "description": "The URL of the organization's avatar."
+                },
+                "avatarDataUri": {
+                    "type": "string",
+                    "description": "The data URI of the organization's avatar."
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Organization.OrgUser"
+                    },
+                    "description": "The members of the organization.",
+                    "readOnly": true
+                },
+                "owners": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Organization.OrgUser"
+                    },
+                    "description": "The owners of the organization.",
+                    "readOnly": true
+                }
+            },
+            "description": "Spec is the specification of an Organization."
+        },
+        "datum.os.resourcemanager.v1alpha.Organization.Status": {
+            "type": "object",
+            "properties": {
+                "verificationState": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.VerificationState",
+                    "description": "The verification state of the organization.",
+                    "readOnly": true
+                },
+                "internal": {
+                    "type": "boolean",
+                    "description": "For internal use only.",
+                    "readOnly": true
+                },
+                "personal": {
+                    "type": "boolean",
+                    "description": "For internal user only.",
+                    "readOnly": true
+                }
+            },
+            "description": "Status is the status of an Organization."
+        },
+        "datum.os.resourcemanager.v1alpha.Project": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "title": "The resource name of the Project.\nFormat: projects/{project}"
+                },
+                "parent": {
+                    "type": "string",
+                    "description": "The resource name of the Project's parent in the resource hierarchy. This\nvalue will change if the project is moved in the resource hierachy. The\nparent will always be a folder (e.g. `folders/{folder}`) or organization\n(e.g. `organizations/{organization}`).\n\nThe [MoveProject] method can be used to move the Project to a new parent.",
+                    "readOnly": true
+                },
+                "uid": {
+                    "type": "string",
+                    "description": "A system-generated UUIDv4 that uniquely identifies the resource.",
+                    "readOnly": true
+                },
+                "etag": {
+                    "type": "string",
+                    "description": "A checksum calculated by the server based on the current state of the\nproject resource. This value can be sent on update and delete requests to\nensure the client has an up-to-date value before proceeding with the mutate\ncall.",
+                    "readOnly": true
+                },
+                "createTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The time when the project was created.",
+                    "readOnly": true
+                },
+                "updateTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The time when the project was last updated.",
+                    "readOnly": true
+                },
+                "deleteTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The time when the project was deleted.",
+                    "readOnly": true
+                },
+                "reconciling": {
+                    "type": "boolean",
+                    "description": "Inidicates whether the project is being reconciled because the current\nstate of the project does not match the desired state.",
+                    "readOnly": true
+                },
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Annotations are an unstructured key-value map stored with a project that\nmay be set by external tools to store and retrieve arbitrary metadata.\nThey are not queryable and will be preserved when modifying objects.\n\nAnnotation keys must be in a fully-qualified domain format.\n\n  annotations:\n    resourcemanager.datumapis.com/project-id: some-value\n    extensions.calico.com/network: some-network"
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Labels are an unstructured key-value map that can be used to categorizing\nthe resource. Eventually the system will allow filtering on project labels."
+                },
+                "displayName": {
+                    "type": "string",
+                    "description": "A user-provided name for the project. This must be unique within the parent\nresource."
+                },
+                "description": {
+                    "type": "string",
+                    "description": "An optional description for the project."
+                }
+            },
+            "description": "The Project resource message.",
+            "required": [
+                "displayName"
+            ]
+        },
+        "datum.os.resourcemanager.v1alpha.Projects.MoveProjectBody": {
+            "type": "object",
+            "properties": {
+                "destinationParent": {
+                    "type": "string",
+                    "description": "The location within the hierarchy to move the project to. The project\ncan be moved to another folder within the organization or the root of\nthe organization. Must be the resource name of the parent, e.g.\n`folders/{folder}` or `organizations/{organization}`."
+                },
+                "etag": {
+                    "type": "string",
+                    "description": "Optionally provide the computed checksum value of the current resource to\nensure a project will only be moved when the current resource was provided\nin the request."
+                },
+                "validateOnly": {
+                    "type": "boolean",
+                    "description": "When set to true, the request will only be validated and no actions will be\ntaken on the project. This is helpful for confirming the request options\nare correct before calling the endpoint."
+                }
+            },
+            "description": "The request message to use when moving a project to a new location within\nthe resource hierarchy.",
+            "required": [
+                "destinationParent"
+            ]
+        },
+        "datum.os.resourcemanager.v1alpha.Role": {
+            "type": "string",
+            "enum": [
+                "ROLE_UNSPECIFIED",
+                "ROLE_OWNER",
+                "ROLE_ADMIN",
+                "ROLE_MEMBER",
+                "ROLE_USER"
+            ],
+            "default": "ROLE_UNSPECIFIED",
+            "description": "Role is the role of a user.\n\n - ROLE_UNSPECIFIED: The role is not specified.\n - ROLE_OWNER: The role is owner.\n - ROLE_ADMIN: The role is admin.\n - ROLE_MEMBER: The role is member.\n - ROLE_USER: The role is user."
+        },
+        "datum.os.resourcemanager.v1alpha.UITheme": {
+            "type": "string",
+            "enum": [
+                "UI_THEME_UNSPECIFIED",
+                "UI_THEME_AUTO",
+                "UI_THEME_LIGHT",
+                "UI_THEME_DARK"
+            ],
+            "default": "UI_THEME_UNSPECIFIED",
+            "description": "UITheme is the theme of the user interface.\n\n - UI_THEME_UNSPECIFIED: The theme is not specified.\n - UI_THEME_AUTO: The theme is auto.\n - UI_THEME_LIGHT: The theme is light.\n - UI_THEME_DARK: The theme is dark."
+        },
+        "datum.os.resourcemanager.v1alpha.User": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The resource name of this User.",
+                    "readOnly": true
+                },
+                "userId": {
+                    "type": "string",
+                    "description": "The resource ID of this User within its parent resource.",
+                    "readOnly": true
+                },
+                "uid": {
+                    "type": "string",
+                    "description": "Server assigned unique identifier for the User. The value\nis a UUID4 string and guaranteed to remain unchanged until the resource is\ndeleted.",
+                    "readOnly": true
+                },
+                "displayName": {
+                    "type": "string",
+                    "description": "Human-readable display name of this User that you can modify.\nThe maximum length is 63 characters."
+                },
+                "annotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Annotations is an unstructured key-value map stored with a User that\nmay be set by external tools to store and retrieve arbitrary metadata.\nThey are not queryable and should be preserved when modifying objects."
+                },
+                "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "description": "Labels is an unstructured key-value map stored with a User that\nmay be set by external tools to enable platform features which identify\nUsers via label selections."
+                },
+                "createTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Output only. The time when the User is created.",
+                    "readOnly": true
+                },
+                "updateTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Output only. The last time that the User is updated.",
+                    "readOnly": true
+                },
+                "deleteTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "Output only. For a deleted resource, the deletion time. It is only\npopulated as a response to a Delete request.",
+                    "readOnly": true
+                },
+                "reconciling": {
+                    "type": "boolean",
+                    "description": "Output only. If set, there are currently changes in flight to the User.",
+                    "readOnly": true
+                },
+                "etag": {
+                    "type": "string",
+                    "description": "This checksum is computed by the server based on the value of\nother fields, and might be sent on update requests to ensure the client has\nan up-to-date value before proceeding.",
+                    "readOnly": true
+                },
+                "spec": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.UserSpec",
+                    "description": "The specification of the user."
+                },
+                "status": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.UserStatus",
+                    "description": "The status of the user.",
+                    "readOnly": true
+                }
+            },
+            "description": "User is a resource representing a User.",
+            "required": [
+                "spec"
+            ]
+        },
+        "datum.os.resourcemanager.v1alpha.UserSetting": {
+            "type": "object",
+            "properties": {
+                "uiTheme": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.UITheme",
+                    "description": "The theme of the user interface."
+                }
+            },
+            "description": "UserSetting is the setting of a User."
+        },
+        "datum.os.resourcemanager.v1alpha.UserSpec": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string",
+                    "description": "The email of the user."
+                },
+                "secondaryEmail": {
+                    "type": "string",
+                    "description": "The secondary email of the user. Can be used for notifications, account\nrecovery, etc."
+                },
+                "firstname": {
+                    "type": "string",
+                    "description": "The first name of the user."
+                },
+                "lastname": {
+                    "type": "string",
+                    "description": "The last name of the user."
+                },
+                "phoneNumbers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "$ref": "#/definitions/google.type.PhoneNumber"
+                    },
+                    "description": "The phone numbers of the user."
+                },
+                "avatarRemoteUri": {
+                    "type": "string",
+                    "description": "The avatar of the user, as a remote URI."
+                },
+                "avatarDataUri": {
+                    "type": "string",
+                    "description": "The avatar of the user, as a data URI."
+                },
+                "avatarUpdateTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The time the user's avatar was last updated."
+                },
+                "lastSeenTime": {
+                    "type": "string",
+                    "format": "date-time",
+                    "description": "The time the user was last seen."
+                },
+                "authProvider": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.AuthProvider",
+                    "description": "The auth provider used to register the account."
+                },
+                "role": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.Role",
+                    "description": "The role of the user."
+                },
+                "setting": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.UserSetting",
+                    "description": "The setting of the user."
+                }
+            },
+            "description": "UserSpec is the specification of a User.",
+            "required": [
+                "email"
+            ]
+        },
+        "datum.os.resourcemanager.v1alpha.UserState": {
+            "type": "string",
+            "enum": [
+                "USER_STATE_UNSPECIFIED",
+                "USER_STATE_ACTIVE",
+                "USER_STATE_INACTIVE",
+                "USER_STATE_DEACTIVATED",
+                "USER_STATE_SUSPENDED",
+                "USER_STATE_ONBOARDING"
+            ],
+            "default": "USER_STATE_UNSPECIFIED",
+            "description": "UserState is the state of a user.\n\n - USER_STATE_UNSPECIFIED: The state is not specified.\n - USER_STATE_ACTIVE: The state is active.\n - USER_STATE_INACTIVE: The state is inactive.\n - USER_STATE_DEACTIVATED: The state is deactivated.\n - USER_STATE_SUSPENDED: The state is suspended.\n - USER_STATE_ONBOARDING: The state is onboarding."
+        },
+        "datum.os.resourcemanager.v1alpha.UserStatus": {
+            "type": "object",
+            "properties": {
+                "verificationState": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.VerificationState",
+                    "description": "The verification state of the user.",
+                    "readOnly": true
+                },
+                "status": {
+                    "$ref": "#/definitions/datum.os.resourcemanager.v1alpha.UserState",
+                    "description": "The state of the user account.",
+                    "readOnly": true
+                },
+                "locked": {
+                    "type": "boolean",
+                    "description": "Indicates if the user account is locked.",
+                    "readOnly": true
+                },
+                "internal": {
+                    "type": "boolean",
+                    "description": "For internal use only.",
+                    "readOnly": true
+                }
+            },
+            "description": "UserStatus is the status of a User."
+        },
+        "datum.os.resourcemanager.v1alpha.VerificationState": {
+            "type": "string",
+            "enum": [
+                "VERIFICATION_STATE_UNSPECIFIED",
+                "VERIFICATION_STATE_PENDING",
+                "VERIFICATION_STATE_VERIFIED"
+            ],
+            "default": "VERIFICATION_STATE_UNSPECIFIED",
+            "description": "VerificationState is the verification state of an Organization or User.\n\n - VERIFICATION_STATE_UNSPECIFIED: The verification state is not specified.\n - VERIFICATION_STATE_PENDING: The organization is pending verification.\n - VERIFICATION_STATE_VERIFIED: The organization is verified."
+        },
+        "google.longrunning.Operation": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "The server-assigned name, which is only unique within the same service that\noriginally returns it. If you use the default HTTP mapping, the\n`name` should be a resource name ending with `operations/{unique_id}`."
+                },
+                "metadata": {
+                    "$ref": "#/definitions/google.protobuf.Any",
+                    "description": "Service-specific metadata associated with the operation.  It typically\ncontains progress information and common metadata such as create time.\nSome services might not provide such metadata.  Any method that returns a\nlong-running operation should document the metadata type, if any."
+                },
+                "done": {
+                    "type": "boolean",
+                    "description": "If the value is `false`, it means the operation is still in progress.\nIf `true`, the operation is completed, and either `error` or `response` is\navailable."
+                },
+                "error": {
+                    "$ref": "#/definitions/google.rpc.Status",
+                    "description": "The error result of the operation in case of failure or cancellation."
+                },
+                "response": {
+                    "$ref": "#/definitions/google.protobuf.Any",
+                    "description": "The normal response of the operation in case of success.  If the original\nmethod returns no data on success, such as `Delete`, the response is\n`google.protobuf.Empty`.  If the original method is standard\n`Get`/`Create`/`Update`, the response should be the resource.  For other\nmethods, the response should have the type `XxxResponse`, where `Xxx`\nis the original method name.  For example, if the original method name\nis `TakeSnapshot()`, the inferred response type is\n`TakeSnapshotResponse`."
+                }
+            },
+            "description": "This resource represents a long-running operation that is the result of a\nnetwork API call."
+        },
+        "google.protobuf.Any": {
+            "type": "object",
+            "properties": {
+                "@type": {
+                    "type": "string",
+                    "description": "A URL/resource name that uniquely identifies the type of the serialized\nprotocol buffer message. This string must contain at least\none \"/\" character. The last segment of the URL's path must represent\nthe fully qualified name of the type (as in\n`path/google.protobuf.Duration`). The name should be in a canonical form\n(e.g., leading \".\" is not accepted).\n\nIn practice, teams usually precompile into the binary all types that they\nexpect it to use in the context of Any. However, for URLs which use the\nscheme `http`, `https`, or no scheme, one can optionally set up a type\nserver that maps type URLs to message definitions as follows:\n\n* If no scheme is provided, `https` is assumed.\n* An HTTP GET on the URL must yield a [google.protobuf.Type][]\n  value in binary format, or produce an error.\n* Applications are allowed to cache lookup results based on the\n  URL, or have them precompiled into a binary to avoid any\n  lookup. Therefore, binary compatibility needs to be preserved\n  on changes to types. (Use versioned type names to manage\n  breaking changes.)\n\nNote: this functionality is not currently available in the official\nprotobuf release, and it is not used for type URLs beginning with\ntype.googleapis.com.\n\nSchemes other than `http`, `https` (or the empty scheme) might be\nused with implementation specific semantics."
+                }
+            },
+            "additionalProperties": {},
+            "description": "`Any` contains an arbitrary serialized protocol buffer message along with a\nURL that describes the type of the serialized message.\n\nProtobuf library provides support to pack/unpack Any values in the form\nof utility functions or additional generated methods of the Any type.\n\nExample 1: Pack and unpack a message in C++.\n\n    Foo foo = ...;\n    Any any;\n    any.PackFrom(foo);\n    ...\n    if (any.UnpackTo(\u0026foo)) {\n      ...\n    }\n\nExample 2: Pack and unpack a message in Java.\n\n    Foo foo = ...;\n    Any any = Any.pack(foo);\n    ...\n    if (any.is(Foo.class)) {\n      foo = any.unpack(Foo.class);\n    }\n\nExample 3: Pack and unpack a message in Python.\n\n    foo = Foo(...)\n    any = Any()\n    any.Pack(foo)\n    ...\n    if any.Is(Foo.DESCRIPTOR):\n      any.Unpack(foo)\n      ...\n\nExample 4: Pack and unpack a message in Go\n\n     foo := \u0026pb.Foo{...}\n     any, err := anypb.New(foo)\n     if err != nil {\n       ...\n     }\n     ...\n     foo := \u0026pb.Foo{}\n     if err := any.UnmarshalTo(foo); err != nil {\n       ...\n     }\n\nThe pack methods provided by protobuf library will by default use\n'type.googleapis.com/full.type.name' as the type URL and the unpack\nmethods only use the fully qualified type name after the last '/'\nin the type URL, for example \"foo.bar.com/x/y.z\" will yield type\nname \"y.z\".\n\n\nJSON\n\nThe JSON representation of an `Any` value uses the regular\nrepresentation of the deserialized, embedded message, with an\nadditional field `@type` which contains the type URL. Example:\n\n    package google.profile;\n    message Person {\n      string first_name = 1;\n      string last_name = 2;\n    }\n\n    {\n      \"@type\": \"type.googleapis.com/google.profile.Person\",\n      \"firstName\": \u003cstring\u003e,\n      \"lastName\": \u003cstring\u003e\n    }\n\nIf the embedded message type is well-known and has a custom JSON\nrepresentation, that representation will be embedded adding a field\n`value` which holds the custom JSON in addition to the `@type`\nfield. Example (for message [google.protobuf.Duration][]):\n\n    {\n      \"@type\": \"type.googleapis.com/google.protobuf.Duration\",\n      \"value\": \"1.212s\"\n    }"
+        },
+        "google.rpc.Status": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer",
+                    "format": "int32",
+                    "description": "The status code, which should be an enum value of\n[google.rpc.Code][google.rpc.Code]."
+                },
+                "message": {
+                    "type": "string",
+                    "description": "A developer-facing error message, which should be in English. Any\nuser-facing error message should be localized and sent in the\n[google.rpc.Status.details][google.rpc.Status.details] field, or localized\nby the client."
+                },
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "$ref": "#/definitions/google.protobuf.Any"
+                    },
+                    "description": "A list of messages that carry the error details.  There is a common set of\nmessage types for APIs to use."
+                }
+            },
+            "description": "The `Status` type defines a logical error model that is suitable for\ndifferent programming environments, including REST APIs and RPC APIs. It is\nused by [gRPC](https://github.com/grpc). Each `Status` message contains\nthree pieces of data: error code, error message, and error details.\n\nYou can find out more about this error model and how to work with it in the\n[API Design Guide](https://cloud.google.com/apis/design/errors)."
+        },
+        "google.type.PhoneNumber": {
+            "type": "object",
+            "properties": {
+                "e164Number": {
+                    "type": "string",
+                    "description": "The phone number, represented as a leading plus sign ('+'), followed by a\nphone number that uses a relaxed ITU E.164 format consisting of the\ncountry calling code (1 to 3 digits) and the subscriber number, with no\nadditional spaces or formatting, e.g.:\n - correct: \"+15552220123\"\n - incorrect: \"+1 (555) 222-01234 x123\".\n\nThe ITU E.164 format limits the latter to 12 digits, but in practice not\nall countries respect that, so we relax that restriction here.\nNational-only numbers are not allowed.\n\nReferences:\n - https://www.itu.int/rec/T-REC-E.164-201011-I\n - https://en.wikipedia.org/wiki/E.164.\n - https://en.wikipedia.org/wiki/List_of_country_calling_codes"
+                },
+                "shortCode": {
+                    "$ref": "#/definitions/google.type.PhoneNumber.ShortCode",
+                    "description": "A short code.\n\nReference(s):\n - https://en.wikipedia.org/wiki/Short_code"
+                },
+                "extension": {
+                    "type": "string",
+                    "description": "The phone number's extension. The extension is not standardized in ITU\nrecommendations, except for being defined as a series of numbers with a\nmaximum length of 40 digits. Other than digits, some other dialing\ncharacters such as ',' (indicating a wait) or '#' may be stored here.\n\nNote that no regions currently use extensions with short codes, so this\nfield is normally only set in conjunction with an E.164 number. It is held\nseparately from the E.164 number to allow for short code extensions in the\nfuture."
+                }
+            },
+            "description": "An object representing a phone number, suitable as an API wire format.\n\nThis representation:\n\n - should not be used for locale-specific formatting of a phone number, such\n   as \"+1 (650) 253-0000 ext. 123\"\n\n - is not designed for efficient storage\n - may not be suitable for dialing - specialized libraries (see references)\n   should be used to parse the number for that purpose\n\nTo do something meaningful with this number, such as format it for various\nuse-cases, convert it to an `i18n.phonenumbers.PhoneNumber` object first.\n\nFor instance, in Java this would be:\n\n   com.google.type.PhoneNumber wireProto =\n       com.google.type.PhoneNumber.newBuilder().build();\n   com.google.i18n.phonenumbers.Phonenumber.PhoneNumber phoneNumber =\n       PhoneNumberUtil.getInstance().parse(wireProto.getE164Number(), \"ZZ\");\n   if (!wireProto.getExtension().isEmpty()) {\n     phoneNumber.setExtension(wireProto.getExtension());\n   }\n\n Reference(s):\n  - https://github.com/google/libphonenumber"
+        },
+        "google.type.PhoneNumber.ShortCode": {
+            "type": "object",
+            "properties": {
+                "regionCode": {
+                    "type": "string",
+                    "description": "Required. The BCP-47 region code of the location where calls to this\nshort code can be made, such as \"US\" and \"BB\".\n\nReference(s):\n - http://www.unicode.org/reports/tr35/#unicode_region_subtag"
+                },
+                "number": {
+                    "type": "string",
+                    "description": "Required. The short code digits, without a leading plus ('+') or country\ncalling code, e.g. \"611\"."
+                }
+            },
+            "description": "An object representing a short code, which is a phone number that is\ntypically much shorter than regular phone numbers and can be used to\naddress messages in MMS and SMS systems, as well as for abbreviated dialing\n(e.g. \"Text 611 to see how many minutes you have remaining on your plan.\").\n\nShort codes are restricted to a region and are not internationally\ndialable, which means the same short code can exist in different regions,\nwith different usage and pricing, even if those regions share the same\ncountry calling code (e.g. US and CA)."
+        }
+    }
+}

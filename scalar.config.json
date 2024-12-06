@@ -23,7 +23,7 @@
     ],
     "references": [{
         "name": "API Reference",
-        "path": "api/openapi.yaml"
+        "path": "api/openapi.swagger.json"
     }],
     "siteConfig": {
         "logo": {
