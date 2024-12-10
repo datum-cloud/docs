@@ -23,7 +23,7 @@
     ],
     "references": [{
         "name": "API Reference",
-        "url": "https://datum-cloud.github.io/datum-os/public-api.swagger.json"
+        "link": "https://datum-cloud.github.io/datum-os/public-api.swagger.json"
     }],
     "siteConfig": {
         "logo": {
