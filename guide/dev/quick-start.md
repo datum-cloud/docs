@@ -408,8 +408,8 @@ kubectl -n default get instances -o wide
 Example output:
 
 ```shell
-NAME                                                AGE   AVAILABLE   REASON              NETWORK IP   EXTERNAL IP
-deployment-d957c0fc-6f48-4a12-8ad3-536729345df9-0   24s   True        InstanceIsRunning   10.128.0.2   34.174.154.114
+NAME                             AGE   AVAILABLE   REASON              NETWORK IP   EXTERNAL IP
+my-container-workload-us-dfw-0   24s   True        InstanceIsRunning   10.128.0.2   34.174.154.114
 ```
 
 Confirm that the go-httpbin application is running:
