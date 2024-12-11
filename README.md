@@ -1,16 +1,26 @@
 # Datum Cloud Documentation Site
 
-This is the documentation site for Datum Cloud. It is built with Scalar and currently hosted [here](https://datum-docs.apidocumentation.com/). For more information, see the [Scalar Documentation](https://guides.scalar.com/scalar/scalar-docs/getting-started).
+This is the documentation site for Datum Cloud. It is built with Scalar and
+currently hosted [here](https://datum-docs.apidocumentation.com/). For more
+information, see the [Scalar Documentation](https://guides.scalar.com/scalar/scalar-docs/getting-started).
 
 ## Making changes
 
 ### Local development
 
-The structure, theme and deployment options for the docs site are handled inside the `scalar.config.json` file. A complete list of the available options can be found [here](https://github.com/scalar/scalar/blob/main/documentation/configuration.md).
+The structure, theme and deployment options for the docs site are handled inside
+the `scalar.config.json` file. A complete list of the available options can be
+found [here](https://github.com/scalar/scalar/blob/main/documentation/configuration.md).
 
-Please note that guides and references are the two types of "pages" that are available on the site and they will appear as tabs in the header. References can point to local files or remote URLs and are best used for API references, while guides are used for more free-form content.
+Please note that guides and references are the two types of "pages" that are
+available on the site and they will appear as tabs in the header. References can
+point to local files or remote URLs and are best used for API references, while
+guides are used for more free-form content.
 
-To edit the content of the guides, please create/edit markdown files inside this repo. Just note that to actually see these changes you will need to add a subpage/navigation item to the relevant guide's sidebar on the docs site, like so:
+To edit the content of the guides, please create/edit markdown files inside this
+repo. Just note that to actually see these changes you will need to add a
+subpage/navigation item to the relevant guide's sidebar on the docs site, like
+so:
 
 ```json
   "sidebar": [
@@ -21,7 +31,9 @@ To edit the content of the guides, please create/edit markdown files inside this
   ]
 ```
 
-To add a reference tab, you need to add an entry to the `references` array in the `scalar.config.json` file in a similar way, but the path needs to point to a valid OpenAPI file. 
+To add a reference tab, you need to add an entry to the `references` array in
+the `scalar.config.json` file in a similar way, but the path needs to point to a
+valid OpenAPI file.
 
 ```json
   "references": [
@@ -36,13 +48,14 @@ To add a reference tab, you need to add an entry to the `references` array in th
 
 #### Sidenote: the Scalar CLI
 
-The Scalar CLI is a community managed project that has some useful commands for working with Scalar. To install it, run:
+The Scalar CLI is a community managed project that has some useful commands for
+working with Scalar. To install it, run:
 
 ```bash
-npm install -g scalar
+npm -g install @scalar/cli
 ```
 
-**Commands**
+##### Commands
 
 ```bash
   init [options]                        Create a new `scalar.config.json` file to configure where your OpenAPI file is placed.
@@ -56,7 +69,6 @@ npm install -g scalar
   check [file]                          Check a Scalar Configuration file
   help [command]                        display help for command
 ```
-
 
 ## Deploying/Publishing changes
 
