@@ -39,10 +39,7 @@ Ensure the following are installed and properly configured:
 
 - **Git**: [Installation Guide](https://github.com/git-guides/install-git)
 - **Golang**: [Installation Guide](https://go.dev/doc/install)
-
-  > [!IMPORTANT]
-  > MUST be version 1.23 or greater.
-
+  - MUST be version 1.23 or greater.
 - **Docker Desktop**: [Installation Guide](https://www.docker.com/get-started/)
 - **Kubebuilder**: [Installation Guide](https://book.kubebuilder.io/quick-start.html#installation)
 - **Kind**: [Installation Guide](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager)
@@ -109,6 +106,22 @@ Kubernetes. The infra-provider-gcp application integrates with GCP Config
 Connector to create and maintain resources in GCP based on Kubernetes custom
 resources.
 
+> [!TIP]
+>
+> The service account creation instructions in the installation guide result
+> in granting significantly more access to the GCP project than necessary. It
+> is recommended to only bind the following roles to the service account:
+>
+> - `roles/compute.admin`
+> - `roles/container.admin`
+> - `roles/secretmanager.admin`
+> - `roles/iam.serviceAccountAdmin`
+> - `roles/iam.serviceAccountUser`
+
+<!-- markdownlint-disable MD028 -->
+> [!NOTE]
+> The section "Specifying where to create your resources" can be skipped.
+
 1. Set the kubectl context to `kind-infra` in order to target the correct control
    plane while following the Config Connector installation guide.
 
@@ -119,21 +132,6 @@ resources.
 2. Follow the [installation guide](https://cloud.google.com/config-connector/docs/how-to/install-other-kubernetes),
    making sure to retain the service account credential saved to `key.json`, as
    this will be required later by `infra-provider-gcp`.
-   > [!TIP]
-   >
-   > The service account creation instructions in the installation guide result
-   > in granting significantly more access to the GCP project than necessary. It
-   > is recommended to only bind the following roles to the service account:
-   >
-   > - `roles/compute.admin`
-   > - `roles/container.admin`
-   > - `roles/secretmanager.admin`
-   > - `roles/iam.serviceAccountAdmin`
-   > - `roles/iam.serviceAccountUser`
-
-   <!-- markdownlint-disable MD028 -->
-   > [!NOTE]
-   > The section "Specifying where to create your resources" can be skipped.
 
 3. Set the kubectl context back to `kind-upstream`.
 
@@ -226,12 +224,9 @@ Clone the following repositories into the same parent folder for ease of use:
     kind export kubeconfig --name infra --kubeconfig infra.kubeconfig
     ```
 
-3. Start the operator:
-
-    > [!IMPORTANT]
-    > This operator expects that a file path to service account credentials is
-    > provided via the `GOOGLE_APPLICATION_CREDENTIALS` environment variable. This
-    > should point to the path for the key saved while installing [GCP Config Connector](#gcp-config-connector).
+3. Start the operator after ensuring that the `GOOGLE_APPLICATION_CREDENTIALS`
+  environment variable is set to the path for the key saved while installing
+  [GCP Config Connector](#gcp-config-connector).
 
     ```shell
     export GOOGLE_APPLICATION_CREDENTIALS=/path/to/key.json
