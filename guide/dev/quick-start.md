@@ -228,7 +228,7 @@ Clone the following repositories into the same parent folder for ease of use:
 
 3. Start the operator:
 
-    >[!IMPORTANT]
+    > [!IMPORTANT]
     > This operator expects that a file path to service account credentials is
     > provided via the `GOOGLE_APPLICATION_CREDENTIALS` environment variable. This
     > should point to the path for the key saved while installing [GCP Config Connector](#gcp-config-connector).
