@@ -1,5 +1,3 @@
-# Quick Start Guide for Datum Cloud Operator Development
-
 - [Summary](#summary)
 - [Prerequisites](#prerequisites)
   - [Troubleshooting](#troubleshooting)
@@ -16,6 +14,9 @@
   - [Registering a Location](#registering-a-location)
   - [Creating a Network](#creating-a-network)
   - [Creating a Workload](#creating-a-workload)
+    - [Check the state of the workload](#check-the-state-of-the-workload)
+    - [Check Workload Deployments](#check-workload-deployments)
+    - [Check Instances](#check-instances)
 
 ## Summary
 
