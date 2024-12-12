@@ -9,8 +9,12 @@
     "guides": [{
             "name": "Guide",
             "sidebar": [{
-                "path": "guide/introduction.md",
-                "type": "page"
+                "name": "Datum Cloud Operator",
+                "type": "folder",
+                "children": [{
+                    "path": "guide/datum-cloud-operator/quick-start.md",
+                    "type": "page"
+                }]
             }]
         },
         {
