@@ -9,8 +9,37 @@
     "guides": [{
             "name": "Guide",
             "sidebar": [{
-                "path": "guide/introduction.md",
-                "type": "page"
+                "name": "Datum Cloud Operator",
+                "type": "folder",
+                "children": [{
+                    "name": "Quick Start",
+                    "type": "folder",
+                    "children": [{
+                            "path": "guide/datum-cloud-operator/summary.md",
+                            "type": "page"
+                        },
+                        {
+                            "path": "guide/datum-cloud-operator/prerequisites.md",
+                            "type": "page"
+                        },
+                        {
+                            "path": "guide/datum-cloud-operator/control-plane-setup.md",
+                            "type": "page"
+                        },
+                        {
+                            "path": "guide/datum-cloud-operator/third-party-operators.md",
+                            "type": "page"
+                        },
+                        {
+                            "path": "guide/datum-cloud-operator/datum-operator-installation.md",
+                            "type": "page"
+                        },
+                        {
+                            "path": "guide/datum-cloud-operator/deploying-resources.md",
+                            "type": "page"
+                        }
+                    ]
+                }]
             }]
         },
         {
