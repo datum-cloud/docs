@@ -107,20 +107,20 @@ Kubernetes. The infra-provider-gcp application integrates with GCP Config
 Connector to create and maintain resources in GCP based on Kubernetes custom
 resources.
 
-> [!TIP]
->
+> 💡 **Tip**
+> 
 > The service account creation instructions in the installation guide result
 > in granting significantly more access to the GCP project than necessary. It
 > is recommended to only bind the following roles to the service account:
->
-> - `roles/compute.admin`
-> - `roles/container.admin`
-> - `roles/secretmanager.admin`
-> - `roles/iam.serviceAccountAdmin`
-> - `roles/iam.serviceAccountUser`
 
-<!-- markdownlint-disable MD028 -->
-> [!NOTE]
+- `roles/compute.admin`
+- `roles/container.admin`
+- `roles/secretmanager.admin`
+- `roles/iam.serviceAccountAdmin`
+- `roles/iam.serviceAccountUser`
+
+> ℹ️ **Note**
+> 
 > The section "Specifying where to create your resources" can be skipped.
 
 1. Set the kubectl context to `kind-infra` in order to target the correct control
@@ -148,7 +148,8 @@ Clone the following repositories into the same parent folder for ease of use:
 - [Network Services Operator](https://github.com/datum-cloud/network-services-operator/tree/integration/datum-poc)
 - [Infra Provider GCP](https://github.com/datum-cloud/infra-provider-gcp/tree/integration/datum-poc)
 
-> [!IMPORTANT]
+> ❗️ **Important**
+> 
 > For each repository, change the working branch to `integration/datum-poc`
 >
 > ```shell
@@ -156,8 +157,7 @@ Clone the following repositories into the same parent folder for ease of use:
 > git -C network-services-operator checkout integration/datum-poc
 > git -C infra-provider-gcp checkout integration/datum-poc
 > ```
-
-> [!IMPORTANT]
+> 
 > Ensure the kubectl context is set to `kind-upstream` before executing these
 > steps.
 >
@@ -165,8 +165,8 @@ Clone the following repositories into the same parent folder for ease of use:
 > kubectl config use-context kind-upstream
 > ```
 
-<!-- markdownlint-disable MD028 -->
-> [!NOTE]
+> ℹ️ **Note**
+> 
 > The `make` commands can take some time to execute for the first time.
 
 ### Workload Operator
@@ -284,7 +284,8 @@ my-gcp-us-south1-a   5s
 Before creating a workload, a Network must be created. You can use the following
 manifest to do this:
 
-> [!NOTE]
+> ℹ️ **Note**
+> 
 > In the future, a default network may automatically be created in a namespace.
 
 ```yaml
@@ -316,7 +317,8 @@ default   5s
 
 ### Creating a Workload
 
-> [!CAUTION]
+> 🛑 **Caution**
+> 
 > These actions will result in billable resources being created in the GCP
 > project for the target location. Destroy any resources which are not needed
 > to avoid unnecessary costs.
