@@ -14,9 +14,6 @@
   - [Registering a Location](#registering-a-location)
   - [Creating a Network](#creating-a-network)
   - [Creating a Workload](#creating-a-workload)
-    - [Check the state of the workload](#check-the-state-of-the-workload)
-    - [Check Workload Deployments](#check-workload-deployments)
-    - [Check Instances](#check-instances)
 
 ## Summary
 
@@ -79,7 +76,8 @@ following guides for installing required build tools:
 Install cert-manager in the "upstream" control plane:
 
 ```shell
-kubectl --context kind-upstream apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+kubectl --context kind-upstream apply \
+  -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
 ```
 
 Ensure that cert-manager pods are running and ready:
@@ -108,7 +106,7 @@ Connector to create and maintain resources in GCP based on Kubernetes custom
 resources.
 
 > 💡 **Tip**
-> 
+>
 > The service account creation instructions in the installation guide result
 > in granting significantly more access to the GCP project than necessary. It
 > is recommended to only bind the following roles to the service account:
@@ -120,7 +118,7 @@ resources.
 - `roles/iam.serviceAccountUser`
 
 > ℹ️ **Note**
-> 
+>
 > The section "Specifying where to create your resources" can be skipped.
 
 1. Set the kubectl context to `kind-infra` in order to target the correct control
@@ -149,7 +147,7 @@ Clone the following repositories into the same parent folder for ease of use:
 - [Infra Provider GCP](https://github.com/datum-cloud/infra-provider-gcp/tree/integration/datum-poc)
 
 > ❗️ **Important**
-> 
+>
 > For each repository, change the working branch to `integration/datum-poc`
 >
 > ```shell
@@ -157,7 +155,7 @@ Clone the following repositories into the same parent folder for ease of use:
 > git -C network-services-operator checkout integration/datum-poc
 > git -C infra-provider-gcp checkout integration/datum-poc
 > ```
-> 
+>
 > Ensure the kubectl context is set to `kind-upstream` before executing these
 > steps.
 >
@@ -166,7 +164,7 @@ Clone the following repositories into the same parent folder for ease of use:
 > ```
 
 > ℹ️ **Note**
-> 
+>
 > The `make` commands can take some time to execute for the first time.
 
 ### Workload Operator
@@ -285,7 +283,7 @@ Before creating a workload, a Network must be created. You can use the following
 manifest to do this:
 
 > ℹ️ **Note**
-> 
+>
 > In the future, a default network may automatically be created in a namespace.
 
 ```yaml
@@ -318,7 +316,7 @@ default   5s
 ### Creating a Workload
 
 > 🛑 **Caution**
-> 
+>
 > These actions will result in billable resources being created in the GCP
 > project for the target location. Destroy any resources which are not needed
 > to avoid unnecessary costs.
