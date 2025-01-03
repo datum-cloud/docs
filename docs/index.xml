@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Documentation on Datum</title><link>https://datum-cloud.github.io/docs/docs/</link><description>Recent content in Documentation on Datum</description><generator>Hugo</generator><language>en</language><atom:link href="https://datum-cloud.github.io/docs/docs/index.xml" rel="self" type="application/rss+xml"/><item><title>Overview</title><link>https://datum-cloud.github.io/docs/docs/overview/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://datum-cloud.github.io/docs/docs/overview/</guid><description>&lt;div class="pageinfo pageinfo-primary">
+&lt;p>This is a placeholder page that shows you how to use this template site.&lt;/p>
+
+&lt;/div>
+
+&lt;p>The Overview is where your users find out about your project. Depending on the
+size of your docset, you can have a separate overview page (like this one) or
+put your overview contents in the Documentation landing page (like in the Docsy
+User Guide).&lt;/p>
+&lt;p>Try answering these questions for your user in this page:&lt;/p>
+&lt;h2 id="what-is-it">What is it?&lt;a class="td-heading-self-link" href="#what-is-it" aria-label="Heading self-link">&lt;/a>&lt;/h2>
+&lt;p>Introduce your project, including what it does or lets you do, why you would use
+it, and its primary goal (and how it achieves it). This should be similar to
+your README description, though you can go into a little more detail here if you
+want.&lt;/p></description></item><item><title>Contribution Guidelines</title><link>https://datum-cloud.github.io/docs/docs/contribution-guidelines/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://datum-cloud.github.io/docs/docs/contribution-guidelines/</guid><description>&lt;p>We use &lt;a href="https://gohugo.io/">Hugo&lt;/a> to format and generate our website, and the
+&lt;a href="https://github.com/google/docsy">Docsy&lt;/a> theme for styling and site structure.
+Hugo is an open-source static site generator that provides us with templates,
+content organisation in a standard directory structure, and a website generation
+engine. You write the pages in Markdown (or HTML if you want), and Hugo wraps
+them up into a website.&lt;/p>
+&lt;p>All submissions, including submissions by project members, require review. We
+use GitHub pull requests for this purpose. Consult
+&lt;a href="https://help.github.com/articles/about-pull-requests/">GitHub Help&lt;/a> for more
+information on using pull requests.&lt;/p></description></item></channel></rss>
