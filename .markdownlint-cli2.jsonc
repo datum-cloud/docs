@@ -1,0 +1,30 @@
+{
+  "config": {
+    "default": true,
+    "MD010": {
+      "code_blocks": false
+    },
+    "MD013": {
+      "line_length": 80,
+      "heading_line_length": 120,
+      "tables": false,
+      "code_blocks": false
+    },
+    "MD024": {
+      "siblings_only": true
+    },
+    "MD033": {
+      "allowed_elements": [
+        "a",
+        "p",
+        "i",
+        "br",
+        "img",
+        "details",
+        "summary"
+      ]
+    },
+    "MD034": false
+  },
+  "fix": false
+}
