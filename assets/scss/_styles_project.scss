@@ -1,0 +1,12 @@
+// Fixes spacing issues on the navbar when viewing in mobile
+.td-navbar {
+  .navbar-brand {
+    &__name {
+      margin: 0 10px 0 0;
+    }
+
+    svg {
+      width: 30px;
+    }
+  }
+}

@@ -23,15 +23,3 @@ $light: #d3f3ee;
 $dark: $blackberry-900;
 
 $link-color: $blackberry-900;
-
-.td-navbar {
-  .navbar-brand {
-    &__name {
-      margin: 0 10px 0 0;
-    }
-
-    svg {
-      width: 30px;
-    }
-  }
-}
