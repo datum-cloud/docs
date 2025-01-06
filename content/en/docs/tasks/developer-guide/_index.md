@@ -11,14 +11,14 @@ environment to install and run the Datum Cloud operators. It is targeted toward
 a technical audience familiar with Kubernetes, kubebuilder, and
 controller-runtime.
 
-By following this guide, you will be able to:
+By following this guide, you will:
 
-- Install and configure the required dependencies.
-- Set up kind clusters for "upstream" and "infra" control planes.
+- Install and configure necessary development tools.
+- Set up a kind cluster for access to a Kubernetes control plane.
 - Install and run the Workload Operator, Network Services Operator, and Infra
   Provider GCP components.
 - Configure and use Config Connector for managing GCP resources.
-- Register a Location and create a sample Workload in Kubernetes.
+- Register a Location and create a sample Datum Workload.
 
 ## Prerequisites
 
@@ -185,6 +185,7 @@ The `make` commands can take some time to execute for the first time.
     ```shell
     make run
     ```
+
 ## Create Datum Resources
 
 ### Register a Self Managed Location
