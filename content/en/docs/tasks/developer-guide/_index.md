@@ -1,19 +1,8 @@
-- [Summary](#summary)
-- [Prerequisites](#prerequisites)
-  - [Troubleshooting](#troubleshooting)
-- [Control Plane Setup](#control-plane-setup)
-  - [Create Kind Clusters](#create-kind-clusters)
-- [Install Third Party Operators](#install-third-party-operators)
-  - [cert-manager](#cert-manager)
-  - [GCP Config Connector](#gcp-config-connector)
-- [Datum Operator Installation](#datum-operator-installation)
-  - [Workload Operator](#workload-operator)
-  - [Network Services Operator](#network-services-operator)
-  - [Infra Provider GCP](#infra-provider-gcp)
-- [Deploying Resources](#deploying-resources)
-  - [Registering a Location](#registering-a-location)
-  - [Creating a Network](#creating-a-network)
-  - [Creating a Workload](#creating-a-workload)
+---
+title: Developer Guide
+description: This guide helps you get started developing Datum components.
+weight: 30
+---
 
 ## Summary
 
@@ -35,15 +24,13 @@ By following this guide, you will be able to:
 
 Ensure the following are installed and properly configured:
 
-- **Git**: [Installation Guide](https://github.com/git-guides/install-git)
-- **Golang**: [Installation Guide](https://go.dev/doc/install)
-  - MUST be version 1.23 or greater.
-- **Docker Desktop**: [Installation Guide](https://www.docker.com/get-started/)
-- **Kubebuilder**: [Installation Guide](https://book.kubebuilder.io/quick-start.html#installation)
-- **Kind**: [Installation Guide](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager)
-- **kubectl**: [Installation Guide](https://kubernetes.io/docs/tasks/tools/#kubectl)
-- **gcloud**: [Installation Guide](https://cloud.google.com/sdk/docs/install)
-- **jq**: [Installation Guide](https://jqlang.github.io/jq/download/)
+- [Git](https://github.com/git-guides/install-git)
+- [Go 1.23 or greater](https://go.dev/doc/install)
+- [Docker Desktop](https://www.docker.com/get-started/)
+- [Kubebuilder](https://book.kubebuilder.io/quick-start.html#installation)
+- [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installing-with-a-package-manager)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
+- [gcloud](https://cloud.google.com/sdk/docs/install)
 
 ### Troubleshooting
 
@@ -55,39 +42,31 @@ following guides for installing required build tools:
 
 ## Control Plane Setup
 
-### Create Kind Clusters
+### Create Kind Cluster
 
-1. Create an "upstream" control plane:
+Create a kind cluster for development:
 
-    ```shell
-    kind create cluster --name upstream
-    ```
-
-2. Create an "infra" control plane:
-
-    ```shell
-    kind create cluster --name infra
-    ```
+```shell
+kind create cluster --name datum
+```
 
 ## Install Third Party Operators
 
 ### cert-manager
 
-Install cert-manager in the "upstream" control plane:
+Install cert-manager:
 
 ```shell
-kubectl --context kind-upstream apply \
-  -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
 ```
 
 Ensure that cert-manager pods are running and ready:
 
 ```shell
-kubectl --context kind-upstream wait -n cert-manager \
-  --for=condition=Ready pod --all
+kubectl wait -n cert-manager --for=condition=Ready pod --all
 ```
 
-Output should be similar to the following:
+The output is similar to:
 
 ```shell
 pod/cert-manager-b6fd485d9-2s78z condition met
@@ -105,38 +84,26 @@ Kubernetes. The infra-provider-gcp application integrates with GCP Config
 Connector to create and maintain resources in GCP based on Kubernetes custom
 resources.
 
-> 💡 **Tip**
->
-> The service account creation instructions in the installation guide result
-> in granting significantly more access to the GCP project than necessary. It
-> is recommended to only bind the following roles to the service account:
+{{< alert title="Tip" color="info" >}}
+The service account creation instructions in the installation guide result
+in granting significantly more access to the GCP project than necessary. It
+is recommended to only bind the following roles to the service account:
 
 - `roles/compute.admin`
 - `roles/container.admin`
 - `roles/secretmanager.admin`
 - `roles/iam.serviceAccountAdmin`
 - `roles/iam.serviceAccountUser`
+{{< /alert >}}
 
-> ℹ️ **Note**
->
-> The section "Specifying where to create your resources" can be skipped.
+Follow the [installation guide](https://cloud.google.com/config-connector/docs/how-to/install-other-kubernetes),
+making sure to retain the service account credential saved to `key.json`, as
+this will be required later by `infra-provider-gcp`. The target Kubernetes cluster
+will be the kind cluster created in this guide.
 
-1. Set the kubectl context to `kind-infra` in order to target the correct control
-   plane while following the Config Connector installation guide.
-
-    ```shell
-    kubectl config use-context kind-infra
-    ```
-
-2. Follow the [installation guide](https://cloud.google.com/config-connector/docs/how-to/install-other-kubernetes),
-   making sure to retain the service account credential saved to `key.json`, as
-   this will be required later by `infra-provider-gcp`.
-
-3. Set the kubectl context back to `kind-upstream`.
-
-    ```shell
-    kubectl config use-context kind-upstream
-    ```
+{{< alert title="Note" color="info">}}
+The section "Specifying where to create your resources" can be skipped.
+{{< /alert >}}
 
 ## Datum Operator Installation
 
@@ -146,26 +113,9 @@ Clone the following repositories into the same parent folder for ease of use:
 - [Network Services Operator](https://github.com/datum-cloud/network-services-operator/tree/integration/datum-poc)
 - [Infra Provider GCP](https://github.com/datum-cloud/infra-provider-gcp/tree/integration/datum-poc)
 
-> ❗️ **Important**
->
-> For each repository, change the working branch to `integration/datum-poc`
->
-> ```shell
-> git -C workload-operator checkout integration/datum-poc
-> git -C network-services-operator checkout integration/datum-poc
-> git -C infra-provider-gcp checkout integration/datum-poc
-> ```
->
-> Ensure the kubectl context is set to `kind-upstream` before executing these
-> steps.
->
-> ```shell
-> kubectl config use-context kind-upstream
-> ```
-
-> ℹ️ **Note**
->
-> The `make` commands can take some time to execute for the first time.
+{{< alert title="Note" color="info">}}
+The `make` commands can take some time to execute for the first time.
+{{< /alert >}}
 
 ### Workload Operator
 
@@ -215,12 +165,13 @@ Clone the following repositories into the same parent folder for ease of use:
     cd /path/to/infra-provider-gcp
     ```
 
-2. Create `infra.kubeconfig` and `upstream.kubeconfig` files pointing to the
-   respective control planes.
+2. Create an `upstream.kubeconfig` file pointing to the `datum` kind cluster.
+   This extra kubeconfig file is required due to the operator's need to
+   orchestrate resources between multiple control planes. For development
+   purposes, these can be the same endpoints.
 
     ```shell
-    kind export kubeconfig --name upstream --kubeconfig upstream.kubeconfig
-    kind export kubeconfig --name infra --kubeconfig infra.kubeconfig
+    kind export kubeconfig --name datum --kubeconfig upstream.kubeconfig
     ```
 
 3. Start the operator after ensuring that the `GOOGLE_APPLICATION_CREDENTIALS`
@@ -234,12 +185,15 @@ Clone the following repositories into the same parent folder for ease of use:
     ```shell
     make run
     ```
+## Create Datum Resources
 
-## Deploying Resources
+### Register a Self Managed Location
 
-### Registering a Location
+Before creating a workload, a Location must be registered.
 
-Before creating a workload, a Location must be registered. Use the following example manifest:
+Use the following example manifest to create a location which Datum's control
+plane will be responsible for managing, replacing `GCP_PROJECT_ID` with
+your GCP project id:
 
 ```yaml
 apiVersion: networking.datumapis.com/v1alpha
@@ -252,13 +206,15 @@ spec:
     topology.datum.net/city-code: DFW
   provider:
     gcp:
-      projectId: TODO
+      projectId: GCP_PROJECT_ID
       region: us-south1
       zone: us-south1-a
 ```
 
-1. Replace `topology.datum.net/city-code`'s value (`DFW`) with the desired city code for your workloads.
-2. Update the `gcp` provider settings to reflect your GCP project ID, desired region, and zone.
+1. Replace `topology.datum.net/city-code`'s value (`DFW`) with the desired city
+   code for your workloads.
+2. Update the `gcp` provider settings to reflect your GCP project ID, desired
+   region, and zone.
 
 Apply the manifest:
 
@@ -277,14 +233,14 @@ NAME                 AGE
 my-gcp-us-south1-a   5s
 ```
 
-### Creating a Network
+### Create a Network
 
 Before creating a workload, a Network must be created. You can use the following
 manifest to do this:
 
-> ℹ️ **Note**
->
-> In the future, a default network may automatically be created in a namespace.
+{{< alert title="Note" color="info">}}
+In the future, a default network may automatically be created in a namespace.
+{{< /alert >}}
 
 ```yaml
 apiVersion: networking.datumapis.com/v1alpha
@@ -313,13 +269,13 @@ NAME      AGE
 default   5s
 ```
 
-### Creating a Workload
+### Create a Workload
 
-> 🛑 **Caution**
->
-> These actions will result in billable resources being created in the GCP
-> project for the target location. Destroy any resources which are not needed
-> to avoid unnecessary costs.
+{{< alert title="Caution" color="warning">}}
+These actions will result in billable resources being created in the GCP
+project for the target location. Destroy any resources which are not needed
+to avoid unnecessary costs.
+{{< /alert >}}
 
 Create a manifest for a sandbox based workload, for example:
 
@@ -370,7 +326,7 @@ kubectl apply -f <path-to-workload-manifest>
 kubectl get workloads
 ```
 
-Example output:
+The output is similar to:
 
 ```shell
 NAME                    AGE   AVAILABLE   REASON
@@ -389,7 +345,7 @@ each unique CityCode per placement.
 kubectl get workloaddeployments
 ```
 
-Example output:
+The output is similar to:
 
 ```shell
 NAME                           AGE   LOCATION NAMESPCE   LOCATION NAME        AVAILABLE   REASON
@@ -406,7 +362,7 @@ progresses with attempting to satisfy the workload's intent. In this case, the
 kubectl -n default get instances -o wide
 ```
 
-Example output:
+The output is similar to:
 
 ```shell
 NAME                             AGE   AVAILABLE   REASON              NETWORK IP   EXTERNAL IP
@@ -425,7 +381,10 @@ curl -s http://34.174.154.114:8080/uuid
 }
 ```
 
----
+#### Delete the workload
 
-For more detailed troubleshooting and information, refer to the respective
-operator documentation.
+Delete the workload when testing is complete:
+
+```shell
+kubectl delete workload my-container-workload
+```
