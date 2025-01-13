@@ -46,9 +46,9 @@ imaging:
 languages:
   en:
     languageName: English
-    title: Datum
+    title: Datum Documentation
     params:
-      description: Datum documentation
+      description: Explore our guides and examples to leverage Datum.
   # cSpell:disable
   # cSpell:enable
 
@@ -151,9 +151,9 @@ params:
     feedback:
       enable: false
       # The responses that the user sees after clicking "yes" (the page was helpful) or "no" (the page was not helpful).
-      'yes': >-
+      "yes": >-
         Glad to hear it! Please <a href="https://github.com/USERNAME/REPOSITORY/issues/new">tell us how we can improve</a>.
-      'no': >-
+      "no": >-
         Sorry to hear that. Please <a href="https://github.com/USERNAME/REPOSITORY/issues/new">tell us how we can improve</a>.
 
     # Adds a reading time to the top of each doc.

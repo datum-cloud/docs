@@ -1,10 +1,11 @@
 ---
-title: Datum Cloud
+title: Datum Documentation
+description: Explore our guides and examples to leverage Datum.
 ---
 
 {{< blocks/cover title="Connectivity infrastructure to power your unique advantage" image_anchor="top" >}}
 <a class="btn btn-lg btn-secondary me-3 mb-4" href="/docs/">
-  Learn More <i class="fas fa-arrow-alt-circle-right ms-2"></i>
+Learn More <i class="fas fa-arrow-alt-circle-right ms-2"></i>
 </a>
 
 <p class="lead mt-5">A network cloud that you can take anywhere, backed by open source.
