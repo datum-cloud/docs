@@ -64,6 +64,9 @@ body.td-home {
       width: 30px;
     }
   }
+  .nav-link {
+    font-weight: 300;
+  }
 }
 
 // Fixes styles issues on the left bar
@@ -225,7 +228,7 @@ body.td-home {
   flex-flow: row;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
+  padding: 8px 0;
   display: flex;
   color: var(--bs-body-color) !important;
   border-top: solid 1px var(--bs-border-color);
