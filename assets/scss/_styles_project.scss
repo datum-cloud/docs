@@ -26,11 +26,32 @@
   font-display: swap;
 }
 
+:root {
+  // Datum Colors
+  --sunglow: #f27a67;
+  --white: #fff;
+  --winter-sky-600: #f5f7f7;
+  --blackberry-900: #312847;
+  --winter-sky-900: #e1ebea;
+  --blackberry-800: #443a5b;
+  --peat-800: #4d474d;
+
+  // Replace default body color
+  --bs-body-color: var(--blackberry-900);
+  --bs-heading-color: var(--blackberry-900);
+}
+
 // Global font family declaration
 body {
   font-family: 'FT Regola Neue', sans-serif;
 }
 
+// custom styles for home page
+body.td-home {
+  .td-footer {
+  display: none;
+}
+}
 
 // Fixes spacing issues on the navbar when viewing in mobile
 .td-navbar {
@@ -43,4 +64,192 @@ body {
       width: 30px;
     }
   }
+}
+
+// Fixes styles issues on the left bar
+.td-sidebar {
+  .td-search {
+    .td-search__icon::before {
+      font-size: 14px;
+    }
+
+    input {
+      font-weight: 300;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      border-width: 1px;
+
+      &:focus {
+        box-shadow: none;
+        border-color: #9894a3;
+      }
+    }
+  }
+
+  .td-sidebar-nav {
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+
+    >ul {
+      padding-right: 0 !important;
+
+      >li {
+        padding-left: 0 !important;
+
+        >a {
+          font-size: 20px;
+          font-weight: 600;
+          padding: 4px 0 16px;
+          line-height: 20px;
+          border-bottom: solid 1px var(--bs-border-color) !important;
+          color: var(--bs-body-color);
+        }
+
+        ul {
+          li {
+            padding-top: 4px;
+            padding-bottom: 4px;
+            padding-right: 16px;
+            border-radius: 8px;
+            transition: all 0.2s ease-in-out;
+
+            &:not(:last-child) {
+              margin-bottom: 4px;
+            }
+
+            a {
+              font-weight: 300;
+              font-size: 14px;
+              padding-bottom: 0;
+              line-height: 18px;
+            }
+
+            &.without-child {
+              padding-left: 16px;
+
+              &.active-path,
+              &:hover {
+                background-color: #F4EDEC;
+              }
+
+              &.active-path {
+                a {
+                  font-weight: 600;
+                  color: var(--bs-body-color);
+                }
+              }
+            }
+
+            &.with-child {
+              margin-bottom: 0px;
+
+              >label {
+                display: flex;
+                align-items: center;
+
+                a {
+                  padding-top: 6px;
+                  padding-bottom: 6px;
+                  padding-right: 16px;
+                  font-weight: 600;
+                  color: var(--bs-body-color);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Fixes styles issues on the right bar
+.td-page-meta {
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  margin-left: 0 !important;
+  margin-bottom: 16px !important;
+
+  a {
+    font-size: 14px;
+    font-weight: 300 !important;
+    padding: 6px 8px;
+    transition: all 0.2s ease-in-out;
+    color: var(--bs-body-color);
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    line-height: 18px;
+
+    i {
+      width: 14px;
+    }
+
+    &:hover,
+    &:hover i {
+      font-weight: 500 !important;
+    }
+  }
+}
+
+.td-toc {
+  nav {
+    ul {
+      li {
+        font-size: 14px;
+        font-weight: 300;
+        padding: 6px 8px;
+
+        a {
+          padding-bottom: 0;
+          line-height: 18px;
+        }
+
+        ul {
+          margin-top: 4px;
+          margin-bottom: -6px;
+
+          li {
+            margin-left: 4px;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Fixes styles footer
+.td-footer {
+  min-height: 0;
+  background-color: var(--white);
+  flex-flow: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  display: flex;
+  color: var(--bs-body-color) !important;
+  border-top: solid 1px var(--bs-border-color);
+
+  a {
+    color: var(--bs-body-color) !important;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      color: var(--sunglow) !important;
+    }
+  }
+
+  .td-footer__links-item {
+    margin-bottom: 0 !important;
+    line-height: inherit !important;
+
+    .fab {
+      color: var(--sunglow) !important;
+    }
+  }
+}
+
+// Hide footer only on homepage (optional fallback)
+body.home .td-footer {
+  display: none;
 }
