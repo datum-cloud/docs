@@ -22,30 +22,44 @@ account which is specific to each Datum project:
 
 The service account email will be in the following format:
 
-`PROJECT_NAME@datum-cloud-poc-1.iam.gserviceaccount.com`
+`PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com`
 
 Use the gcloud tool to grant IAM Roles to your Datum service account, replacing
 `GCP_PROJECT_ID` and `PROJECT_NAME` with their respective values:
 
 ```shell
 gcloud projects add-iam-policy-binding GCP_PROJECT_ID \
-  --member="serviceAccount:PROJECT_NAME@datum-cloud-poc-1.iam.gserviceaccount.com" \
+  --member="serviceAccount:PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
   --role="roles/compute.admin"
 
 gcloud projects add-iam-policy-binding GCP_PROJECT_ID \
-  --member="serviceAccount:PROJECT_NAME@datum-cloud-poc-1.iam.gserviceaccount.com" \
+  --member="serviceAccount:PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
   --role="roles/secretmanager.admin"
 
 gcloud projects add-iam-policy-binding GCP_PROJECT_ID \
-  --member="serviceAccount:PROJECT_NAME@datum-cloud-poc-1.iam.gserviceaccount.com" \
+  --member="serviceAccount:PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountAdmin"
 
 gcloud projects add-iam-policy-binding GCP_PROJECT_ID \
-  --member="serviceAccount:PROJECT_NAME@datum-cloud-poc-1.iam.gserviceaccount.com" \
+  --member="serviceAccount:PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountUser"
 ```
 
 For guidance on granting roles via Google's Console, see [Manage access to projects, folders, and organizations][gcp-iam-role-admin].
+
+{{< alert title="Note" color="info">}}
+You may encounter the following error if your GCP organization was created on or
+after May 3, 2024. See GCP's documentation on [restricting identities by domain](https://cloud.google.com/resource-manager/docs/organization-policy/restricting-domains)
+for instructions on how to permit service accounts from the `datum-cloud-project`
+project.
+
+> The ‘Domain Restricted Sharing’ organization policy
+> (constraints/iam.allowedPolicyMemberDomains) is enforced. Only principals in
+> allowed domains can be added as principals in the policy. Correct the
+> principal emails and try again. Learn more about domain restricted sharing.
+>
+> Request ID: 8499485408857027732
+{{< /alert >}}
 
 [gcp-iam-role-admin]: https://cloud.google.com/iam/docs/granting-changing-revoking-access
 

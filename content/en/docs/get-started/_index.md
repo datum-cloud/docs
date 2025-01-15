@@ -11,7 +11,7 @@ for production use cases.
 
 ## Account Registration
 
-Sign up for an account at <https://cloud.poc-1.env.datum.net>.
+Sign up for an account at <https://cloud.datum.net>.
 
 ## Organizations
 
