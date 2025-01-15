@@ -43,7 +43,7 @@ as required to interact with Datum via kubectl.
 
 ## Create API Credentials
 
-1. Sign in to Datum at <https://cloud.poc-1.env.datum.net>
+1. Sign in to Datum at <https://cloud.datum.net>
 2. Create an API token by navigating to
    **User Settings > API Tokens > Create a new token**. Save this token in your
    password manager or preferred method of storage.
@@ -57,7 +57,7 @@ previous section. Run the following command and enter your API token at the
 prompt:
 
 ```shell
-datumctl auth activate-api-token --hostname datumcloud-api.poc-1.env.datum.net
+datumctl auth activate-api-token
 ```
 
 ### Add a kubeconfig context for your organization
@@ -66,7 +66,7 @@ Obtain your organization's resource ID with datumctl by listing organizations
 that your user has access to:
 
 ```shell
-datumctl organizations list --hostname datumcloud-api.poc-1.env.datum.net
+datumctl organizations list
 ```
 
 The output is similar to:
@@ -81,8 +81,7 @@ the the `RESOURCE ID` value and executing following command, replacing
 `RESOURCE_ID` with the value:
 
 ```shell
-datumctl auth update-kubeconfig --hostname datumcloud-api.poc-1.env.datum.net \
-  --organization RESOURCE_ID
+datumctl auth update-kubeconfig --organization RESOURCE_ID
 ```
 
 The output is similar to:

@@ -83,8 +83,7 @@ Create a kubeconfig context to access your project's resources by executing
 following command, replacing `PROJECT_NAME` with your project's name:
 
 ```shell
-datumctl auth update-kubeconfig --hostname datumcloud-api.poc-1.env.datum.net \
-  --project PROJECT_NAME
+datumctl auth update-kubeconfig --project PROJECT_NAME
 ```
 
 Confirm that the control plane is accessible:
