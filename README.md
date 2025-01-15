@@ -27,21 +27,15 @@ than [Docker Desktop](https://www.docker.com/products/docker-desktop) on
 Windows and Mac, and [Docker Compose](https://docs.docker.com/compose/install/)
 on Linux.
 
-1. Build the docker image
+1. Build and run the docs
 
-   ```bash
-   docker-compose build
-   ```
+When you run the following command, Docker Compose will automatically build the image if it doesn’t already exist (or if changes are detected in the Dockerfile or build context).
 
-2. Run the built image
+```bash
+docker compose up
+```
 
-   ```bash
-   docker-compose up
-   ```
-
-   > NOTE: You can run both commands at once with `docker-compose up --build`.
-
-3. Verify that the service is working.
+2. Verify that the service is working.
 
    Open your web browser and type `http://localhost:1313` in your navigation bar,
    This opens a local instance of the docs homepage. You can now make
@@ -55,7 +49,7 @@ To stop Docker Compose, on your terminal window, press **Ctrl + C**.
 To remove the produced images run:
 
 ```bash
-docker-compose rm
+docker compose rm
 ```
 
 For more information see the [Docker Compose documentation][].
