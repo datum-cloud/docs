@@ -69,6 +69,7 @@ body.td-home {
       width: 30px;
     }
   }
+
   .nav-link {
     font-weight: 300;
     color: var(--blackberry-800);
@@ -79,6 +80,21 @@ body.td-home {
   }
   .td-search {
     color: var(--blackberry-800);
+  }
+
+  .container-fluid {
+    display: flex;
+    justify-content: center;
+
+    // If you want to center only the nav items
+    .td-navbar-nav-scroll {
+      margin: 0 auto;
+    }
+
+    // Optional: adjust logo position
+    .navbar-brand {
+      margin-right: 0;
+    }
   }
 }
 
