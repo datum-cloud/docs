@@ -1,5 +1,5 @@
 ---
-title: Handbook
-menu: {main: {weight: 50}}
+title: API Reference
+menu: { main: { weight: 3 } }
 # Add blocks of content here to add more sections to the community page
 ---

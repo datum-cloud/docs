@@ -1,7 +1,7 @@
 ---
 title: Documentation
 linkTitle: Docs
-menu: {main: {weight: 20}}
+menu: { main: { weight: 1, pre: '<i class="fas fa-book"></i>' } }
 ---
 
 Datum is a network cloud you can take anywhere, backed by open source.
