@@ -57,8 +57,9 @@ body.td-home {
 // Fixes spacing issues on the navbar when viewing in mobile
 .td-navbar {
   background: rgba(245, 247, 247, 0.6);
-  backdrop-filter: blur(10px); 
-  -webkit-backdrop-filter: blur(10px); 
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
   .navbar-brand {
     &__name {
       margin: 0 10px 0 0;
@@ -74,10 +75,12 @@ body.td-home {
     font-weight: 300;
     color: var(--blackberry-800);
   }
+
   .active {
-    color: var(--sunglow)!important;
+    color: var(--sunglow) !important;
     border-bottom: var(--sunglow) solid 1px;
   }
+
   .td-search {
     color: var(--blackberry-800);
   }
@@ -96,11 +99,41 @@ body.td-home {
       margin-right: 0;
     }
   }
+
+  .td-search {
+    min-width: 250px;
+
+    .td-search__input {
+      box-shadow: none;
+      border: solid 1px var(--bs-border-color);
+      border-radius: 40px;
+      transition: all 0.3s ease;
+      padding-left: 16px;
+
+      &:focus {
+        border-color: var(--sunglow);
+        background-color: transparent;
+        color: var(--blackberry-800);
+      }
+
+      &::placeholder {
+        font-weight: 300;
+      }
+    }
+
+    &:focus-within {
+
+      .td-search__icon {
+        color: var(--blackberry-800);
+      }
+    }
+  }
 }
 
 // Fixes styles issues on the left bar
 .td-sidebar {
-  border-right:none;
+  border-right: none;
+
   .td-search {
     .td-search__icon::before {
       font-size: 14px;
@@ -252,7 +285,7 @@ body.td-home {
 }
 
 .td-sidebar-toc {
-  border-left:none;
+  border-left: none;
 }
 
 // Fixes styles footer
@@ -292,7 +325,9 @@ body.home .td-footer {
 }
 
 .td-content {
-  .highlight, .tab-pane {
-    border-radius:0.3rem;
+
+  .highlight,
+  .tab-pane {
+    border-radius: 0.3rem;
   }
 }
