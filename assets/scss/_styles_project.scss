@@ -44,20 +44,25 @@
 // Global font family declaration
 body {
   font-family: 'FT Regola Neue', sans-serif;
+  background-color: #fbfcfc;
 }
 
 // custom styles for home page
 body.td-home {
   .td-footer {
-  display: none;
-}
+    display: none;
+  }
 }
 
 // Fixes spacing issues on the navbar when viewing in mobile
 .td-navbar {
+  background: rgba(245, 247, 247, 0.6);
+  backdrop-filter: blur(10px); 
+  -webkit-backdrop-filter: blur(10px); 
   .navbar-brand {
     &__name {
       margin: 0 10px 0 0;
+      color: var(--blackberry-800);
     }
 
     svg {
@@ -66,11 +71,20 @@ body.td-home {
   }
   .nav-link {
     font-weight: 300;
+    color: var(--blackberry-800);
+  }
+  .active {
+    color: var(--sunglow)!important;
+    border-bottom: var(--sunglow) solid 1px;
+  }
+  .td-search {
+    color: var(--blackberry-800);
   }
 }
 
 // Fixes styles issues on the left bar
 .td-sidebar {
+  border-right:none;
   .td-search {
     .td-search__icon::before {
       font-size: 14px;
@@ -174,14 +188,14 @@ body.td-home {
   margin-bottom: 16px !important;
 
   a {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 300 !important;
-    padding: 6px 8px;
+    padding: 2px 8px;
     transition: all 0.2s ease-in-out;
     color: var(--bs-body-color);
     display: flex !important;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     line-height: 18px;
 
     i {
@@ -199,13 +213,13 @@ body.td-home {
   nav {
     ul {
       li {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 300;
         padding: 6px 8px;
 
         a {
           padding-bottom: 0;
-          line-height: 18px;
+          line-height: 16px;
         }
 
         ul {
@@ -221,17 +235,21 @@ body.td-home {
   }
 }
 
+.td-sidebar-toc {
+  border-left:none;
+}
+
 // Fixes styles footer
 .td-footer {
   min-height: 0;
-  background-color: var(--white);
+  background-color: #fbfcfc;
   flex-flow: row;
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
+  margin: 10px 0 0 0;
   display: flex;
   color: var(--bs-body-color) !important;
-  border-top: solid 1px var(--bs-border-color);
 
   a {
     color: var(--bs-body-color) !important;
@@ -255,4 +273,10 @@ body.td-home {
 // Hide footer only on homepage (optional fallback)
 body.home .td-footer {
   display: none;
+}
+
+.td-content {
+  .highlight, .tab-pane {
+    border-radius:0.3rem;
+  }
 }
