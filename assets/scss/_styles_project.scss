@@ -48,9 +48,13 @@ body {
 }
 
 // custom styles for home page
-body.td-home {
-  .td-footer {
-    display: none;
+.td-home {
+  .card {
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      border-color: var(--sunglow) !important;
+    }
   }
 }
 
