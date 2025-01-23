@@ -1,6 +1,28 @@
 baseURL: https://docs.datum.net
 title: Datum
 
+menus:
+  main:
+  - name: Signup/Login
+    params:
+    rel: external
+    post: <i class="fa fa-arrow-up-right-from-square externalurl"></i>
+    url: https://cloud.datum.net/login
+    weight: 500
+  - name: View Changelog
+    params:
+    rel: external
+    post: <i class="fa fa-arrow-up-right-from-square externalurl"></i>
+    url: https://feedback.datum.net/
+    weight: 501
+  - name: Follow on GitHub
+    params:
+    rel: external
+    post: <i class="fa fa-arrow-up-right-from-square externalurl"></i>
+    url: https://github.com/datum-cloud
+    weight: 502
+    
+
 # cSpell:ignore goldmark github hugo readingtime docsy subdir lastmod pygments linenos catmullrom norsk gu
 
 # Language settings
