@@ -7,12 +7,12 @@ In the near future we plan to launch an interactive roadmap that allows users to
 
 ## In Progress
 
-- Stand up initial Datum Cloud Anycast network
-- Mature the GCP "Bring Your Own Cloud" (BYOC) infrastructure provider
+- Stand up initial Datum Cloud Anycast network on AS33438. [Current RIPE Atlas measurement](https://atlas.ripe.net/measurements/86336100/).
+- Mature the GCP "Bring Your Own Cloud" (BYOC) [infrastructure provider](https://github.com/datum-cloud/infra-provider-gcp)
 - Define requirements for additional BYOC Providers
 - Improve Datum Cloud user registration and authorization flow
 - UX for creating and managing Organizations & Projects on Datum Cloud
-- Initial documentation improvements
+- Baseline documentation improvements
 
 ## On Deck
 
@@ -28,13 +28,12 @@ In the near future we plan to launch an interactive roadmap that allows users to
   - Create APIs for managing IAM policies for projects and organizations
   - Create UI for managing Organization and Project level IAM policies
 - Telemetry:
-  - Export platform telemetry using OpenTelemetry
-  - Hosted version of Grafana available for users
   - Platform Telemetry for Workloads
   - Platform Telemetry for Networks
+  - Export platform telemetry using OpenTelemetry
   - Hosted version of Grafana available for users
   - Prometheus compatible metrics endpoint
 - Developer experience:
   - AWS BYOC infrastructure provider
   - Integrated docs, guides, API reference, roadmap and changelog
-  - Revised website structure
+  - Revised website structure and messaging
