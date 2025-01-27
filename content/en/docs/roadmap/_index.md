@@ -7,8 +7,8 @@ In the near future we plan to launch an interactive roadmap that allows users to
 
 ## In Progress
 
-- Stand up initial Datum Cloud Anycast network on AS33438. [Current RIPE Atlas measurement](https://go.datum.net/ripe-measure).
-- Mature the GCP "Bring Your Own Cloud" (BYOC) [infrastructure provider](https://go.datum.net/gcp-provider)
+- Stand up initial Datum Cloud Anycast network on AS33438. [Current RIPE Atlas measurement](https://link.datum.net/ripe-test).
+- Mature the GCP "Bring Your Own Cloud" (BYOC) [infrastructure provider](https://link.datum.net/gcp-provider)
 - Define requirements for additional BYOC Providers
 - Improve Datum Cloud user registration and authorization flow
 - UX for creating and managing Organizations & Projects on Datum Cloud
