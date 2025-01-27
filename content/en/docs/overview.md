@@ -1,37 +1,36 @@
 ---
 title: Overview
-description: Datum is a network cloud you can take anywhere.
+description: Datum is a network cloud you can take anywhere, backed by open source.
 weight: 1
 ---
 
-At Datum, we are on a mission to connect the top 1-2k technology producers,
-providers, and consumers (PPC's) with the ecosystems that power their advantage.
+Our cloud platform, global network, and open source tooling are designed to help developers and modern service providers run network workloads anywhere while connecting their applications programmatically to the hundreds — or thousands — of partners, providers and customers that make up their unique ecosystem.
 
-<!-- The Overview is where your users find out about your project. Depending on the
-size of your docset, you can have a separate overview page (like this one) or
-put your overview contents in the Documentation landing page (like in the Docsy
-User Guide).
+## Current status
 
-Try answering these questions for your user in this page: -->
+Datum is in active development across three areas:
 
-## What is it?
+- **Datum Cloud** - A hosted control plane for users to view their federated (bring your own cloud) locations, authorization/access, and tap into end-to-end observability.
+- **Datum Network** - A high capacity global network designed to be your superhighway between clouds, network providers, SaaS providers, and Enterprise customers.
+- **Open Source** - Kubernetes native tooling to help developers deploy and lifecycle network workloads on any infrastructure. Leverages an AGPL v3 license.
 
-To make our vision possible we’re building a network cloud that you can take
-anywhere, backed by open source. Key features to include:
+## What to expect this year
 
-- Traffic management with service chainning to offload Internet and app traffic
-  and route securely in private, controlled paths to clouds, SaaS services or
-  other destinations
-- Flexible ways to bring traffic into the Datum Network Cloud, including
-  authoritative DNS, built in global proxy / LB, DDoS filtering, GRE or IPSec
-  tunnels and more
-- Leverage Datum’s global managed cloud for data plane or bring your own cloud
-  (BYOC) zones via a standard Kubernetes operator deploy model
-- BYOC zones can be connected to the Datum Cloud control plane for DevOps,
-  observability, authorization control and more
-- Partner friendly model that supports deploy, manage and lifecycle of
-  commercial and open source NFV technologies
-- Commercial support for partner marketplace transactions that remove
-  margin-stacking on 3rd party technology
-- A reimagined interface and data model for private application and ecosystem
-  interconnections
+This year we’re standing up our platform and network while working to build trust with relevant communities. In terms of capabilities, here is what we're prioritizing:
+
+- Ability to leverage Datum Cloud for data plane / workloads in addition to bring your own cloud (BYOC) zones.
+- Multiple ways to bring traffic into Datum Cloud, including authoritative DNS, built in global proxy / LB, DDoS filtering, GRE or IPSec tunnels and more
+- Manage traffic with service chaining to offload and route securely in private, controlled paths (to clouds, SaaS services or other destinations)
+- Developing a partner friendly model that supports both commercial and open source NFV solutions
+- Supporting marketplace transactions to remove margin-stacking on 3rd party technologies
+- Reimagining the interface and data model for private application and ecosystem interconnections
+
+You can check out our [Roadmap](/docs/roadmap).
+
+## How to get involved
+
+We’re working in the open and would love your support. We're also happy to chat with design partners who have specific pain points!
+
+- [Join our Community Slack](https://slack.datum.net/)
+- [Follow our work and participate on GitHub](https://github.com/datum-cloud)
+- [Contribute to our roadmap](https://feedback.datum.net/)

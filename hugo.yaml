@@ -3,22 +3,16 @@ title: Datum
 
 menus:
   main:
-  - name: Signup/Login
+  - name: Community Slack
     params:
     rel: external
-    post: <i class="fa fa-arrow-up-right-from-square externalurl"></i>
-    url: https://cloud.datum.net/login
+    pre: <i class="fa-brands fa-slack"></i>
+    url: https://slack.datum.net/
     weight: 500
-  - name: View Changelog
-    params:
-    rel: external
-    post: <i class="fa fa-arrow-up-right-from-square externalurl"></i>
-    url: https://feedback.datum.net/
-    weight: 501
   - name: Follow on GitHub
     params:
     rel: external
-    post: <i class="fa fa-arrow-up-right-from-square externalurl"></i>
+    pre: <i class="fa-brands fa-github"></i>
     url: https://github.com/datum-cloud
     weight: 502
     
@@ -150,7 +144,7 @@ params:
   prism_syntax_highlighting: false
 
   copyright:
-    authors: Datum Technology Inc. | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) |
+    authors: Datum | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0) |
     from_year: 2024
 
   # User interface configuration
