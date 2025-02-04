@@ -32,5 +32,5 @@ You can check out our [Roadmap](/docs/roadmap).
 We’re working in the open and would love your support. We're also happy to chat with design partners who have specific pain points!
 
 - [Join our Community Slack](https://slack.datum.net/)
+- [Attend our Community Huddles](https://link.datum.net/comm-huddle) (2nd Wednesday of each month, 12pm EST)
 - [Follow our work and participate on GitHub](https://github.com/datum-cloud)
-- [Contribute to our roadmap](https://feedback.datum.net/)
