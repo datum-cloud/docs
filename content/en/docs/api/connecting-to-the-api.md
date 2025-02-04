@@ -33,7 +33,7 @@ Most users will interact with a project control plane to manage resources.
 The following base URL can be used to access an organization's control plane:
 
 ```url
-https://api.datum.net/apis/resourcemanager.datumapis.com/v1alpha/organizations/{organization-id}/control-plane
+https://api.datum.net/apis/resourcemanager.datumapis.com/v1alpha/organizations/{organization_id}/control-plane
 ```
 
 ### Project Control Plane
@@ -43,7 +43,7 @@ plane created to manage resources. Use the following base URL to access a
 project's control plane:
 
 ```url
-https://api.datum.net/apis/resourcemanager.datumapis.com/v1alpha/projects/{project-id}/control-plane
+https://api.datum.net/apis/resourcemanager.datumapis.com/v1alpha/projects/{project_id}/control-plane
 ```
 
 ## API Discovery
@@ -54,7 +54,7 @@ example that demonstrates some services available in an organization's control
 plane.
 
 ```shell
-$ curl -sS 'https://api.datum.net/apis/resourcemanager.datumapis.com/v1alpha/organizations/{organization-id}/control-plane/openapi/v3' \
+$ curl -sS 'https://api.datum.net/apis/resourcemanager.datumapis.com/v1alpha/organizations/{organization_id}/control-plane/openapi/v3' \
    -H "Authorization: Bearer $(datumctl auth get-token)"
 
 {
