@@ -3,19 +3,18 @@ title: Datum
 
 menus:
   main:
-  - name: Community Slack
-    params:
-    rel: external
-    pre: <i class="fa-brands fa-slack"></i>
-    url: https://slack.datum.net/
-    weight: 500
-  - name: Follow on GitHub
-    params:
-    rel: external
-    pre: <i class="fa-brands fa-github"></i>
-    url: https://github.com/datum-cloud
-    weight: 502
-    
+    - name: Community Slack
+      params:
+      rel: external
+      pre: <i class="fa-brands fa-slack"></i>
+      url: https://slack.datum.net/
+      weight: 500
+    - name: Follow on GitHub
+      params:
+      rel: external
+      pre: <i class="fa-brands fa-github"></i>
+      url: https://github.com/datum-cloud
+      weight: 502
 
 # cSpell:ignore goldmark github hugo readingtime docsy subdir lastmod pygments linenos catmullrom norsk gu
 
@@ -88,6 +87,12 @@ outputs:
   section: [HTML, print, RSS]
 
 params:
+  # OpenGraph
+  # title: Datum Documentation
+  # description: Datum is a network cloud you can take anywhere, backed by open source.
+  # https://gohugo.io/templates/embedded/#configuration-open-graph
+  images:
+    - /images/og-default.png
   taxonomy:
     # set taxonomyCloud = [] to hide taxonomy clouds
     taxonomyCloud: [tags, categories]
@@ -212,4 +217,3 @@ module:
   imports:
     - path: github.com/google/docsy
       disable: false
-
