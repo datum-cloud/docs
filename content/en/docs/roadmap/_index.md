@@ -3,7 +3,7 @@ title: Roadmap
 weight: 1
 ---
 
-In the near future we plan to launch an interactive roadmap that allows users to suggest ideas, comment on existing ones, and better understand OSS vs platform features. In the meantime, here is a run down of what we're working on, and what on deck.
+In the near future we plan to launch an interactive roadmap that allows users to suggest ideas, comment on existing ones, and better understand OSS vs platform features. In the meantime, here is a run down of what we're working on, and what's on deck.
 
 ## In Progress
 
