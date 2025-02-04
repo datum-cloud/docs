@@ -10,7 +10,7 @@ Access Token in the Datum Cloud Portal and using the
 the Personal Access Token for a short-lived bearer token.
 
 ```shell
-▶ curl https://api.staging.env.datum.net/datum-os/oauth/token/exchange \
+▶ curl https://api.datum.net/datum-os/oauth/token/exchange \
    -H "Authorization: Bearer $PAT" -sS | jq
 {
   "access_token": "[[redacted]]",
