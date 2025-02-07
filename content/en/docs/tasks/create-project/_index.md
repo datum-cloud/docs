@@ -40,8 +40,6 @@ kind: Project
 metadata:
   generateName: intro-project-
 spec:
-  parent:
-    external: //resourcemanager.datumapis.com/organizations/RESOURCE_ID
 ```
 
 Create the project
