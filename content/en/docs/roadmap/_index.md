@@ -3,33 +3,33 @@ title: Roadmap
 weight: 1
 ---
 
-In the near future we plan to launch an interactive roadmap that allows users to suggest ideas, comment on existing ones, and better understand OSS vs platform features. In the meantime, here is a run down of what we're working on, and what's on deck.
+In the near future we plan to launch an interactive roadmap that allows users to
+suggest ideas, comment on existing ones, and better understand OSS vs platform
+features. In the meantime, here is a run down of what we're working on, and
+what's on deck.
 
 ## In Progress
 
-- Stand up initial Datum Cloud Anycast network on AS33438. [Current RIPE Atlas measurement](https://link.datum.net/ripe-test).
 - Mature the GCP "Bring Your Own Cloud" (BYOC) [infrastructure provider](https://link.datum.net/gcp-provider)
 - Define requirements for additional BYOC Providers
-- Improve Datum Cloud user registration and authorization flow
-- UX for creating and managing Organizations & Projects on Datum Cloud
 - Baseline documentation improvements
+- Expose UI for managing locations, networks, workloads, configs, and secrets
+- Expose API and UI for creating L7 network proxy through the [Gateway API](https://gateway-api.sigs.k8s.io)
 
 ## On Deck
 
-- Account setup:
-  - Expose UI for managing projects
-  - Expose API for managing organizations
- - Access:
+- Account setup and IAM:
+  - Create new organizations and invite team members
+  - Manage user access to organizations and projects through IAM policies
   - Support service accounts for machine-to-machine authentication
-  - Manage access to Organizations and Projects through IAM policies
-- Telemetry:
-  - Platform Telemetry for Workloads
-  - Platform Telemetry for Networks
-  - Export platform telemetry using OpenTelemetry
+- Build a robust telemetry platform
+  - Platform telemetry available for workloads
+  - Platform telemetry available for networks
+  - Export platform telemetry to third-parties using OpenTelemetry
+  - Audit logs available for all platform operations
   - Hosted version of Grafana available for users
   - Prometheus compatible metrics endpoint
-  - Audit logs for all platform operations
-- Developer experience:
+- Developer experience
   - AWS BYOC infrastructure provider
   - Integrated docs, guides, API reference, roadmap and changelog
   - Revised website structure and messaging
