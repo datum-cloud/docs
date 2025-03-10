@@ -6,7 +6,7 @@ description: >-
      This page describes key concepts for working with the Datum Cloud.
 ---
 
-## The Datum Operator
+## The Datum Control Plane
 
 The Datum Operator is implemented upon Kubernetes Custom Resource Definitions (CRDs) to provide abstracted, yet orchestrated, functionality across Hyperscale Cloud Providers, Network as a Service Operators, Edge Clouds (including our own), and infrastructure under your management and control.
 
