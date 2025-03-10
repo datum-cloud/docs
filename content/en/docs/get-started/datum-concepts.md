@@ -18,7 +18,7 @@ Datum (will) supports bi-directional control plane federation, from the Datum Cl
 
 ### Datum Portal - cloud.datum.net
 
-The Datum Portal provides real-time insights on the state of your dedicated Datum Operator. 
+The [Datum Portal](https://cloud.datum.net) provides real-time insights on the state of your Datum Control Plane resources. 
 
 ### Datum's Command Line Tool - datumctl
 
