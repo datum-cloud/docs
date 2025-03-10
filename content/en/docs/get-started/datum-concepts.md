@@ -10,9 +10,9 @@ description: >-
 
 The Datum Operator is implemented upon Kubernetes Custom Resource Definitions (CRDs) to provide abstracted, yet orchestrated, functionality across Hyperscale Cloud Providers, Network as a Service Operators, Edge Clouds (including our own), and infrastructure under your management and control.
 
-By implementing an operator based on top of Kubernetes CRDs, we leverage common patterns familiar to developers, SREs, and Platform Engineers. Using the Datum Operator, you describe your desired system state through manifests, and the Datum Operator will deploy and continuously validate global operataional state against that manifest.
+By implementing an operator based on top of Kubernetes CRDs, we leverage common patterns familiar to developers, SREs, and Platform Engineers. Using the Datum Operator, you describe your desired system state through manifests, and the Datum Operator will deploy and continuously validate global operational state against that manifest.
 
-Datum (will) supports bi-directional control plane federation, from the Datum Cloud to 1st or 3rd party compute platforms so that you can bring Datum anywhere you need it. At this point in time, Datum supports compute resources backed by GCP and network resrouces from our own Edge Cloud.
+Datum (will) supports bi-directional control plane federation, from the Datum Cloud to 1st or 3rd party compute platforms so that you can bring Datum anywhere you need it. At this point in time, Datum supports compute resources backed by GCP and network resources from our own Edge Cloud.
 
 ## Helpful Tools
 
