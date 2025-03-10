@@ -28,7 +28,7 @@ datumctl is our CLI for managing the Datum Operator via the command line. datumc
 
 ### Datum Workloads
 
-Datum Workloads are where the magic of Datum happens. Workloads are defined using Kubernetes Manifests. Workloads can be Virtual Machines or Containers, that are deployed as clusters across the Locations you define with "Superpowers" delivered through Datum Cloud Networks (more on both topics below). The Datum Operator is responsible for taking your workload manifest definition, and ensuring its running state across Locations and Networks.
+Datum Workloads are where the magic of Datum happens. Workloads are defined using Kubernetes Manifests. Workloads can be Virtual Machines or Containers, that are deployed as collections of instances across the Locations you define with "Superpowers" delivered through Datum Cloud Networks (more on both topics below). The Datum Operator is responsible for taking your workload manifest definition, and ensuring its running state across Locations and Networks.
 
 ### Datum Locations
 
