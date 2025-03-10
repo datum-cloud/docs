@@ -22,7 +22,7 @@ The [Datum Portal](https://cloud.datum.net) provides real-time insights on the s
 
 ### Datum's Command Line Tool - datumctl
 
-datumctl is our CLI for managing the Datum Operator via the command line. datumctl provides authorization, API management, and has the ability to manage .kubeconfig files so that one can leverage kubectl for day to day interaction with Datum Cloud.
+[datumctl](https://docs.datum.net/docs/tasks/tools/#datumctl) is our CLI for managing the Datum Control Plane via the command line. datumctl provides authorization, API management, and has the ability to manage .kubeconfig files so that one can leverage kubectl for day to day interaction with Datum Cloud.
 
 ## Key Components
 
