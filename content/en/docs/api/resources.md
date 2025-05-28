@@ -4,7 +4,7 @@ draft: false
 ---
 
 There are many resources available in the Datum Cloud API that can be used to manage
-your infrastructure. This document provides an overview oxf the available
+your infrastructure. This document provides an overview of the available
 resources and how to use them.
 
 ## Export Policies
