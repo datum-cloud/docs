@@ -17,13 +17,58 @@ to interact with Datum.
 ### datumctl
 
 {{< tabpane text=true left=true >}}
-  {{% tab header="**Operating System**:" disabled=true /%}}
-  {{% tab header="macOS" lang="en" %}}
+  {{% tab header="**Method**:" disabled=true /%}}
+  {{% tab header="Brew" lang="en" %}}
 
-  Install datumctl with the [Homebrew](https://brew.sh/) package manager:
+Install datumctl with the [Homebrew](https://brew.sh/) package manager on macOS or Linux:
 
   ```shell
   brew install datum-cloud/tap/datumctl
+  ```
+
+  {{% /tab %}}
+  {{% tab header="Curl" lang="en" %}}
+Install manually with curl on Linux or macOS
+
+```shell
+export OS=$(uname -s)
+export ARCH=$(uname -m)
+
+curl -Lo ./datumctl.tar.gz https://github.com/datum-cloud/datumctl/releases/latest/download/datumctl_${OS}_${ARCH}.tar.gz
+
+# Extract and install the datumctl binary
+tar zxvf datumctl.tar.gz datumctl
+chmod +x datumctl
+mkdir -p ~/.local/bin
+mv ./datumctl ~/.local/bin/datumctl
+# and then append (or prepend) ~/.local/bin to $PATH
+```
+
+  {{% /tab %}}
+  {{% tab header="Go" lang="en" %}}
+
+Install via Go
+
+```shell
+go install go.datum.net/datumctl@latest
+# Ensure that $GOPATH/bin is in your PATH
+export PATH=$PATH:$(go env GOPATH)/bin
+  ```
+
+  {{% /tab %}}
+  {{% tab header="Windows Powershell" lang="en" %}}
+
+Install datumctl on Windows using PowerShell
+
+  ```powershell
+  Invoke-WebRequest -Uri "https://github.com/datum-cloud/datumctl/releases/latest/download/datumctl_Windows_x86_64.zip"  -OutFile "datumctl.zip"
+  Expand-Archive -Path "datumctl.zip" -DestinationPath "datumctl"
+  ```
+
+  Move the `datumctl.exe` file to a directory in your `PATH` or simply run it from the current directory:
+
+  ```powershell
+  .\datumctl\datumctl.exe
   ```
 
   {{% /tab %}}
