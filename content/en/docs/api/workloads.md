@@ -99,3 +99,8 @@ placements:
     scaleSettings:
       minReplicas: 1
 ```
+
+### Detailed API Specification
+
+For a complete API specification of the Location resource, refer to the
+[Detailed Reference](https://github.com/datum-cloud/workload-operator/blob/main/docs/api/workloads.md).

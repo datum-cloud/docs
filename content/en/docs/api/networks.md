@@ -56,3 +56,8 @@ spec:
     ipv6Ranges:
       - fd20:1234:5678::/48
 ```
+
+### Detailed API Specification
+
+For a complete API specification of the Location resource, refer to the
+[Detailed Reference](https://github.com/datum-cloud/network-services-operator/blob/main/docs/api/networks.md).
