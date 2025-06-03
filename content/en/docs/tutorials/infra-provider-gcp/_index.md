@@ -5,10 +5,12 @@ weight: 1
 
 ## Before you begin
 
-This tutorial assumes you have already
-[registered an account]({{< relref "get-started" >}}),
-[installed and configured the necessary tools]({{< ref "tools.md" >}}) to
-interact with Datum, and have [created a Datum project]({{< ref "create-project" >}}).
+This tutorial assumes you have already:
+
+- [Registered a Datum account]({{< relref "get-started" >}})
+- [Installed and configured the necessary tools]({{< ref "tools.md" >}})
+- [Created a Datum project]({{< ref "create-project" >}})
+- [Enabled the Google Cloud and Identity and Access Management (IAM) APIs on your GCP project](https://cloud.google.com/endpoints/docs/openapi/enable-api#enabling_an_api)
 
 ### Grant Datum Cloud access to your GCP project
 
