@@ -10,7 +10,9 @@ This tutorial assumes you have already:
 - [Registered a Datum account]({{< relref "get-started" >}})
 - [Installed and configured the necessary tools]({{< ref "tools.md" >}})
 - [Created a Datum project]({{< ref "create-project" >}})
-- [Enabled the Google Cloud and Identity and Access Management (IAM) APIs on your GCP project](https://cloud.google.com/endpoints/docs/openapi/enable-api#enabling_an_api)
+- [Enabling an API in your Google Cloud project](https://cloud.google.com/endpoints/docs/openapi/enable-api#enabling_an_api)
+- [Enable Identity and Access Management (IAM) API in your Google Cloud project](https://console.cloud.google.com/apis/library/iam.googleapis.com)
+- [Enable Compute Engine API in your Google Cloud project](https://console.cloud.google.com/apis/library/compute.googleapis.com)
 
 ### Grant Datum Cloud access to your GCP project
 
