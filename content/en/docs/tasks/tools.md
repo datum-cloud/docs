@@ -89,8 +89,8 @@ as required to interact with Datum via kubectl.
 ## Create API Credentials
 
 1. Sign in to Datum at <https://cloud.datum.net>
-2. Create an API token by navigating to
-   **User Settings > API Tokens > Create a new token**. Save this token in your
+2. Create an API key by navigating to
+   **User Settings > API Keys > Create a new token**. Save this key in your
    password manager or preferred method of storage.
 
 ## Configure Tools
