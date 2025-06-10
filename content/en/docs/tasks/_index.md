@@ -1,5 +1,5 @@
 ---
-title: Tasks
+title: Setup Tasks
 weight: 6
 ---
 

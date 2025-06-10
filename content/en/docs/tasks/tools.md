@@ -1,5 +1,5 @@
 ---
-title: Set Up Tools
+title: Set Up Datum Tools
 description: Set up tools to work with Datum.
 weight: 2
 no_list: true
@@ -86,12 +86,27 @@ as required to interact with Datum via kubectl.
 [kubectl]: https://kubernetes.io/docs/reference/kubectl/kubectl/
 [kubectl-task]: https://kubernetes.io/docs/tasks/tools/#kubectl
 
+For convenience, homebrew instructions are below:
+
+{{< tabpane text=true left=true >}}
+  {{% tab header="**Method**:" disabled=true /%}}
+  {{% tab header="Brew" lang="en" %}}
+
+Install kubectl with the [Homebrew](https://brew.sh/) package manager on macOS or Linux:
+
+  ```shell
+  brew install kubectl
+  ```
+
+  {{% /tab %}}
+{{< /tabpane >}}
+
 ## Create API Credentials
 
 1. Sign in to Datum at <https://cloud.datum.net>
-2. Create an API token by navigating to
-   **User Settings > API Tokens > Create a new token**. Save this token in your
-   password manager or preferred method of storage.
+2. Create an API token by clicking on your User Initials / Avatar (top right)
+   and then navigating to **API Keys > New API Key**. Save this API Key in
+   your password manager or preferred method of storage.
 
 ## Configure Tools
 
