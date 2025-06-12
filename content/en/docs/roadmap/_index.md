@@ -1,6 +1,6 @@
 ---
 title: Roadmap
-weight: 1
+weight: 2
 ---
 
 In the near future we plan to launch an interactive roadmap that allows users to
