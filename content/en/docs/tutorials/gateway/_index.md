@@ -35,9 +35,6 @@ spec:
     - name: http
       protocol: HTTP
       port: 80
-      allowedRoutes:
-        kinds:
-          - kind: HTTPRoute
 ```
 
 Apply this configuration using kubectl:
