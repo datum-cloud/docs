@@ -96,9 +96,8 @@ what connectivity policies apply.
 
 ## Network Context
 
-A logical grouping that provides network configuration and policy context for
-workload deployments. Network contexts help organize and manage networking
-resources across different environments or applications.
+A logical partition of a Network that helps organize and manage networking
+resources such as Subnets across different Locations. A functioning Network will have one or more Network Contexts.
 
 ## Network Function Virtualization (NFV)
 
