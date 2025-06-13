@@ -30,7 +30,7 @@ kind: Gateway
 metadata:
   name: my-gateway
 spec:
-  gatewayClassName: datum-gateway
+  gatewayClassName: datum-external-global-proxy
   listeners:
     - name: http
       protocol: HTTP
