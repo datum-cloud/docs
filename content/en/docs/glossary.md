@@ -90,9 +90,8 @@ configurable subnets, routing, and security policies.
 
 ## Network Binding
 
-A resource that defines the relationship between workloads and networks,
-specifying how instances should be attached to specific network segments and
-what connectivity policies apply.
+A resource that defines an intent to attach to a Network in a given Location,
+such as a Workload Deployment being scheduled to a Location that will need to attach Instances to the Network. The control plane reacts to this resource by ensuring appropriate Network Contexts are provisioned.
 
 ## Network Context
 
