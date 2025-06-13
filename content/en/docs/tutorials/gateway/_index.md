@@ -68,8 +68,9 @@ spec:
             type: PathPrefix
             value: /api
       backendRefs:
-        - name: my-endpoint
+        - group: discovery.k8s.io
           kind: EndpointSlice
+          name: my-endpoint
           port: 8080
 ```
 
