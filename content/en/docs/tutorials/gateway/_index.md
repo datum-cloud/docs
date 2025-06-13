@@ -25,7 +25,7 @@ A Datum Gateway acts as a reverse proxy that manages incoming traffic to your se
 Let's start by creating a simple Gateway that will listen for HTTP traffic on port 80. Here's a basic Gateway configuration:
 
 ```yaml
-apiVersion: networking.datumapis.com/v1alpha
+apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: my-gateway
