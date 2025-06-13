@@ -160,7 +160,7 @@ workload instances.
 
 A request for subnet resources that automatically provisions the necessary
 network infrastructure. SubnetClaims provide a declarative way to request
-network capacity without managing low-level networking details.
+network addresses for use on a Network while allowing for IPAM policies to decide what addresses should be issued.
 
 ## Virtual Machine Workload
 
