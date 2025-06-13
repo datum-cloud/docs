@@ -54,7 +54,7 @@ kubectl get gateway
 Routes define how traffic should be directed to your services. Let's create a simple HTTPRoute that directs traffic to a backend service:
 
 ```yaml
-apiVersion: networking.datumapis.com/v1alpha
+apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: my-route
