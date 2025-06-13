@@ -183,9 +183,7 @@ deployment in Datum Cloud.
 
 ## Workload Deployment
 
-The actual running instances and infrastructure created from a Workload
-specification. Workload deployments represent the realized state of applications
-across the distributed infrastructure.
+A partition of a Workload created as a result of placement rules. Each Workload Deployment is responsible for maintaining the lifecycle of Instances as defined by the placement rule's scale settings. A single Workload may have one or more Workload Deployments, with each being individually responsible for its set of instances.
 
 ## Zone
 
