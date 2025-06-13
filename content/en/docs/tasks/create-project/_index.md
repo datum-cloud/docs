@@ -11,6 +11,10 @@ This tutorial assumes you have already
 [installed and configured the necessary tools]({{< ref "tools.md" >}}) to interact
 with Datum.
 
+## Portal Alternative
+
+This tutorial uses a kubectl with manifest driven workflow to create your first project. Alternatively, you can create your first project via the Datum Cloud Portal.
+
 ### Confirm your kubeconfig context
 
 Ensure that your kubectl tool is configured to use the correct context to interact
@@ -78,13 +82,15 @@ intro-project-zj6wx   2m3s   Ready
 ## Add a kubeconfig context for your project
 
 Create a kubeconfig context to access your project's resources by executing
-following command, replacing `PROJECT_NAME` with your project's name:
+following command, replacing `PROJECT_NAME` with your project's name.
+
+*Note: If you created your project via Datum Cloud Portal, you'll want to copy/paste the same project name into the command below.*
 
 ```shell
 datumctl auth update-kubeconfig --project PROJECT_NAME
 ```
 
-Confirm that the control plane is accessible:
+Confirm that the project's control plane is accessible:
 
 ```shell
 kubectl explain locations.spec

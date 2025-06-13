@@ -1,5 +1,5 @@
 ---
-title: Set up a Datum managed Location backed by GCP
+title: Create a Datum Workload backed by Google Cloud
 weight: 1
 ---
 
@@ -10,11 +10,26 @@ This tutorial assumes you have already:
 - [Registered a Datum account]({{< relref "get-started" >}})
 - [Installed and configured the necessary tools]({{< ref "tools.md" >}})
 - [Created a Datum project]({{< ref "create-project" >}})
+<<<<<<< thomasdaly5-update-20250610
+- [Enabled the Google Cloud and Identity and Access Management (IAM) APIs on your GCP project](https://cloud.google.com/endpoints/docs/openapi/enable-api#enabling_an_api)
+- [Install and access to the Google Cloud CLI](https://cloud.google.com/sdk/docs/install-sdk)
+=======
 - [Enabling an API in your Google Cloud project](https://cloud.google.com/endpoints/docs/openapi/enable-api#enabling_an_api)
 - [Enable Identity and Access Management (IAM) API in your Google Cloud project](https://console.cloud.google.com/apis/library/iam.googleapis.com)
 - [Enable Compute Engine API in your Google Cloud project](https://console.cloud.google.com/apis/library/compute.googleapis.com)
+>>>>>>> main
 
-### Grant Datum Cloud access to your GCP project
+### Discover Available Datum Cloud Projects
+
+Use `kubectl get projects` to list your Datum Cloud Projects. Select a DATUM_PROJECT_NAME to be used in this tutorial.
+
+### Discover Available Google Cloud Projects
+
+Ensure your `gcloud` CLI has authenticated to Google Cloud.
+
+Use `gcloud list projects` to obtain a list of GCP_PROJECT_IDs. Select the GCP_PROJECT_ID to be used with this tutorial.
+
+### Grant Datum Cloud access to your GCP Project
 
 Datum requires the following roles to be granted to a Datum managed service
 account which is specific to each Datum project:
@@ -26,26 +41,26 @@ account which is specific to each Datum project:
 
 The service account email will be in the following format:
 
-`PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com`
+`DATUM_PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com`
 
 Use the gcloud tool to grant IAM Roles to your Datum service account, replacing
-`GCP_PROJECT_ID` and `PROJECT_NAME` with their respective values:
+`GCP_PROJECT_ID` and `DATUM_PROJECT_NAME` with their respective values:
 
 ```shell
 gcloud projects add-iam-policy-binding GCP_PROJECT_ID \
-  --member="serviceAccount:PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
+  --member="serviceAccount:DATUM_PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
   --role="roles/compute.admin"
 
 gcloud projects add-iam-policy-binding GCP_PROJECT_ID \
-  --member="serviceAccount:PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
+  --member="serviceAccount:DATUM_PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
   --role="roles/secretmanager.admin"
 
 gcloud projects add-iam-policy-binding GCP_PROJECT_ID \
-  --member="serviceAccount:PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
+  --member="serviceAccount:DATUM_PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountAdmin"
 
 gcloud projects add-iam-policy-binding GCP_PROJECT_ID \
-  --member="serviceAccount:PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
+  --member="serviceAccount:DATUM_PROJECT_NAME@datum-cloud-project.iam.gserviceaccount.com" \
   --role="roles/iam.serviceAccountUser"
 ```
 
