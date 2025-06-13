@@ -1,6 +1,6 @@
 ---
 title: Tasks
-weight: 6
+weight: 4
 ---
 
 This section of the Datum documentation provides pages that guide you through

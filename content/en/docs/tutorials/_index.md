@@ -1,6 +1,6 @@
 ---
 title: Tutorials
-weight: 8
+weight: 5
 ---
 
 This section of the Datum documentation features tutorials. Each tutorial covers

@@ -1,7 +1,7 @@
 ---
 title: Contribution Guidelines
 description: How to contribute to the docs
-weight: 10
+weight: 7
 ---
 
 We use [Hugo](https://gohugo.io/) to format and generate our website, and the
