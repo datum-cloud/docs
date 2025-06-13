@@ -32,8 +32,7 @@ datum-organization-pp4zn7tiw5be3beygm2d6mbcfe
 
 ## Create a project
 
-Write the following project manifest to `intro-project.yaml`, replacing
-`RESOURCE_ID` with your organization's resource id.
+Write the following project manifest to `intro-project.yaml`.
 
 Note that `generateName` is used here, which will result in a name with the prefix of
 `intro-project-` and a random suffix.
