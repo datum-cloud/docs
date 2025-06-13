@@ -108,7 +108,7 @@ commercial and open source NFV technologies as software-based workloads.
 
 ## Network Policy
 
-Security rules that control traffic flow between workloads, networks, and
+Security rules that control traffic flow between endpoints on a network, and
 external resources. Network policies provide fine-grained access control and
 segmentation within Datum Cloud environments.
 
