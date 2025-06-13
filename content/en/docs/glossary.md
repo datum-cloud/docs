@@ -141,7 +141,7 @@ Reconciliation automatically handles failures, scaling, and configuration drift.
 
 Configuration that defines how workloads should automatically scale in response
 to demand, resource utilization, or other triggers. Scaling behavior includes
-policies for both horizontal scaling (adding instances).
+policies for minimum and maximum replicas, and horizontal scaling expectations.
 
 ## Service Chaining
 
