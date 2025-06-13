@@ -29,12 +29,10 @@ Let's start by creating a simple Gateway that will listen for HTTP traffic on po
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
-apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: my-gateway
 spec:
-  gatewayClassName: datum-external-global-proxy
   gatewayClassName: datum-external-global-proxy
   listeners:
     - name: http
@@ -102,7 +100,6 @@ Routes define how traffic should be directed to your services. Let's create a si
 
 ```yaml
 apiVersion: gateway.networking.k8s.io/v1
-apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: my-route
@@ -116,7 +113,6 @@ spec:
             type: PathPrefix
             value: /
       backendRefs:
-        - group: discovery.k8s.io
         - group: discovery.k8s.io
           kind: EndpointSlice
           name: my-endpoint
