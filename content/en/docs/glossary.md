@@ -172,7 +172,7 @@ suitable for legacy applications or specific compliance requirements.
 
 Storage attachment configuration for workload instances, defining how storage
 volumes should be connected to running compute instances. Volume mounts enable
-stateful workloads with data persistence.
+stateful workloads with data persistence, as well as injecting content from ConfigMaps or Secrets via a filesystem path.
 
 ## Workload
 
