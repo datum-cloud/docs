@@ -1,6 +1,8 @@
 ---
-title: Get started
-weight: 2
+linkTitle: Overview
+title: What is Datum?
+description: Network cloud you can take anywhere, backed by open source
+weight: 1
 ---
 
 We're in the early stages of Datum. If you'd like to get involved, please join our [Community Slack](https://slack.datum.net/) or come to our monthly Community Huddle:
