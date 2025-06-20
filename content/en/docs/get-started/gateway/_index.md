@@ -8,8 +8,8 @@ weight: 1
 This tutorial assumes you have already:
 
 - [Registered a Datum account]({{< relref "get-started" >}})
-- [Installed and configured the necessary tools]({{< ref "tools.md" >}})
-- [Created a Datum project]({{< ref "create-project" >}})
+- [Installed and configured the necessary tools]({{< relref "/" >}})
+- [Created a Datum project]({{< relref "/" >}})
 
 ## Understanding Datum Gateways
 

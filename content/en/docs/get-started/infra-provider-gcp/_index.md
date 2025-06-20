@@ -8,8 +8,8 @@ weight: 1
 This tutorial assumes you have already:
 
 - [Registered a Datum account]({{< relref "get-started" >}})
-- [Installed and configured the necessary tools]({{< ref "tools.md" >}})
-- [Created a Datum project]({{< ref "create-project" >}})
+- [Installed and configured the necessary tools]({{< relref "/" >}})
+- [Created a Datum project]({{< relref "/" >}})
 - [Install and access to the Google Cloud CLI](https://cloud.google.com/sdk/docs/install-sdk)
 - [Enabling an API in your Google Cloud project](https://cloud.google.com/endpoints/docs/openapi/enable-api#enabling_an_api)
 - [Enable Identity and Access Management (IAM) API in your Google Cloud project](https://console.cloud.google.com/apis/library/iam.googleapis.com)

@@ -1,7 +1,7 @@
 ---
-title: Developer Guide
+title: Components
 description: This guide helps you get started developing Datum components.
-weight: 30
+weight: 88
 ---
 
 ## Summary

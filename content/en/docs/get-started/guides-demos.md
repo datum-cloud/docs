@@ -1,6 +1,6 @@
 ---
 title: Guides and Demos
-weight: 9
+weight: 99
 draft: false
 # Add blocks of content here to add more sections to the community page
 ---

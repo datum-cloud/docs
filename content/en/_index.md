@@ -5,7 +5,7 @@ description: Explore our guides and examples to leverage Datum.
 
 <html>
 <head>
-<meta http-equiv="refresh" content="0; url=/docs/overview/">
+<meta http-equiv="refresh" content="0; url=/docs/">
 </head>
 <body></body>
 </html>

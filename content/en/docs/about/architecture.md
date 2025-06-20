@@ -1,9 +1,8 @@
 ---
-title: "Key Concepts for Using Datum"
-linkTitle: "Key Concepts for Using Datum"
-weight: 100
-description: >-
-     This page describes key concepts for working with the Datum Cloud.
+linkTitle: Architecture
+title: Architecture
+weight: 2
+description: Key concepts for working with the Datum Cloud.
 ---
 
 ## The Datum Control Plane
@@ -23,20 +22,6 @@ Datum (will) supports bi-directional control plane federation, from the Datum
 Cloud to 1st or 3rd party compute platforms so that you can bring Datum anywhere
 you need it. At this point in time, Datum supports compute resources backed by
 GCP and network resources from our own Edge Cloud.
-
-## Helpful Tools
-
-### Datum Portal - cloud.datum.net
-
-The [Datum Portal](https://cloud.datum.net) provides real-time insights on the
-state of your Datum Control Plane resources. 
-
-### Datum's Command Line Tool - datumctl
-
-[datumctl](https://docs.datum.net/docs/tasks/tools/#datumctl) is our CLI for
-managing the Datum Control Plane via the command line. datumctl provides
-authorization, API management, and has the ability to manage .kubeconfig files
-so that one can leverage kubectl for day to day interaction with Datum Cloud.
 
 ## Key Components
 
@@ -66,4 +51,3 @@ needs, and operational security / segmentation concerns. Datum Cloud Networks
 are programatically organized and applied throughout the system to reduce
 operator cognitive load. Datum Networks are designed to provide rich
 observability and telemetry capabilities.
-
