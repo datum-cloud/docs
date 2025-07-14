@@ -113,7 +113,23 @@ that region and run the container on it. The GCP virtual machine is the instance
 
 ## Locations
 
+A **Location** represents a place where your network resources can be deployed and managed. Think of it as a "deployment zone" that tells the system where to put your networks, subnets, and other networking components.
+
+A Location defines:
+- **Where** your network resources will be deployed (like a specific city or data center)
+- **How** they will be managed (either by Datum or by you)
+- **Which cloud provider** will host them (currently Google Cloud Platform)
+
+### Why Locations Matter
+
+Locations help you:
+- **Organize** your network resources by geography or business unit
+- **Control** where your data and applications are deployed
+- **Scale** your infrastructure across multiple regions or zones
+- **Comply** with data residency and regulatory requirements
+
 [Detailed Locations API Reference](https://github.com/datum-cloud/network-services-operator/blob/main/docs/api/locations.md)
+
 
 {{< tabpane heade"Sample Locations">}}
 {{% tab header="GCP" text=true %}}
@@ -138,6 +154,17 @@ spec:
 {{< /tabpane >}}
 
 ## Networks
+
+A **Network** is the foundation of your cloud infrastructure - think of it as a digital highway system that connects all your applications and services together. It provides the communication backbone that allows your workloads to talk to each other and the outside world.
+
+## What is a Network?
+
+A Network defines:
+- **How IP addresses are managed** (automatically or through policies)
+- **Which IP protocols are supported** (IPv4, IPv6, or both)
+- **Network performance settings** (like maximum packet size)
+- **The overall network architecture** for your applications
+
 
 [Detailed Networks API Reference](https://github.com/datum-cloud/network-services-operator/blob/main/docs/api/networks.md)
 
@@ -178,13 +205,36 @@ spec:
 
 ## Network Bindings
 
+A **Network Binding** is like a bridge that connects your network to a specific location. Think of it as the "deployment instruction" that tells the system: "Take this network and make it available in this particular location." It's the link between your network design and where it actually gets deployed.
+
+A Network Binding defines:
+- **Which network** to deploy (the network you want to use)
+- **Where to deploy it** (the specific location where it should be available)
+- **How it's connected** to other resources in that location
+
 [Detailed Network Bindings API Reference](https://github.com/datum-cloud/network-services-operator/blob/main/docs/api/networkbindings.md)
 
 ## Network Contexts
 
+A **Network Context** is like a "configuration profile" for your network in a specific location. Think of it as the "settings and metadata" that tells the system how to manage and operate your network in that particular place. It's the bridge between your network design and the actual implementation in each location.
+
+A Network Context defines:
+- **Which network** it's managing (the network that's deployed)
+- **Where it's deployed** (the specific location)
+- **How it's configured** for that location
+- **Status and health** information
+
 [Detailed Network Contexts API Reference](https://github.com/datum-cloud/network-services-operator/blob/main/docs/api/networkcontexts.md)
 
 ## Network Policies
+
+A **Network Policy** is like a security guard that controls who can talk to whom on your network. Think of it as a set of rules that says "this traffic is allowed" or "that traffic is blocked." It's your way of creating security boundaries and controlling communication between different parts of your infrastructure.
+
+A Network Policy defines:
+- **Which traffic is allowed** to reach your applications and services
+- **Which sources can connect** (specific IP addresses or ranges)
+- **Which ports and protocols** are permitted
+- **Security boundaries** between different parts of your network
 
 [Detailed Network Policies API Reference](https://github.com/datum-cloud/network-services-operator/blob/main/docs/api/networkpolicies.md)
 
@@ -204,13 +254,29 @@ spec:
 {{% /tab %}}
 {{< /tabpane >}}
 
-## Subnet Claims
-
-[Detailed Subnet Claims API Reference](https://github.com/datum-cloud/network-services-operator/blob/main/docs/api/subnetclaims.md)
-
 ## Subnets
 
+A **Subnet** is like a "neighborhood" within your network - a specific range of IP addresses that are grouped together for a particular purpose. Think of it as a section of your network where related applications or services live together. It's the actual implementation of the address space that was requested through a Subnet Claim.
+
+A Subnet defines:
+- **A specific range of IP addresses** (the start address and size)
+- **Where it's located** (the location and network context)
+- **What it's used for** (the subnet class)
+- **Which IP protocol** it supports (IPv4 or IPv6)
+
 [Detailed Subnets API Reference](https://github.com/datum-cloud/network-services-operator/blob/main/docs/api/subnets.md)
+
+## Subnet Claims
+
+A **Subnet Claim** is like a "reservation request" for a piece of your network. Think of it as asking the system: "I need some IP addresses for my application in this specific location." It's how you request and reserve a portion of your network's IP address space for your workloads.
+
+A Subnet Claim defines:
+- **What type of subnet** you need (the subnet class)
+- **Where you need it** (the location and network context)
+- **How much space** you need (IP family and prefix length)
+- **Optional specifications** (specific start address if needed)
+
+[Detailed Subnet Claims API Reference](https://github.com/datum-cloud/network-services-operator/blob/main/docs/api/subnetclaims.md)
 
 ## Workload
 
