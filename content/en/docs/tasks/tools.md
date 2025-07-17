@@ -101,18 +101,9 @@ Install kubectl with the [Homebrew](https://brew.sh/) package manager on macOS o
   {{% /tab %}}
 {{< /tabpane >}}
 
-## Create API Credentials
-
-1. Sign in to Datum at <https://cloud.datum.net>
-2. Create an API token by clicking on your User Initials / Avatar (top right)
-   and then navigating to **API Keys > New API Key**. Save this API Key in
-   your password manager or preferred method of storage.
-
 ## Configure Tools
 
 ### Authentication
-
-#### Preferred — OIDC browser login *(datumctl ≥ 0.0.5)*
 
 ```shell
 datumctl auth login
@@ -120,18 +111,6 @@ datumctl auth login
 
 1. Run the command to open a browser window and sign in with your organization’s identity provider.
 2. When **Authentication successful** appears, credentials are cached locally for subsequent datumctl and kubectl commands.
-
-#### Legacy — API token 
-
-Configure datumctl authentication by activating the API token created in the
-previous section. Run the following command and enter your API token at the
-prompt:
-
-```shell
-datumctl auth activate-api-token
-```
-
-**Heads-up:** API-token authentication will be removed in a future release—migrate to the OIDC flow.
 
 ### Add a kubeconfig context for your organization
 
