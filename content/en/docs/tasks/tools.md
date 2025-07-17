@@ -112,6 +112,17 @@ Install kubectl with the [Homebrew](https://brew.sh/) package manager on macOS o
 
 ### Authentication
 
+#### Preferred — OIDC browser login *(datumctl ≥ 0.0.5)*
+
+```shell
+datumctl auth login
+```
+
+1. Run the command to open a browser window and sign in with your organization’s identity provider.
+2. When **Authentication successful** appears, credentials are cached locally for subsequent datumctl and kubectl commands.
+
+#### Legacy — API token 
+
 Configure datumctl authentication by activating the API token created in the
 previous section. Run the following command and enter your API token at the
 prompt:
@@ -119,6 +130,8 @@ prompt:
 ```shell
 datumctl auth activate-api-token
 ```
+
+**Heads-up:** API-token authentication will be removed in a future release—migrate to the OIDC flow.
 
 ### Add a kubeconfig context for your organization
 
