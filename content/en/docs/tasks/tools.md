@@ -1,4 +1,4 @@
----
+ ---
 title: Set Up Datum Tools
 description: Set up tools to work with Datum.
 weight: 2
@@ -118,7 +118,7 @@ Obtain your organization's resource ID with datumctl by listing organizations
 that your user has access to:
 
 ```shell
-datumctl organizations list
+datumctl get organizations
 ```
 
 The output is similar to:
