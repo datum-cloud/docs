@@ -26,7 +26,7 @@ HTTPProxy provides:
 - Seamless integration with Datum's global proxy infrastructure
 
 This tutorial will create an HTTPProxy that proxies traffic to
-[example.com](https://www.example.com) as the backend service.
+example.com as the backend service.
 
 ## Creating a Basic HTTPProxy
 
@@ -360,29 +360,25 @@ You should see output similar to:
 
 ## Next Steps
 
-- Coming soon! Learn about Datum's observability tools and telemetry exporters
+Coming soon! Learn about Datum's observability tools and telemetry exporters.
 
 ## Troubleshooting
 
 Common issues and their solutions:
 
 1. **HTTPProxy not showing PROGRAMMED: True**:
-   - Check the HTTPProxy status: `kubectl describe httpproxy <name>`
-   - Verify the backend endpoint URL is accessible
-   - Ensure the Datum network services operator is running
-
+- Check the HTTPProxy status: `kubectl describe httpproxy <name>`
+- Verify the backend endpoint URL is accessible
+- Ensure the Datum network services operator is running
 2. **Generated hostname not responding**:
-   - Verify the HTTPProxy status shows `PROGRAMMED: True`
-   - Check that the backend service at the endpoint URL is accessible
-   - Review the generated Gateway status: `kubectl get gateway -o wide`
-
+- Verify the HTTPProxy status shows `PROGRAMMED: True`
+- Check that the backend service at the endpoint URL is accessible
+- Review the generated Gateway status: `kubectl get gateway -o wide`
 3. **Backend URL parsing issues**:
-   - Ensure the endpoint URL includes the scheme (http:// or https://)
-   - Verify the hostname in the URL is resolvable
-   - Check for any typos in the endpoint URL
-
+- Ensure the endpoint URL includes the scheme (http:// or https://)
+- Verify the hostname in the URL is resolvable
+- Check for any typos in the endpoint URL
 4. **Checking generated resources**:
-   - List all related resources: `kubectl get gateway,httproute,endpointslices`
-   - Use `kubectl describe` on any resource showing issues
-   - Review logs from the network services operator if resources aren't being
-     created
+- List all related resources: `kubectl get gateway,httproute,endpointslices`
+- Use `kubectl describe` on any resource showing issues
+- Review logs from the network services operator if resources aren't being created
