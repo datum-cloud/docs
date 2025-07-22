@@ -118,7 +118,7 @@ Obtain your organization's resource ID with datumctl by listing organizations
 that your user has access to:
 
 ```shell
-datumctl organizations list
+datumctl get organizations
 ```
 
 The output is similar to:
