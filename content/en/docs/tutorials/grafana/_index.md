@@ -16,7 +16,6 @@ This tutorial assumes you have already:
 - [Configured a kubeconfig context for your project]( {{< ref
     "create-project#add-a-kubeconfig-context-for-your-project" >}} )
 - A Grafana Cloud account with an active instance
-- Basic familiarity with YAML configuration
 
 ## Overview
 
