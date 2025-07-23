@@ -170,7 +170,7 @@ files:
       <h4>ExportPolicy</h4>
       <div style="margin-bottom: 15px;">
         <label for="exportPolicyName" style="display: block; margin-bottom: 5px; font-weight: bold;">Name:</label>
-        <input type="text" id="exportPolicyName" value="export-gateway-telemetry" style="width: 400px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <input type="text" id="exportPolicyName" value="export-datum-telemetry" style="width: 400px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
       </div>
       <div id="exportPolicyPlaceholder" style="padding: 20px; text-align: center; color: #6c757d; background: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 4px;">
         <p style="margin: 0; font-style: italic;">Provide your Prometheus configuration above to generate the ExportPolicy manifest</p>
@@ -294,14 +294,14 @@ metadata:
   name: ${exportPolicyName}
 spec:
   sources:
-    - name: gateway-metrics
+    - name: datum-metrics
       metrics:
-        metricsql: |-
-          {service_name="gateway.networking.k8s.io"}
+        # Export all project telemetry
+        metricsql: '{}'
   sinks:
     - name: grafana-cloud-metrics
       sources:
-        - gateway-metrics
+        - datum-metrics
       target:
         prometheusRemoteWrite:
           endpoint: "${url}"
@@ -403,7 +403,7 @@ Check that your resources were created successfully using the names you specifie
 
 **Verify the ExportPolicy:**
 
-<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><div class="click-to-copy"><button type="button" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-container="body" class="fas fa-copy btn btn-sm td-click-to-copy" aria-label="Copy to clipboard" data-bs-original-title="Copy to clipboard"></button></div><code class="language-shell" data-lang="shell"><span style="display:flex;"><span id="exportPolicyVerifyCommand">kubectl get exportpolicy export-gateway-telemetry
+<div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><div class="click-to-copy"><button type="button" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-container="body" class="fas fa-copy btn btn-sm td-click-to-copy" aria-label="Copy to clipboard" data-bs-original-title="Copy to clipboard"></button></div><code class="language-shell" data-lang="shell"><span style="display:flex;"><span id="exportPolicyVerifyCommand">kubectl get exportpolicy export-datum-telemetry
 </span></span></code></pre></div>
 
 Your metrics should now export to Grafana Cloud. You can view them in your
