@@ -326,8 +326,8 @@ spec:
 
     if (secretStdinOutput && secretFileOutput && exportPolicyStdinOutput && exportPolicyFileOutput) {
       // Generate stdin commands
-      const secretStdinCommand = `cat <<EOF | kubectl apply -f -\n${secretYaml}\nEOF`;
-      const exportPolicyStdinCommand = `cat <<EOF | kubectl apply -f -\n${exportPolicyYaml}\nEOF`;
+      const secretStdinCommand = `cat <<EOF | kubectl apply --server-side -f -\n${secretYaml}\nEOF`;
+      const exportPolicyStdinCommand = `cat <<EOF | kubectl apply --server-side -f -\n${exportPolicyYaml}\nEOF`;
 
       // Update all outputs
       secretStdinOutput.textContent = secretStdinCommand;
