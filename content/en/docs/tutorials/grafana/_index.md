@@ -28,6 +28,8 @@ You will configure metric export by:
 The process extracts connection details from Grafana Cloud's generated
 configuration and creates the necessary Datum resources automatically.
 
+<!-- markdownlint-disable no-inline-html no-reversed-links line-length -->
+
 ## Step 1: Access your Grafana Cloud instance
 
 If you don't have a Grafana Cloud account,
@@ -107,7 +109,9 @@ remote_write:
 
 ## Step 4: Generate and apply Datum resources
 
-Paste your Prometheus configuration below to generate the Secret and ExportPolicy. Use the tabs to choose between applying from stdin or saving to files:
+Paste your Prometheus configuration below to generate the Secret and
+ExportPolicy. Use the tabs to choose between applying from stdin or saving to
+files:
 
 <div markdown="0">
 
@@ -200,7 +204,6 @@ Paste your Prometheus configuration below to generate the Secret and ExportPolic
     </div>
   </div>
 
-<!-- markdownlint-disable no-inline-html no-reversed-links line-length -->
 <script>
 
 function generateResources() {
@@ -237,7 +240,6 @@ function generateResources() {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      console.log(`Line ${i}: "${line}"`);
 
       if (line.startsWith('- url:') || line.startsWith('url:')) {
         url = line.split('url:')[1].trim();
@@ -313,9 +315,6 @@ spec:
     const secretOutput = document.getElementById('secretOutput');
     const exportPolicyOutput = document.getElementById('exportPolicyOutput');
 
-    console.log('secretOutput element:', secretOutput);
-    console.log('exportPolicyOutput element:', exportPolicyOutput);
-
     // Update tabpane content
     const secretStdinOutput = document.getElementById('secretStdinOutput');
     const secretFileOutput = document.getElementById('secretFileOutput');
@@ -348,7 +347,6 @@ spec:
     }
 
   } catch (error) {
-    console.log(error);
     warningMessage.textContent = `Error parsing configuration: ${error.message}. Please ensure you have pasted valid Prometheus YAML configuration.`;
     warningDiv.style.display = 'block';
     document.getElementById('secretSection').style.display = 'none';
