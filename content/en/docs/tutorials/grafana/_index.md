@@ -286,7 +286,7 @@ data:
   password: ${encodedPassword}`;
 
     // Generate ExportPolicy YAML
-    const exportPolicyYaml = `apiVersion: telemetry.datumapis.com/v1alpha1
+    const exportPolicyYaml = `apiVersion: telemetry.miloapis.com/v1alpha1
 kind: ExportPolicy
 metadata:
   name: ${exportPolicyName}
@@ -294,7 +294,8 @@ spec:
   sources:
     - name: "gateway-metrics"
       metrics:
-        metricsql: {service_name="gateway.networking.k8s.io"}
+        metricsql: |-
+          {service_name="gateway.networking.k8s.io"}
   sinks:
     - name: grafana-cloud-metrics
       sources:
