@@ -292,14 +292,14 @@ metadata:
   name: ${exportPolicyName}
 spec:
   sources:
-    - name: "gateway-metrics"
+    - name: gateway-metrics
       metrics:
         metricsql: |-
           {service_name="gateway.networking.k8s.io"}
   sinks:
     - name: grafana-cloud-metrics
       sources:
-        - telemetry-metrics
+        - gateway-metrics
       target:
         prometheusRemoteWrite:
           endpoint: "${url}"
