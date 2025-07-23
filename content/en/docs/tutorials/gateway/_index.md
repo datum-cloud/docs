@@ -10,6 +10,9 @@ This tutorial assumes you have already:
 - [Registered a Datum account]({{< relref "get-started" >}})
 - [Installed and configured the necessary tools]({{< ref "tools.md" >}})
 - [Created a Datum project]({{< ref "create-project" >}})
+- [Configured a kubeconfig context for your project](
+    {{< ref  "create-project#add-a-kubeconfig-context-for-your-project" >}}
+  )
 
 ## Understanding HTTPProxy
 
@@ -25,7 +28,8 @@ HTTPProxy provides:
 - Built-in support for path-based routing and header manipulation
 - Seamless integration with Datum's global proxy infrastructure
 
-This tutorial will create an HTTPProxy that proxies traffic to example.com as the backend service.
+This tutorial will create an HTTPProxy that proxies traffic to example.com as
+the backend service.
 
 ## Creating a Basic HTTPProxy
 
@@ -358,6 +362,7 @@ You should see output similar to:
 ```
 
 ## Next Steps
+
 Coming soon! Learn about Datum's observability tools and telemetry exporters.
 
 ## Troubleshooting
