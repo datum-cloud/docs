@@ -152,12 +152,12 @@ files:
           </li>
         </ul>
         <div class="tab-content" id="tabs-4-content">
-          <div class="tab-body tab-pane fade" id="secret-tabs-04-00" role="tabpanel" aria-labelled-by="secret-tabs-04-00-tab" tabindex="4" aria-labelledby="secret-tabs-04-00-tab">
+          <div class="tab-body tab-pane fade active show" id="secret-tabs-04-00" role="tabpanel" aria-labelled-by="secret-tabs-04-00-tab" tabindex="4" aria-labelledby="secret-tabs-04-00-tab">
             <div class="highlight">
               <pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml" id="secretStdinOutput"></code></pre>
             </div>
           </div>
-          <div class="tab-body tab-pane fade active show" id="secret-tabs-04-01" role="tabpanel" aria-labelled-by="secret-tabs-04-01-tab" tabindex="4" aria-labelledby="tabs-04-01-tab">
+          <div class="tab-body tab-pane fade" id="secret-tabs-04-01" role="tabpanel" aria-labelled-by="secret-tabs-04-01-tab" tabindex="4" aria-labelledby="tabs-04-01-tab">
             <p>Save and apply the following resource to your project:</p>
             <div class="highlight">
               <pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml" id="secretFileOutput"></code></pre>
@@ -188,12 +188,12 @@ files:
           </li>
         </ul>
         <div class="tab-content" id="tabs-4-content">
-          <div class="tab-body tab-pane fade" id="exportPolicy-tabs-04-00" role="tabpanel" aria-labelled-by="exportPolicy-tabs-04-00-tab" tabindex="4" aria-labelledby="exportPolicy-tabs-04-00-tab">
+          <div class="tab-body tab-pane fade active show" id="exportPolicy-tabs-04-00" role="tabpanel" aria-labelled-by="exportPolicy-tabs-04-00-tab" tabindex="4" aria-labelledby="exportPolicy-tabs-04-00-tab">
             <div class="highlight">
               <pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml" id="exportPolicyStdinOutput"></code></pre>
             </div>
           </div>
-          <div class="tab-body tab-pane fade active show" id="exportPolicy-tabs-04-01" role="tabpanel" aria-labelled-by="exportPolicy-tabs-04-01-tab" tabindex="4" aria-labelledby="tabs-04-01-tab">
+          <div class="tab-body tab-pane fade" id="exportPolicy-tabs-04-01" role="tabpanel" aria-labelled-by="exportPolicy-tabs-04-01-tab" tabindex="4" aria-labelledby="tabs-04-01-tab">
             <p>Save and apply the following resource to your project:</p>
             <div class="highlight">
               <pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml" id="exportPolicyFileOutput"></code></pre>
