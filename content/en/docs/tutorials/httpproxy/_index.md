@@ -363,7 +363,7 @@ You should see output similar to:
 
 ## Next Steps
 
-Coming soon! Learn about Datum's observability tools and telemetry exporters.
+- [Export telemetry to Grafana Cloud]({{< ref "grafana" >}})
 
 ## Troubleshooting
 

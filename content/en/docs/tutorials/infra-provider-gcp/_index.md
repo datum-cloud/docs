@@ -1,6 +1,8 @@
 ---
 title: Create a Datum Workload backed by Google Cloud
-weight: 1
+toc_hide: true
+hide_summary: true
+weight: 3
 ---
 
 ## Before you begin
