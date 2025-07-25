@@ -124,8 +124,8 @@ files:
     </div>
   </form>
 
-  <div id="configWarning" style="margin-top: 15px; padding: 12px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 4px; color: #856404; display: none;">
-    <strong>⚠️ Configuration Error:</strong> <span id="warningMessage"></span>
+  <div id="configWarning" style="display: none;">
+    {{< alert title="Configuration Error" color="warning">}}<span id="warningMessage"></span>{{< /alert >}}
   </div>
 </div>
 
@@ -364,11 +364,11 @@ function updateVerifyCommands() {
   const exportPolicyVerifyCommand = document.getElementById('exportPolicyVerifyCommand');
 
   if (secretVerifyCommand) {
-    secretVerifyCommand.textContent = `kubectl get secret ${secretName}`;
+    secretVerifyCommand.textContent = `kubectl describe secret ${secretName}`;
   }
 
   if (exportPolicyVerifyCommand) {
-    exportPolicyVerifyCommand.textContent = `kubectl get exportpolicy ${exportPolicyName}`;
+    exportPolicyVerifyCommand.textContent = `kubectl describe exportpolicy ${exportPolicyName}`;
   }
 }
 
@@ -406,9 +406,68 @@ Check that your resources were created successfully using the names you specifie
 <div class="highlight"><pre tabindex="0" style="background-color:#f8f8f8;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><div class="click-to-copy"><button type="button" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-container="body" class="fas fa-copy btn btn-sm td-click-to-copy" aria-label="Copy to clipboard" data-bs-original-title="Copy to clipboard"></button></div><code class="language-shell" data-lang="shell"><span style="display:flex;"><span id="exportPolicyVerifyCommand">kubectl get exportpolicy export-datum-telemetry
 </span></span></code></pre></div>
 
-Your metrics should now export to Grafana Cloud. You can view them in your
-Grafana Cloud instance's Explore section or create dashboards to visualize the
-data.
+## Step 6: View your metrics
+
+You can view your metrics in Grafana Cloud by visiting the Metrics Drill Down
+app at the link below:
+
+<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+  <div id="metricsLink" style="display: none;">
+    <p><a id="generatedMetricsUrl" href="#" target="_blank" style="word-break: break-all; font-family: monospace;"></a></p>
+    <p><em><strong>Note:</strong> This link assumes you are using the default Grafana Cloud Prometheus data source (grafanacloud-prom).</em></p>
+  </div>
+  <div id="metricsLinkPlaceholder" style="padding: 20px; text-align: center; color: #6c757d; background: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 4px;">
+    <p style="margin: 0; font-style: italic;">Enter your Grafana Cloud instance URL in Step 2 above to generate the metrics link</p>
+  </div>
+</div>
+
+<script>
+function updateMetricsLink() {
+  const instanceUrl = document.getElementById('instanceUrl').value;
+  const metricsLink = document.getElementById('metricsLink');
+  const metricsLinkPlaceholder = document.getElementById('metricsLinkPlaceholder');
+  const generatedMetricsUrl = document.getElementById('generatedMetricsUrl');
+
+  if (!instanceUrl.trim()) {
+    metricsLink.style.display = 'none';
+    metricsLinkPlaceholder.style.display = 'block';
+    return;
+  }
+
+  try {
+    let finalUrl = instanceUrl;
+    if (!finalUrl.match(/^https?:\/\//)) {
+      finalUrl = 'https://' + finalUrl;
+    }
+
+    const url = new URL(finalUrl);
+    const metricsUrl = `${url.origin}/a/grafana-metricsdrilldown-app/drilldown?var-ds=grafanacloud-prom`;
+
+    generatedMetricsUrl.href = metricsUrl;
+    generatedMetricsUrl.textContent = metricsUrl;
+    metricsLink.style.display = 'block';
+    metricsLinkPlaceholder.style.display = 'none';
+  } catch (error) {
+    metricsLink.style.display = 'none';
+    metricsLinkPlaceholder.style.display = 'block';
+  }
+}
+
+// Update the existing event listener to also update metrics link
+document.addEventListener('DOMContentLoaded', function() {
+  const instanceUrlInput = document.getElementById('instanceUrl');
+  if (instanceUrlInput) {
+    instanceUrlInput.addEventListener('input', function() {
+      generateConnectionUrl();
+      updateMetricsLink();
+    });
+    // Initial call to set up metrics link if URL is already present
+    updateMetricsLink();
+  }
+});
+</script>
+
+Alternatively, you can access your metrics through your Grafana Cloud instance's Explore section or create custom dashboards to visualize the data.
 
 ## Troubleshooting
 
@@ -423,6 +482,4 @@ If metrics aren't appearing in Grafana Cloud:
 4. **Check authentication**: Verify your API token has write permissions for
    Prometheus
 
-For additional help, consult the [Datum telemetry
-documentation](/docs/api/telemetry/) or [Grafana Cloud
-documentation](https://grafana.com/docs/grafana-cloud/).
+For additional help, consult the [Grafana Cloud documentation](https://grafana.com/docs/grafana-cloud/).
