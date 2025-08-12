@@ -421,7 +421,7 @@ The system must verify domain ownership before programming a hostname on an
 HTTPProxy. A hostname is considered verified if any matching `Domain` resource
 exists in the same namespace and is verified.
 
-A hostname matches a Domain when:
+A hostname matches a Domain if:
 
 - The `spec.domainName` value exactly matches the hostname.
 - The `spec.domainName` value is a suffix match of the hostname.
