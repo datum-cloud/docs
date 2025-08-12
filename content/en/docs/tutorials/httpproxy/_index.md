@@ -1,5 +1,5 @@
 ---
-title: Create a Datum HTTPProxy (Reverse Proxy)
+title: Create a Datum HTTP Proxy (Reverse Proxy)
 weight: 1
 ---
 
@@ -14,7 +14,7 @@ This tutorial assumes you have already:
     {{< ref  "create-project#add-a-kubeconfig-context-for-your-project" >}}
   )
 
-## Understanding HTTPProxy
+## Understanding HTTP Proxies
 
 An HTTPProxy is a simplified way to configure HTTP reverse proxy functionality
 in Datum. It automatically creates and manages Gateway, HTTPRoute, and
@@ -360,6 +360,121 @@ You should see output similar to:
   "origin": "127.0.0.1"
 }
 ```
+
+### Custom Hostnames
+
+An HTTPProxy may optionally be configured with one or more custom hostnames
+via the `spec.hostnames` field.
+
+{{< tabpane text=true left=true >}}
+  {{% tab header="Apply from stdin" lang="en" %}}
+
+  ```yaml
+  cat <<EOF | kubectl apply -f -
+  apiVersion: networking.datumapis.com/v1alpha
+  kind: HTTPProxy
+  metadata:
+    name: httpproxy-sample-example-com
+  spec:
+    hostnames: # Custom hostnames
+      - test.example.com
+    rules:
+        - backends:
+          - endpoint: https://example.com
+  EOF
+  ```
+
+  {{% /tab %}}
+
+  {{% tab header="Apply from file" lang="en" %}}
+
+  Save and apply the following resource to your project:
+
+  ```yaml
+  apiVersion: networking.datumapis.com/v1alpha
+  kind: HTTPProxy
+  metadata:
+    name: httpproxy-sample-example-com
+  spec:
+    hostnames: # Custom hostnames
+      - test.example.com
+    rules:
+        - backends:
+          - endpoint: https://example.com
+  ```
+
+  {{% /tab %}}
+{{< /tabpane >}}
+
+Hostnames which have been programmed will be listed in the `status.hostnames`
+field.
+
+```yaml
+  status:
+    hostnames:
+      - test.example.com
+```
+
+#### Domain Ownership
+
+The system must verify domain ownership before programming a hostname on an
+HTTPProxy. A hostname is considered verified if any matching `Domain` resource
+exists in the same namespace and is verified.
+
+A hostname matches a Domain when:
+
+- The `spec.domainName` value exactly matches the hostname.
+- The `spec.domainName` value is a suffix match of the hostname.
+
+A Domain with a `spec.domainName` value of `example.com` will match a hostname
+of `test.example.com`, `foo.test.example.com`, and exactly `example.com`, but
+not a hostname of `test-example.com`.
+
+If a Domain resource does not exist that matches a hostname, one will
+automatically be created for the root domain of the hostname. If an HTTPProxy is
+configured with the hostnames `test.example.com` and `api.example.com`, and
+there is no matching Domain, one will be created for `example.com`.
+
+Any hostname which has not been verified will be listed in the `message` field
+of the `HostnamesVerified` condition.
+
+```yaml
+status:
+  conditions:
+  - lastTransitionTime: "2025-08-11T16:09:09Z"
+    message: 'unverified hostnames present, check status of Domains in the same namespace:
+      test.example.com'
+    observedGeneration: 2
+    reason: UnverifiedHostnamesPresent
+    status: "False"
+    type: HostnamesVerified
+```
+
+For more information on Domains and Domain Ownership, see
+[Managing Domains]({{< ref "domains" >}}).
+
+#### Platform Uniqueness
+
+In addition to verifying ownership, hostnames must be unique across the
+platform.
+
+If a hostname is already programmed on another resource, a conflict will be
+encountered and communicated in the `HostnamesInUse` condition.
+
+```yaml
+status:
+  conditions:
+  - lastTransitionTime: "2025-08-11T16:09:09Z"
+    message: 'Hostnames are already attached to another resource: test.example.com'
+    observedGeneration: 2
+    reason: HostnameInUse
+    status: "True"
+    type: HostnamesInUse
+```
+
+{{< alert title="Note" color="info">}}
+Wildcard hostnames are not supported at this time.
+{{< /alert >}}
 
 ## Next Steps
 
