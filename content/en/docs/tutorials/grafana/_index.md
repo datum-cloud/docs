@@ -1,6 +1,6 @@
 ---
 title: Export telemetry to Grafana Cloud
-weight: 2
+weight: 3
 ---
 
 This tutorial shows you how to export metrics from your Datum platform to
