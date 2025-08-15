@@ -17,7 +17,7 @@ resources and how to use them.
 ```yaml
 apiVersion: v1
 items:
-- apiVersion: telemetry.datumapis.com/v1alpha1
+- apiVersion: telemetry.miloapis.com/v1alpha1
   kind: ExportPolicy
   metadata:
     name: exportpolicy
@@ -43,7 +43,7 @@ items:
     sources:
     - metrics:
         metricsql: |
-          {service_name="telemetry.datumapis.com"}
+          {service_name="telemetry.miloapis.com"}
       name: telemetry-metrics
     - metrics:
         metricsql: |
@@ -57,7 +57,7 @@ metadata: {}
 {{% tab header="Detailed Example With Comments" text=true %}}
 
 ```yaml
-apiVersion: telemetry.datumapis.com/v1alpha1
+apiVersion: telemetry.miloapis.com/v1alpha1
 kind: ExportPolicy
 metadata:
   name: exportpolicy-sample
@@ -78,7 +78,7 @@ spec:
         # familiar with using metricsql queries to select metric data from
         # Victoria Metrics.
         metricsql: |
-          {service_name="telemetry.datumapis.com"}
+          {service_name="telemetry.miloapis.com"}
   sinks:
     - name: grafana-cloud-metrics
       sources:
