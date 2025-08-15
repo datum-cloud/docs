@@ -17,7 +17,7 @@ resources and how to use them.
 ```yaml
 apiVersion: v1
 items:
-- apiVersion: telemetry.datumapis.com/v1alpha1
+- apiVersion: telemetry.miloapis.com/v1alpha1
   kind: ExportPolicy
   metadata:
     name: exportpolicy
@@ -43,7 +43,7 @@ items:
     sources:
     - metrics:
         metricsql: |
-          {service_name="telemetry.datumapis.com"}
+          {service_name="telemetry.miloapis.com"}
       name: telemetry-metrics
     - metrics:
         metricsql: |
@@ -57,7 +57,7 @@ metadata: {}
 {{% tab header="Detailed Example With Comments" text=true %}}
 
 ```yaml
-apiVersion: telemetry.datumapis.com/v1alpha1
+apiVersion: telemetry.miloapis.com/v1alpha1
 kind: ExportPolicy
 metadata:
   name: exportpolicy-sample
@@ -78,7 +78,7 @@ spec:
         # familiar with using metricsql queries to select metric data from
         # Victoria Metrics.
         metricsql: |
-          {service_name="telemetry.datumapis.com"}
+          {service_name="telemetry.miloapis.com"}
   sinks:
     - name: grafana-cloud-metrics
       sources:
@@ -190,11 +190,11 @@ spec:
 
 ## Projects
 
-[Detailed Projects API Reference](https://github.com/datum-cloud/datum/blob/milo-apiserver/docs/api/resourcemanager.datumapis.com_projects.yaml.md)
+[Detailed Projects API Reference](https://github.com/datum-cloud/milo/blob/main/docs/api/resourcemanager.md)
 {{< tabpane>}}
 {{% tab header="Sample Project" text=true %}}
 
-```apiVersion: resourcemanager.datumapis.com/v1alpha
+```apiVersion: resourcemanager.miloapis.com/v1alpha1
 kind: Project
 metadata:
   generateName: sample-project-
