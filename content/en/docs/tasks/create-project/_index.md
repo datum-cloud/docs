@@ -111,4 +111,4 @@ DESCRIPTION:
 
 ## What's next
 
-- [Set up a Datum managed Location backed by GCP]({{< relref "infra-provider-gcp">}})
+- [Create a Datum HTTP Proxy]({{< relref "httpproxy">}})
