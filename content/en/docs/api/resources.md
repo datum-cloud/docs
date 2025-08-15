@@ -190,11 +190,11 @@ spec:
 
 ## Projects
 
-[Detailed Projects API Reference](https://github.com/datum-cloud/datum/blob/milo-apiserver/docs/api/resourcemanager.datumapis.com_projects.yaml.md)
+[Detailed Projects API Reference](https://github.com/datum-cloud/milo/blob/main/docs/api/resourcemanager.md)
 {{< tabpane>}}
 {{% tab header="Sample Project" text=true %}}
 
-```apiVersion: resourcemanager.datumapis.com/v1alpha
+```apiVersion: resourcemanager.miloapis.com/v1alpha1
 kind: Project
 metadata:
   generateName: sample-project-

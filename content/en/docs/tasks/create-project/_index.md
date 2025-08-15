@@ -38,7 +38,7 @@ Note that `generateName` is used here, which will result in a name with the pref
 `intro-project-` and a random suffix.
 
 ```yaml
-apiVersion: resourcemanager.datumapis.com/v1alpha
+apiVersion: resourcemanager.miloapis.com/v1alpha1
 kind: Project
 metadata:
   generateName: intro-project-
@@ -54,7 +54,7 @@ kubectl create -f intro-project.yaml
 The output is similar to:
 
 ```shell
-project.resourcemanager.datumapis.com/intro-project-zj6wx created
+project.resourcemanager.miloapis.com/intro-project-zj6wx created
 ```
 
 Copy the generated project name, in this example it is `intro-project-zj6wx`.
