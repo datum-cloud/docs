@@ -1,6 +1,8 @@
 ---
 title: Networks
 description: Networks are essential for deploying workloads in Datum. They define how workloads communicate.
+toc_hide: true
+hide_summary: true
 ---
 
 ### Networks Overview

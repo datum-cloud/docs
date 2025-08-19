@@ -1,6 +1,7 @@
 ---
 title: Connecting to the API
 draft: false
+weight: 1
 ---
 
 The Datum Cloud platform is comprised of multiple control planes that users can

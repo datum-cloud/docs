@@ -92,19 +92,24 @@ datumctl auth update-kubeconfig --project PROJECT_NAME
 Confirm that the project's control plane is accessible:
 
 ```shell
-kubectl explain locations.spec
+kubectl explain httpproxy.spec
 ```
 
 ```shell
 GROUP:      networking.datumapis.com
-KIND:       Location
+KIND:       HTTPProxy
 VERSION:    v1alpha
 
 FIELD: spec <Object>
 
 
 DESCRIPTION:
-    LocationSpec defines the desired state of Location.
+    Spec defines the desired state of an HTTPProxy.
+
+FIELDS:
+  hostnames	<[]string>
+    Hostnames defines a set of hostnames that should match against the HTTP
+    Host header to select a HTTPProxy used to process the request.
 
 ... continued
 ```
