@@ -1,6 +1,8 @@
 ---
 title: Locations
 description: Locations are where Datum workloads run. They define the geographical and cloud provider context for your workloads.
+toc_hide: true
+hide_summary: true
 ---
 
 ### Example Location Definition

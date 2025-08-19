@@ -1,6 +1,7 @@
 ---
 title: Authenticating
 draft: false
+weight: 2
 ---
 
 The Datum Cloud platform supports users authenticating with the API with

@@ -1,6 +1,8 @@
 ---
 title: Glossary of Resources
 draft: false
+toc_hide: true
+hide_summary: true
 ---
 
 There are many resources available in the Datum Cloud API that can be used to manage

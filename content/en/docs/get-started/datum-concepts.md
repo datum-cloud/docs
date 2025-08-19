@@ -29,7 +29,7 @@ GCP and network resources from our own Edge Cloud.
 ### Datum Portal - cloud.datum.net
 
 The [Datum Portal](https://cloud.datum.net) provides real-time insights on the
-state of your Datum Control Plane resources. 
+state of your Datum Control Plane resources.
 
 ### Datum's Command Line Tool - datumctl
 
@@ -38,7 +38,7 @@ managing the Datum Control Plane via the command line. datumctl provides
 authorization, API management, and has the ability to manage .kubeconfig files
 so that one can leverage kubectl for day to day interaction with Datum Cloud.
 
-## Key Components
+<!-- ## Key Components
 
 ### Datum Workloads
 
@@ -65,5 +65,4 @@ virtualized and can be created for your simple convenience, logical organization
 needs, and operational security / segmentation concerns. Datum Cloud Networks
 are programatically organized and applied throughout the system to reduce
 operator cognitive load. Datum Networks are designed to provide rich
-observability and telemetry capabilities.
-
+observability and telemetry capabilities. -->

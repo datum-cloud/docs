@@ -1,0 +1,186 @@
+version: '3'
+
+vars:
+  TOOL_DIR: "{{.USER_WORKING_DIR}}/bin"
+  # renovate: datasource=go depName=github.com/elastic/crd-ref-docs
+  CRD_REF_DOCS_VERSION: v0.2.0
+  # renovate: datasource=go depName=go.miloapis.com/milo
+  MILO_VERSION: v0.2.0
+  # renovate: datasource=go depName=go.datum.net/network-services-operator
+  NETWORK_SERVICES_OPERATOR_VERSION: v0.5.0
+  # renovate: datasource=go depName=go.datum.net/telemetry-services-operator
+  TELEMETRY_SERVICES_OPERATOR_VERSION: v0.2.0
+  TEMP_REPO_DIR: "{{.USER_WORKING_DIR}}/tmp/repos"
+  # List of GitHub repository zip URLs to download and extract (newline-separated)
+  REPO_ZIP_URLS: |
+    https://github.com/datum-cloud/milo/archive/refs/tags/{{.MILO_VERSION}}.zip
+    https://github.com/datum-cloud/network-services-operator/archive/refs/tags/{{.NETWORK_SERVICES_OPERATOR_VERSION}}.zip
+    https://github.com/datum-cloud/telemetry-services-operator/archive/refs/tags/{{.TELEMETRY_SERVICES_OPERATOR_VERSION}}.zip
+
+tasks:
+  default:
+    desc: List all available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  download-repos:
+    desc: Download and extract GitHub repository zip files to temporary directory
+    silent: true
+    cmds:
+      - |
+        set -e
+
+        mkdir -p {{.TEMP_REPO_DIR}}
+
+        # Process the multiline REPO_ZIP_URLS variable
+        urls=$(echo "{{.REPO_ZIP_URLS}}" | grep -v '^#' | grep -v '^$' | tr '\n' ' ')
+
+        if [ -z "$urls" ]; then
+          echo "No repository URLs provided. Configure REPO_ZIP_URLS in Taskfile.yml with newline-separated URLs."
+          echo "Example:"
+          echo "  REPO_ZIP_URLS: |"
+          echo "    https://github.com/owner/repo1/archive/refs/tags/v1.0.0.zip"
+          echo "    https://github.com/owner/repo2/archive/refs/tags/v2.0.0.zip"
+          exit 0
+        fi
+
+        echo "Downloading repositories to {{.TEMP_REPO_DIR}}"
+
+        for url in $urls; do
+          echo "Processing: $url"
+
+          # Extract repository name without version from URL
+          repo_info=$(echo "$url" | sed -n 's|.*/\([^/]*\)/\([^/]*\)/archive/refs/tags/.*\.zip|\1/\2|p')
+          if [ -z "$repo_info" ]; then
+            echo "Warning: Could not parse repository info from URL: $url"
+            continue
+          fi
+
+          repo_dir="{{.TEMP_REPO_DIR}}/$repo_info"
+          zip_file="{{.TEMP_REPO_DIR}}/$(basename "$url")"
+
+          echo "  - Repository: $repo_info"
+          echo "  - Destination: $repo_dir"
+
+          # Create repository directory
+          mkdir -p "$repo_dir"
+
+          # Download zip file
+          echo "  - Downloading..."
+          if ! curl -s -L -o "$zip_file" "$url"; then
+            echo "  - Error: Failed to download $url"
+            continue
+          fi
+
+          # Extract zip file
+          echo "  - Extracting..."
+          if ! unzip -o -q "$zip_file" -d "$repo_dir"; then
+            echo "  - Error: Failed to extract $zip_file"
+            rm -f "$zip_file"
+            continue
+          fi
+
+          # Move contents from nested directory (GitHub creates a nested directory in the zip)
+          nested_dir=$(find "$repo_dir" -maxdepth 1 -type d ! -path "$repo_dir" | head -1)
+          if [ -n "$nested_dir" ]; then
+            echo "  - Moving contents from nested directory..."
+            mv "$nested_dir"/* "$nested_dir"/.[!.]* "$repo_dir/" 2>/dev/null || mv "$nested_dir"/* "$repo_dir/" 2>/dev/null || true
+            rmdir "$nested_dir" 2>/dev/null || true
+          fi
+
+          # Clean up zip file
+          rm -f "$zip_file"
+          echo "  - Complete: $repo_dir"
+        done
+
+        echo "All repositories downloaded to {{.TEMP_REPO_DIR}}"
+
+  api-docs:
+    desc: Generate API docs
+    deps:
+      - task: download-repos
+      - task: install-go-tool
+        vars:
+          NAME: crd-ref-docs
+          PACKAGE: github.com/elastic/crd-ref-docs
+          VERSION: "{{.CRD_REF_DOCS_VERSION}}"
+    cmds:
+      - mkdir -p {{.USER_WORKING_DIR}}/content/en/docs/api/reference/
+      - |
+        {{.TOOL_DIR}}/crd-ref-docs \
+        --source-path={{.TEMP_REPO_DIR}}/datum-cloud/ \
+        --config=crd-ref-docs-config.yaml \
+        --output-path={{.USER_WORKING_DIR}}/content/en/docs/api/reference/_index.md \
+        --templates-dir=templates/markdown \
+        --renderer=markdown
+
+  install-go-tool:
+    desc: Install a Go tool to {{.TOOL_DIR}}/{{.NAME}} (symlinked from {{.TOOL_DIR}}/{{.NAME}}-{{.VERSION}})
+    internal: true
+    # vars: - Variables that need to be set when depending on this task
+    #   NAME:
+    #   PACKAGE:
+    #   VERSION:
+    cmds:
+      - mkdir -p {{.TOOL_DIR}}
+      - |
+        set -e
+        # Capture Taskfile vars into shell vars for clarity and safety in the script
+        _NAME="{{.NAME}}"
+        _PACKAGE="{{.PACKAGE}}"
+        _VERSION="{{.VERSION}}"
+        _TOOL_DIR="{{.TOOL_DIR}}"
+
+        _VERSIONED_TOOL_PATH="$_TOOL_DIR/$_NAME-$_VERSION" # e.g., ./bin/crdoc-v0.6.4
+        _SYMLINK_PATH="$_TOOL_DIR/$_NAME"                 # e.g., ./bin/crdoc (this is where go install puts it first)
+
+        # Check if the correctly versioned binary already exists
+        if [ ! -f "$_VERSIONED_TOOL_PATH" ]; then
+          echo "Downloading $_PACKAGE@$_VERSION (binary name: $_NAME) to $_VERSIONED_TOOL_PATH"
+
+          # Ensure the path where `go install` will place the binary (before mv) is clear.
+          # This is $_SYMLINK_PATH (e.g., ./bin/crdoc).
+          if [ -d "$_SYMLINK_PATH" ]; then
+            echo "Error: Target path $_SYMLINK_PATH for 'go install' is an existing directory. Please remove it manually."
+            exit 1
+          fi
+          # Remove if it's a file or symlink, to mimic `rm -f $(1)` from Makefile.
+          # This ensures 'go install' doesn't conflict with an existing symlink or wrong file.
+          echo "Preparing $_SYMLINK_PATH for new installation..."
+          rm -f "$_SYMLINK_PATH" || true
+
+          echo "Installing with GOBIN=$_TOOL_DIR..."
+          # 'go install' will place the executable (named $_NAME) into $_TOOL_DIR.
+          # This relies on $_NAME being the actual binary name derived from $_PACKAGE.
+          if ! GOBIN="$_TOOL_DIR" go install "$_PACKAGE@$_VERSION"; then
+            echo "Failed to 'go install $_PACKAGE@$_VERSION' with GOBIN=$_TOOL_DIR"
+            exit 1
+          fi
+
+          # After `go install`, the binary should be at $_SYMLINK_PATH (e.g. $_TOOL_DIR/$_NAME)
+          if [ ! -f "$_SYMLINK_PATH" ]; then
+            echo "Error: 'go install' did not produce $_SYMLINK_PATH"
+            # As a fallback, check if it was installed with the package basename if _NAME was different
+            _PKG_BASENAME=$(basename "$_PACKAGE")
+            if [ "$_PKG_BASENAME" != "$_NAME" ] && [ -f "$_TOOL_DIR/$_PKG_BASENAME" ]; then
+                echo "Found $_TOOL_DIR/$_PKG_BASENAME instead (package basename). Moving this one."
+                mv "$_TOOL_DIR/$_PKG_BASENAME" "$_VERSIONED_TOOL_PATH"
+            else
+                echo "Please ensure the NAME variable ('$_NAME') accurately matches the binary name produced by 'go install $_PACKAGE'."
+                exit 1
+            fi
+          else
+            # Binary $_SYMLINK_PATH was created as expected. Now move it to its versioned path.
+            echo "Moving installed binary from $_SYMLINK_PATH to $_VERSIONED_TOOL_PATH"
+            mv "$_SYMLINK_PATH" "$_VERSIONED_TOOL_PATH"
+          fi
+
+          # Create/update the symlink (e.g., ./bin/crdoc -> crdoc-v0.6.4)
+          # The target of the symlink is relative to _TOOL_DIR.
+          echo "Creating/updating symlink: $_SYMLINK_PATH -> $_NAME-$_VERSION (within $_TOOL_DIR)"
+          (cd "$_TOOL_DIR" && ln -sf "$_NAME-$_VERSION" "$_NAME")
+          echo "Tool $_NAME is now available at $_SYMLINK_PATH (points to $_VERSIONED_TOOL_PATH)"
+        fi
+
+    silent: true
