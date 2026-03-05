@@ -1,0 +1,144 @@
+{
+  "$schema": "https://www.mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Datum Documentation",
+  "logo": {
+    "light": "https://www.datum.net/datum-light.svg",
+    "dark": "https://www.datum.net/datum-dark.svg",
+    "href": "https://www.datum.net/"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#6366f1",
+    "light": "#818cf8",
+    "dark": "#4f46e5"
+  },
+  "topbar": {
+    "links": [
+      {
+        "name": "Status",
+        "url": "https://status.datum.net"
+      }
+    ],
+    "cta": {
+      "type": "link",
+      "name": "Get Started",
+      "url": "https://app.datum.net"
+    }
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Docs",
+        "icon": "book",
+        "pages": [
+          "docs/quickstart",
+          {
+            "group": "Platform",
+            "pages": [
+              "docs/platform/account",
+              "docs/platform/orgs-projects",
+              "docs/platform/limits",
+              "docs/platform/accoutrements",
+              "docs/platform/metrics-export"
+            ]
+          },
+          {
+            "group": "AI Edge",
+            "pages": [
+              "docs/ai-edge/overview",
+              "docs/ai-edge/configuration",
+              "docs/ai-edge/troubleshooting"
+            ]
+          },
+          {
+            "group": "Connectors",
+            "pages": [
+              "docs/connectors/overview",
+              "docs/connectors/tunnels"
+            ]
+          },
+          {
+            "group": "Galactic VPC",
+            "pages": [
+              "docs/galactic-vpc/overview"
+            ]
+          },
+          {
+            "group": "Domain & DNS",
+            "pages": [
+              "docs/domain-dns/domains",
+              "docs/domain-dns/dns",
+              "docs/domain-dns/faqs"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/getting-started",
+              "api-reference/authentication",
+              {
+                "group": "Datum Cloud API",
+                "pages": [
+                  "api-reference/datum-cloud-api/activity",
+                  "api-reference/datum-cloud-api/dns"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Dev Tools",
+        "icon": "terminal",
+        "groups": [
+          {
+            "group": "datumctl",
+            "pages": [
+              "dev-tools/datumctl/overview",
+              "dev-tools/datumctl/installation",
+              "dev-tools/datumctl/authentication",
+              "dev-tools/datumctl/activity",
+              "dev-tools/datumctl/commands"
+            ]
+          },
+          {
+            "group": "SDKs",
+            "pages": [
+              "dev-tools/sdks/go",
+              "dev-tools/sdks/typescript",
+              "dev-tools/sdks/rust"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "pages": [
+              "dev-tools/mcp"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Apps",
+        "icon": "window",
+        "groups": [
+          {
+            "group": "Apps",
+            "pages": [
+              "apps/overview",
+              "apps/expose-localhost",
+              "apps/downloads",
+              "apps/faq"
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

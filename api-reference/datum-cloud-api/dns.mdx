@@ -1,0 +1,432 @@
+---
+title: DNS
+icon:
+---
+
+## dns.networking.miloapis.com/v1alpha1
+
+SPDX-License-Identifier: AGPL-3.0-only
+
+One-shot discovery/snapshot of existing DNS records for a DNSZone.
+On creation, a controller queries common RR types for the zone and stores
+them in .status for easy extraction/translation into DNSRecordSet objects.
+This object is write-once (status) and has no lifecycle beyond initial discovery.
+
+Package v1alpha1 contains API Schema definitions for the dns v1alpha1 API group.
+
+### Resource Types
+- [DNSRecordSet](#dnsrecordset)
+- [DNSRecordSetList](#dnsrecordsetlist)
+- [DNSZone](#dnszone)
+- [DNSZoneClass](#dnszoneclass)
+- [DNSZoneClassList](#dnszoneclasslist)
+- [DNSZoneDiscovery](#dnszonediscovery)
+- [DNSZoneDiscoveryList](#dnszonediscoverylist)
+- [DNSZoneList](#dnszonelist)#### AAAARecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `content` <br />_string_ |  |  | Format: ipv6 <br /> |
+
+
+#### ALIASRecordSpecALIASRecordSpec is like CNAME but intended for providers that implement an ALIAS/ANAME-style record.
+The content is a hostname (FQDN or relative) with an optional trailing dot._Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `content` <br />_string_ |  |  | MaxLength: 253 <br />MinLength: 1 <br />Pattern: `^([A-Za-z0-9_](?:[-A-Za-z0-9_]\{0,61\}[A-Za-z0-9_])?)(?:\.([A-Za-z0-9_](?:[-A-Za-z0-9_]\{0,61\}[A-Za-z0-9_])?))*\.?$` <br /> |
+
+
+#### ARecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `content` <br />_string_ |  |  | Format: ipv4 <br /> |
+
+
+#### CAARecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `flag` <br />_integer_ | 0–255 flag |  | Maximum: 255 <br />Minimum: 0 <br /> |
+| `tag` <br />_string_ | RFC-style tags: keep it simple: [a-z0-9]+ |  | MinLength: 1 <br />Pattern: `^[a-z0-9]+$` <br /> |
+| `value` <br />_string_ |  |  | MinLength: 1 <br /> |
+
+
+#### CNAMERecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `content` <br />_string_ |  |  | MaxLength: 253 <br />MinLength: 1 <br />Pattern: `^([A-Za-z0-9_](?:[-A-Za-z0-9_]\{0,61\}[A-Za-z0-9_])?)(?:\.([A-Za-z0-9_](?:[-A-Za-z0-9_]\{0,61\}[A-Za-z0-9_])?))*\.?$` <br /> |
+
+
+#### DNSRecordSetDNSRecordSet is the Schema for the dnsrecordsets API_Appears in:_
+- [DNSRecordSetList](#dnsrecordsetlist)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` <br />_string_ | `dns.networking.miloapis.com/v1alpha1` | | |
+| `kind` <br />_string_ | `DNSRecordSet` | | |
+| `metadata` <br />_[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
+| `spec` <br />_[DNSRecordSetSpec](#dnsrecordsetspec)_ | spec defines the desired state of DNSRecordSet |  |  |
+| `status` <br />_[DNSRecordSetStatus](#dnsrecordsetstatus)_ | status defines the observed state of DNSRecordSet |  |  |
+
+
+#### DNSRecordSetListDNSRecordSetList contains a list of DNSRecordSet
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` <br />_string_ | `dns.networking.miloapis.com/v1alpha1` | | |
+| `kind` <br />_string_ | `DNSRecordSetList` | | |
+| `metadata` <br />_[ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#listmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
+| `items` <br />_[DNSRecordSet](#dnsrecordset) array_ |  |  |  |
+
+
+#### DNSRecordSetSpecDNSRecordSetSpec defines the desired state of DNSRecordSet_Appears in:_
+- [DNSRecordSet](#dnsrecordset)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `dnsZoneRef` <br />_[LocalObjectReference](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#localobjectreference-v1-core)_ | DNSZoneRef references the DNSZone (same namespace) this recordset belongs to. |  | Required: \{\} <br /> |
+| `recordType` <br />_[RRType](#rrtype)_ | RecordType is the DNS RR type for this recordset. |  | Enum: [A AAAA ALIAS CNAME TXT MX SRV CAA NS SOA PTR TLSA HTTPS SVCB] <br />Required: \{\} <br /> |
+| `records` <br />_[RecordEntry](#recordentry) array_ | Records contains one or more owner names with values appropriate for the RecordType. |  | MinItems: 1 <br /> |
+
+
+#### DNSRecordSetStatusDNSRecordSetStatus defines the observed state of DNSRecordSet._Appears in:_
+- [DNSRecordSet](#dnsrecordset)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `conditions` <br />_[Condition](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#condition-v1-meta) array_ | Conditions includes Accepted and Programmed readiness. |  |  |
+| `recordSets` <br />_[RecordSetStatus](#recordsetstatus) array_ | RecordSets captures per-owner (per name) status and conditions. |  |  |
+
+
+#### DNSZoneDNSZone is the Schema for the dnszones API_Appears in:_
+- [DNSZoneList](#dnszonelist)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` <br />_string_ | `dns.networking.miloapis.com/v1alpha1` | | |
+| `kind` <br />_string_ | `DNSZone` | | |
+| `metadata` <br />_[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
+| `spec` <br />_[DNSZoneSpec](#dnszonespec)_ | spec defines the desired state of DNSZone |  |  |
+| `status` <br />_[DNSZoneStatus](#dnszonestatus)_ | status defines the observed state of DNSZone |  |  |
+
+
+#### DNSZoneClassDNSZoneClass is the Schema for the dnszoneclasses API_Appears in:_
+- [DNSZoneClassList](#dnszoneclasslist)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` <br />_string_ | `dns.networking.miloapis.com/v1alpha1` | | |
+| `kind` <br />_string_ | `DNSZoneClass` | | |
+| `metadata` <br />_[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
+| `spec` <br />_[DNSZoneClassSpec](#dnszoneclassspec)_ | spec defines the desired state of DNSZoneClass |  |  |
+| `status` <br />_[DNSZoneClassStatus](#dnszoneclassstatus)_ | status defines the observed state of DNSZoneClass |  |  |
+
+
+#### DNSZoneClassListDNSZoneClassList contains a list of DNSZoneClass
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` <br />_string_ | `dns.networking.miloapis.com/v1alpha1` | | |
+| `kind` <br />_string_ | `DNSZoneClassList` | | |
+| `metadata` <br />_[ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#listmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
+| `items` <br />_[DNSZoneClass](#dnszoneclass) array_ |  |  |  |
+
+
+#### DNSZoneClassSpecDNSZoneClassSpec defines the desired state of DNSZoneClass_Appears in:_
+- [DNSZoneClass](#dnszoneclass)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `controllerName` <br />_string_ | ControllerName identifies the downstream controller/backend implementation (e.g., "powerdns", "hickory"). |  | Required: \{\} <br /> |
+| `nameServerPolicy` <br />_[NameServerPolicy](#nameserverpolicy)_ | NameServerPolicy defines how nameservers are assigned for zones using this class. |  |  |
+| `defaults` <br />_[ZoneDefaults](#zonedefaults)_ | Defaults provides optional default values applied to managed zones. |  |  |
+
+
+#### DNSZoneClassStatusDNSZoneClassStatus defines the observed state of DNSZoneClass._Appears in:_
+- [DNSZoneClass](#dnszoneclass)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `conditions` <br />_[Condition](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#condition-v1-meta) array_ | Conditions represent the current state of the resource. Common types include<br />"Accepted" and "Programmed" to standardize readiness reporting across controllers. |  |  |
+
+
+#### DNSZoneDiscoveryDNSZoneDiscovery is the Schema for the DNSZone discovery API._Appears in:_
+- [DNSZoneDiscoveryList](#dnszonediscoverylist)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` <br />_string_ | `dns.networking.miloapis.com/v1alpha1` | | |
+| `kind` <br />_string_ | `DNSZoneDiscovery` | | |
+| `metadata` <br />_[ObjectMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#objectmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
+| `spec` <br />_[DNSZoneDiscoverySpec](#dnszonediscoveryspec)_ | spec defines the desired target for discovery. |  |  |
+| `status` <br />_[DNSZoneDiscoveryStatus](#dnszonediscoverystatus)_ | status contains the discovered data (write-once). |  |  |
+
+
+#### DNSZoneDiscoveryListDNSZoneDiscoveryList contains a list of DNSZoneDiscovery
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` <br />_string_ | `dns.networking.miloapis.com/v1alpha1` | | |
+| `kind` <br />_string_ | `DNSZoneDiscoveryList` | | |
+| `metadata` <br />_[ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#listmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
+| `items` <br />_[DNSZoneDiscovery](#dnszonediscovery) array_ |  |  |  |
+
+
+#### DNSZoneDiscoverySpecDNSZoneDiscoverySpec defines the desired discovery target._Appears in:_
+- [DNSZoneDiscovery](#dnszonediscovery)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `dnsZoneRef` <br />_[LocalObjectReference](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#localobjectreference-v1-core)_ | DNSZoneRef references the DNSZone (same namespace) this discovery targets. |  | Required: \{\} <br /> |
+
+
+#### DNSZoneDiscoveryStatusDNSZoneDiscoveryStatus defines the observed snapshot of a DNS zone._Appears in:_
+- [DNSZoneDiscovery](#dnszonediscovery)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `conditions` <br />_[Condition](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#condition-v1-meta) array_ | Conditions includes Accepted and Discovered. |  |  |
+| `recordSets` <br />_[DiscoveredRecordSet](#discoveredrecordset) array_ | RecordSets is the set of discovered RRsets grouped by RecordType. |  |  |
+
+
+#### DNSZoneListDNSZoneList contains a list of DNSZone
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `apiVersion` <br />_string_ | `dns.networking.miloapis.com/v1alpha1` | | |
+| `kind` <br />_string_ | `DNSZoneList` | | |
+| `metadata` <br />_[ListMeta](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#listmeta-v1-meta)_ | Refer to Kubernetes API documentation for fields of `metadata`. |  |  |
+| `items` <br />_[DNSZone](#dnszone) array_ |  |  |  |
+
+
+#### DNSZoneSpecDNSZoneSpec defines the desired state of DNSZone_Appears in:_
+- [DNSZone](#dnszone)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `domainName` <br />_string_ | DomainName is the FQDN of the zone (e.g., "example.com"). |  | MaxLength: 253 <br />MinLength: 1 <br />Pattern: `^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$` <br />Required: \{\} <br /> |
+| `dnsZoneClassName` <br />_string_ | DNSZoneClassName references the DNSZoneClass used to provision this zone. |  | Required: \{\} <br /> |
+
+
+#### DNSZoneStatusDNSZoneStatus defines the observed state of DNSZone._Appears in:_
+- [DNSZone](#dnszone)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `nameservers` <br />_string array_ | Nameservers lists the active authoritative nameservers for this zone. |  |  |
+| `recordCount` <br />_integer_ | RecordCount is the number of DNSRecordSet resources in this namespace that reference this zone. |  |  |
+| `conditions` <br />_[Condition](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#condition-v1-meta) array_ | Conditions tracks state such as Accepted and Programmed readiness. |  |  |
+| `domainRef` <br />_[DomainRef](#domainref)_ | DomainRef references the Domain this zone belongs to. |  |  |
+
+
+#### DiscoveredRecordSetDiscoveredRecordSet groups discovered records by type._Appears in:_
+- [DNSZoneDiscoveryStatus](#dnszonediscoverystatus)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `recordType` <br />_[RRType](#rrtype)_ | RecordType is the DNS RR type for this recordset. |  | Enum: [A AAAA ALIAS CNAME TXT MX SRV CAA NS SOA PTR TLSA HTTPS SVCB] <br />Required: \{\} <br /> |
+| `records` <br />_[RecordEntry](#recordentry) array_ | Records contains one or more owner names with values appropriate for the RecordType.<br /><br />The RecordEntry schema is shared with DNSRecordSet for easy translation. |  |  |
+
+
+#### DomainRef_Appears in:_
+- [DNSZoneStatus](#dnszonestatus)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `name` <br />_string_ |  |  |  |
+| `status` <br />_[DomainRefStatus](#domainrefstatus)_ |  |  |  |
+
+
+#### DomainRefStatus_Appears in:_
+- [DomainRef](#domainref)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `nameservers` <br />_Nameserver array_ |  |  |  |
+
+
+#### HTTPSRecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `priority` <br />_integer_ |  |  | Maximum: 65535 <br />Minimum: 0 <br /> |
+| `target` <br />_string_ |  |  |  |
+| `params` <br />_object (keys:string, values:string)_ |  |  |  |
+
+
+#### MXRecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `preference` <br />_integer_ |  |  | Maximum: 65535 <br />Minimum: 0 <br /> |
+| `exchange` <br />_string_ |  |  | MinLength: 1 <br /> |
+
+
+#### NSRecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `content` <br />_string_ | Require a hostname (FQDN or relative), allow optional trailing dot, no underscores.<br /><br />Labels: 1-63 chars, alphanum with interior hyphens, total length &lt;=253. |  | MaxLength: 253 <br />MinLength: 1 <br />Pattern: `^([A-Za-z0-9](?:[A-Za-z0-9-]\{0,61\}[A-Za-z0-9])?)(?:\.([A-Za-z0-9](?:[A-Za-z0-9-]\{0,61\}[A-Za-z0-9])?))*\.?$` <br /> |
+
+
+#### NameServerPolicyNameServerPolicy specifies the policy for nameserver assignment._Appears in:_
+- [DNSZoneClassSpec](#dnszoneclassspec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `mode` <br />_[NameServerPolicyMode](#nameserverpolicymode)_ | Mode defines which policy to use. |  | Enum: [Static] <br /> |
+| `static` <br />_[StaticNS](#staticns)_ | Static contains a static list of authoritative nameservers when Mode == "Static". |  |  |
+
+
+#### NameServerPolicyMode
+
+_Underlying type:_ _string__Validation:_
+- Enum: [Static]
+
+_Appears in:_
+- [NameServerPolicy](#nameserverpolicy)
+
+| Field | Description |
+| `Static` |  |
+
+
+#### PTRRecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `content` <br />_string_ |  |  |  |
+
+
+#### RRType
+
+_Underlying type:_ _string__Validation:_
+- Enum: [A AAAA ALIAS CNAME TXT MX SRV CAA NS SOA PTR TLSA HTTPS SVCB]
+
+_Appears in:_
+- [DNSRecordSetSpec](#dnsrecordsetspec)
+- [DiscoveredRecordSet](#discoveredrecordset)
+
+| Field | Description |
+| `A` |  |
+| `AAAA` |  |
+| `ALIAS` |  |
+| `CNAME` |  |
+| `TXT` |  |
+| `MX` |  |
+| `SRV` |  |
+| `CAA` |  |
+| `NS` |  |
+| `SOA` |  |
+| `PTR` |  |
+| `TLSA` |  |
+| `HTTPS` |  |
+| `SVCB` |  |
+
+
+#### RecordEntryRecordEntry represents one owner name and its values._Appears in:_
+- [DNSRecordSetSpec](#dnsrecordsetspec)
+- [DiscoveredRecordSet](#discoveredrecordset)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `name` <br />_string_ | Name is the owner name (relative to the zone or FQDN). |  | MinLength: 1 <br />Pattern: `^(@\|[A-Za-z0-9*._-]+)$` <br />Required: \{\} <br /> |
+| `ttl` <br />_integer_ | TTL optionally overrides TTL for this owner/RRset. |  |  |
+| `a` <br />_[ARecordSpec](#arecordspec)_ | Exactly one of the following type-specific fields should be set matching RecordType. |  |  |
+| `aaaa` <br />_[AAAARecordSpec](#aaaarecordspec)_ |  |  |  |
+| `cname` <br />_[CNAMERecordSpec](#cnamerecordspec)_ |  |  |  |
+| `alias` <br />_[ALIASRecordSpec](#aliasrecordspec)_ |  |  |  |
+| `ns` <br />_[NSRecordSpec](#nsrecordspec)_ |  |  |  |
+| `txt` <br />_[TXTRecordSpec](#txtrecordspec)_ |  |  |  |
+| `soa` <br />_[SOARecordSpec](#soarecordspec)_ |  |  |  |
+| `caa` <br />_[CAARecordSpec](#caarecordspec)_ |  |  |  |
+| `mx` <br />_[MXRecordSpec](#mxrecordspec)_ |  |  |  |
+| `srv` <br />_[SRVRecordSpec](#srvrecordspec)_ |  |  |  |
+| `tlsa` <br />_[TLSARecordSpec](#tlsarecordspec)_ |  |  |  |
+| `https` <br />_[HTTPSRecordSpec](#httpsrecordspec)_ |  |  |  |
+| `svcb` <br />_[HTTPSRecordSpec](#httpsrecordspec)_ |  |  |  |
+| `ptr` <br />_[PTRRecordSpec](#ptrrecordspec)_ |  |  |  |
+
+
+#### RecordSetStatus_Appears in:_
+- [DNSRecordSetStatus](#dnsrecordsetstatus)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `name` <br />_string_ | Name is the owner name this status pertains to. |  |  |
+| `conditions` <br />_[Condition](https://kubernetes.io/docs/reference/generated/kubernetes-api/v/#condition-v1-meta) array_ | Conditions captures per-name readiness information such as RecordProgrammed. |  |  |
+
+
+#### SOARecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `mname` <br />_string_ |  |  | MinLength: 1 <br /> |
+| `rname` <br />_string_ |  |  | MinLength: 1 <br /> |
+| `serial` <br />_integer_ |  |  |  |
+| `refresh` <br />_integer_ |  |  |  |
+| `retry` <br />_integer_ |  |  |  |
+| `expire` <br />_integer_ |  |  |  |
+| `ttl` <br />_integer_ |  |  |  |
+
+
+#### SRVRecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `priority` <br />_integer_ |  |  | Maximum: 65535 <br />Minimum: 0 <br /> |
+| `weight` <br />_integer_ |  |  | Maximum: 65535 <br />Minimum: 0 <br /> |
+| `port` <br />_integer_ |  |  | Maximum: 65535 <br />Minimum: 0 <br /> |
+| `target` <br />_string_ |  |  | MinLength: 1 <br /> |
+
+
+#### StaticNSStaticNS lists static authoritative nameserver hostnames._Appears in:_
+- [NameServerPolicy](#nameserverpolicy)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `servers` <br />_string array_ |  |  |  |
+
+
+#### TLSARecordSpec_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `usage` <br />_integer_ |  |  |  |
+| `selector` <br />_integer_ |  |  |  |
+| `matchingType` <br />_integer_ |  |  |  |
+| `certData` <br />_string_ |  |  |  |
+
+
+#### TXTRecordSpec
+
+
+_Appears in:_
+- [RecordEntry](#recordentry)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `content` <br />_string_ |  |  |  |
+
+
+#### ZoneDefaultsZoneDefaults holds optional default settings for zones._Appears in:_
+- [DNSZoneClassSpec](#dnszoneclassspec)
+
+| Field | Description | Default | Validation |
+| --- | --- | --- | --- |
+| `defaultTTL` <br />_integer_ | DefaultTTL is the default TTL applied to records when not otherwise specified. |  |  |
+
