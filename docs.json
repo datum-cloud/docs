@@ -75,7 +75,7 @@
         ]
       },
       {
-        "tab": "datumctl (CLI)",
+        "tab": "CLI Commands",
         "icon": "code",
         "groups": [
           {
@@ -95,8 +95,8 @@
         ]
       },
       {
-        "tab": "CLI Commands",
-        "icon": "terminal",
+        "tab": "datumctl (CLI)",
+        "icon": "bars-progress",
         "groups": [
           {
             "group": "datumctl",
