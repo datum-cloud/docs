@@ -75,7 +75,7 @@
         ]
       },
       {
-        "tab": "API Reference",
+        "tab": "datumctl (CLI)",
         "icon": "code",
         "groups": [
           {
@@ -95,7 +95,7 @@
         ]
       },
       {
-        "tab": "Dev Tools",
+        "tab": "CLI Commands",
         "icon": "terminal",
         "groups": [
           {
@@ -125,8 +125,8 @@
         ]
       },
       {
-        "tab": "Apps",
-        "icon": "window",
+        "tab": "Guides",
+        "icon": "glasses",
         "groups": [
           {
             "group": "Apps",
@@ -140,5 +140,29 @@
         ]
       }
     ]
+  },
+  "integrations": {
+    "fathom": {
+      "siteId": "PXKRQKIZ"
+    }
+  },
+  "errors": {
+    "404": {
+      "title": "Datum Docs Error Page",
+      "description": "Looks like you've found a problem. Please visit our docs homepage and we'll take a look. Thanks!"
+    }
+  },
+  "metadata": {
+    "timestamp": true
+  },
+  "interaction": {
+    "drilldown": true
+  },
+  "footer": {
+    "socials": {
+      "discord": "https://link.datum.net/discord",
+      "linkedin": "https://link.datum.net/linkedin",
+      "youtube": "https://link.datum.net/youtube"
+    }
   }
 }
