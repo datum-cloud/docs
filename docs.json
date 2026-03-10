@@ -75,26 +75,6 @@
         ]
       },
       {
-        "tab": "CLI Commands",
-        "icon": "code",
-        "groups": [
-          {
-            "group": "API Reference",
-            "pages": [
-              "api-reference/getting-started",
-              "api-reference/authentication",
-              {
-                "group": "Datum Cloud API",
-                "pages": [
-                  "api-reference/datum-cloud-api/activity",
-                  "api-reference/datum-cloud-api/dns"
-                ]
-              }
-            ]
-          }
-        ]
-      },
-      {
         "tab": "datumctl (CLI)",
         "icon": "bars-progress",
         "groups": [
@@ -120,6 +100,26 @@
             "group": "Integrations",
             "pages": [
               "dev-tools/mcp"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "CLI Commands",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "API Reference",
+            "pages": [
+              "api-reference/getting-started",
+              "api-reference/authentication",
+              {
+                "group": "Datum Cloud API",
+                "pages": [
+                  "api-reference/datum-cloud-api/activity",
+                  "api-reference/datum-cloud-api/dns"
+                ]
+              }
             ]
           }
         ]
