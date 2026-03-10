@@ -1,6 +1,6 @@
 {
   "$schema": "https://www.mintlify.com/docs.json",
-  "theme": "mint",
+  "theme": "palm",
   "name": "Datum Documentation",
   "logo": {
     "light": "https://www.datum.net/datum-light.svg",
