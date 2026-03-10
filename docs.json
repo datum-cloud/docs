@@ -39,8 +39,9 @@
               "docs/platform/account",
               "docs/platform/orgs-projects",
               "docs/platform/limits",
-              "docs/platform/accoutrements",
-              "docs/platform/metrics-export"
+              "docs/platform/metrics-export",
+              "docs/platform/activity-logs",
+              "docs/platform/secrets"
             ]
           },
           {
@@ -65,78 +66,55 @@
             ]
           },
           {
-            "group": "Domain & DNS",
+            "group": "Domains & DNS",
             "pages": [
               "docs/domain-dns/domains",
               "docs/domain-dns/dns",
               "docs/domain-dns/faqs"
             ]
-          }
+          },
+          "docs/desktop-apps",
+          "dev-tools/mcp"
         ]
       },
       {
         "tab": "datumctl (CLI)",
         "icon": "bars-progress",
-        "groups": [
-          {
-            "group": "datumctl",
-            "pages": [
-              "dev-tools/datumctl/overview",
-              "dev-tools/datumctl/installation",
-              "dev-tools/datumctl/authentication",
-              "dev-tools/datumctl/activity",
-              "dev-tools/datumctl/commands"
-            ]
-          },
-          {
-            "group": "SDKs",
-            "pages": [
-              "dev-tools/sdks/go",
-              "dev-tools/sdks/typescript",
-              "dev-tools/sdks/rust"
-            ]
-          },
-          {
-            "group": "Integrations",
-            "pages": [
-              "dev-tools/mcp"
-            ]
-          }
+        "pages": [
+          "dev-tools/datumctl/overview",
+          "dev-tools/datumctl/authentication",
+          "dev-tools/datumctl/activity"
         ]
       },
       {
         "tab": "CLI Commands",
         "icon": "code",
-        "groups": [
-          {
-            "group": "API Reference",
-            "pages": [
-              "api-reference/getting-started",
-              "api-reference/authentication",
-              {
-                "group": "Datum Cloud API",
-                "pages": [
-                  "api-reference/datum-cloud-api/activity",
-                  "api-reference/datum-cloud-api/dns"
-                ]
-              }
-            ]
-          }
+        "pages": [
+          "dev-tools/datumctl/command/options",
+          "dev-tools/datumctl/command/datumctl_activity",
+          "dev-tools/datumctl/command/datumctl_api-resources",
+          "dev-tools/datumctl/command/datumctl_api-versions",
+          "dev-tools/datumctl/command/datumctl_apply",
+          "dev-tools/datumctl/command/datumctl_auth",
+          "dev-tools/datumctl/command/datumctl_completion",
+          "dev-tools/datumctl/command/datumctl_create",
+          "dev-tools/datumctl/command/datumctl_delete",
+          "dev-tools/datumctl/command/datumctl_describe",
+          "dev-tools/datumctl/command/datumctl_diff",
+          "dev-tools/datumctl/command/datumctl_docs",
+          "dev-tools/datumctl/command/datumctl_edit",
+          "dev-tools/datumctl/command/datumctl_explain",
+          "dev-tools/datumctl/command/datumctl_get",
+          "dev-tools/datumctl/command/datumctl_mcp"
         ]
       },
       {
         "tab": "Guides",
         "icon": "glasses",
-        "groups": [
-          {
-            "group": "Apps",
-            "pages": [
-              "apps/overview",
-              "apps/expose-localhost",
-              "apps/downloads",
-              "apps/faq"
-            ]
-          }
+        "pages": [
+          "guides/protect-an-app",
+          "apps/expose-localhost",
+          "guides/custom-domain-github-pages"
         ]
       }
     ]
