@@ -1,7 +1,5 @@
 ---
 title: "datumctl edit"
-sidebar:
-  hidden: true
 ---
 
 Edit a resource on the server

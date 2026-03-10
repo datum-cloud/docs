@@ -1,7 +1,5 @@
 ---
 title: "datumctl auth"
-sidebar:
-  hidden: true
 ---
 
 Authenticate with Datum Cloud

@@ -1,7 +1,5 @@
 ---
 title: "datumctl completion"
-sidebar:
-  hidden: true
 ---
 
 Generate the autocompletion script for the specified shell

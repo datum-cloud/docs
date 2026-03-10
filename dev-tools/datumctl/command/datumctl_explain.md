@@ -1,7 +1,5 @@
 ---
 title: "datumctl explain"
-sidebar:
-  hidden: true
 ---
 
 Get documentation for a resource

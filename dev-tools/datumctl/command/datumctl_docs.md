@@ -1,7 +1,5 @@
 ---
 title: "datumctl docs"
-sidebar:
-  hidden: true
 ---
 
 Documentation and API exploration commands

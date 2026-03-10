@@ -1,7 +1,5 @@
 ---
 title: "datumctl apply"
-sidebar:
-  hidden: true
 ---
 
 Apply a configuration to a resource by file name or stdin

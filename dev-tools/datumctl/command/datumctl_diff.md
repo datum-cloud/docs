@@ -1,7 +1,5 @@
 ---
 title: "datumctl diff"
-sidebar:
-  hidden: true
 ---
 
 Diff the live version against a would-be applied version

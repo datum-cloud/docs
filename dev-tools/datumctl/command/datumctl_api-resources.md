@@ -1,7 +1,5 @@
 ---
 title: "datumctl api-resources"
-sidebar:
-  hidden: true
 ---
 
 Print the supported API resources on the server

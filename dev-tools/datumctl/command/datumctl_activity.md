@@ -1,7 +1,5 @@
 ---
 title: "datumctl activity"
-sidebar:
-  hidden: true
 ---
 
 Query control plane audit logs

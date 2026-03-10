@@ -1,7 +1,5 @@
 ---
 title: "datumctl get"
-sidebar:
-  hidden: true
 ---
 
 Display one or many resources

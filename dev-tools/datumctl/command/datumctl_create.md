@@ -1,7 +1,5 @@
 ---
 title: "datumctl create"
-sidebar:
-  hidden: true
 ---
 
 Create a resource from a file or from stdin

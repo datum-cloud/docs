@@ -1,7 +1,5 @@
 ---
 title: "datumctl mcp"
-sidebar:
-  hidden: true
 ---
 
 Start the Datum MCP server

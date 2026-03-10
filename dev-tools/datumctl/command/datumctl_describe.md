@@ -1,7 +1,5 @@
 ---
 title: "datumctl describe"
-sidebar:
-  hidden: true
 ---
 
 Show details of a specific resource or group of resources
