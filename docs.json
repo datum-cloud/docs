@@ -9,9 +9,9 @@
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#6366f1",
-    "light": "#818cf8",
-    "dark": "#4f46e5"
+    "primary": "#9C7979",
+    "light": "#E6F59F",
+    "dark": "#E6F59F"
   },
   "topbar": {
     "links": [
@@ -141,6 +141,24 @@
       "discord": "https://link.datum.net/discord",
       "linkedin": "https://link.datum.net/linkedin",
       "youtube": "https://link.datum.net/youtube"
+    }
+  },
+  "background": {
+    "color": {
+      "dark": "#0C1D31",
+      "light": "#F6F6F5"
+    }
+  },
+  "appearance": {
+    "default": "light"
+  },
+  "fonts": {
+    "family": "Inter",
+    "heading": {
+      "family": "Inter"
+    },
+    "body": {
+      "family": "Inter"
     }
   }
 }
