@@ -13,7 +13,7 @@ Start a local MCP server exposing tools to:
   • switch context at runtime via datum/change_context
 
 MCP clients (e.g., Claude) connect over STDIO.
-Use --port to also expose a local HTTP debug API on 127.0.0.1:<port>.
+Use --port to also expose a local HTTP debug API on `127.0.0.1:<port>`.
 Select a Datum context with exactly one of --organization or --project.
 
 ```
