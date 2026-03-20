@@ -11,7 +11,7 @@
   "colors": {
     "primary": "#9C7979",
     "light": "#E6F59F",
-    "dark": "#E6F59F"
+    "dark": "#C8E86A"
   },
   "topbar": {
     "links": [
@@ -73,8 +73,13 @@
               "docs/domain-dns/faqs"
             ]
           },
-          "docs/desktop-apps",
-          "docs/mcp"
+          {
+            "group": "Tools",
+            "pages": [
+              "docs/desktop-apps",
+              "docs/mcp"
+            ]
+          }
         ]
       },
       {
@@ -91,21 +96,46 @@
         "icon": "code",
         "pages": [
           "docs/cli/options",
-          "docs/cli/datumctl_activity",
-          "docs/cli/datumctl_api-resources",
-          "docs/cli/datumctl_api-versions",
-          "docs/cli/datumctl_apply",
-          "docs/cli/datumctl_auth",
-          "docs/cli/datumctl_completion",
-          "docs/cli/datumctl_create",
-          "docs/cli/datumctl_delete",
-          "docs/cli/datumctl_describe",
-          "docs/cli/datumctl_diff",
-          "docs/cli/datumctl_docs",
-          "docs/cli/datumctl_edit",
-          "docs/cli/datumctl_explain",
-          "docs/cli/datumctl_get",
-          "docs/cli/datumctl_mcp"
+          {
+            "group": "Authentication",
+            "pages": [
+              "docs/cli/datumctl_auth"
+            ]
+          },
+          {
+            "group": "Resource Management",
+            "pages": [
+              "docs/cli/datumctl_apply",
+              "docs/cli/datumctl_create",
+              "docs/cli/datumctl_delete",
+              "docs/cli/datumctl_describe",
+              "docs/cli/datumctl_diff",
+              "docs/cli/datumctl_edit",
+              "docs/cli/datumctl_get"
+            ]
+          },
+          {
+            "group": "Discovery",
+            "pages": [
+              "docs/cli/datumctl_api-resources",
+              "docs/cli/datumctl_api-versions",
+              "docs/cli/datumctl_explain"
+            ]
+          },
+          {
+            "group": "Activity",
+            "pages": [
+              "docs/cli/datumctl_activity"
+            ]
+          },
+          {
+            "group": "Tools",
+            "pages": [
+              "docs/cli/datumctl_completion",
+              "docs/cli/datumctl_docs",
+              "docs/cli/datumctl_mcp"
+            ]
+          }
         ]
       },
       {
@@ -118,6 +148,12 @@
         ]
       }
     ]
+  },
+  "search": {
+    "prompt": "Search Datum docs..."
+  },
+  "feedback": {
+    "thumbsRating": true
   },
   "integrations": {
     "fathom": {

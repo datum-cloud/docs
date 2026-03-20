@@ -1,0 +1,4 @@
+/* Inline code contrast in light mode */
+html:not(.dark) code:not(pre code) {
+  background-color: #e2e4e6;
+}
