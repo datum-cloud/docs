@@ -74,47 +74,47 @@
             ]
           },
           "docs/desktop-apps",
-          "dev-tools/mcp"
+          "docs/mcp"
         ]
       },
       {
         "tab": "datumctl (CLI)",
         "icon": "bars-progress",
         "pages": [
-          "dev-tools/datumctl/overview",
-          "dev-tools/datumctl/authentication",
-          "dev-tools/datumctl/activity"
+          "docs/datumctl/overview",
+          "docs/datumctl/authentication",
+          "docs/datumctl/activity"
         ]
       },
       {
         "tab": "CLI Commands",
         "icon": "code",
         "pages": [
-          "dev-tools/datumctl/command/options",
-          "dev-tools/datumctl/command/datumctl_activity",
-          "dev-tools/datumctl/command/datumctl_api-resources",
-          "dev-tools/datumctl/command/datumctl_api-versions",
-          "dev-tools/datumctl/command/datumctl_apply",
-          "dev-tools/datumctl/command/datumctl_auth",
-          "dev-tools/datumctl/command/datumctl_completion",
-          "dev-tools/datumctl/command/datumctl_create",
-          "dev-tools/datumctl/command/datumctl_delete",
-          "dev-tools/datumctl/command/datumctl_describe",
-          "dev-tools/datumctl/command/datumctl_diff",
-          "dev-tools/datumctl/command/datumctl_docs",
-          "dev-tools/datumctl/command/datumctl_edit",
-          "dev-tools/datumctl/command/datumctl_explain",
-          "dev-tools/datumctl/command/datumctl_get",
-          "dev-tools/datumctl/command/datumctl_mcp"
+          "docs/cli/options",
+          "docs/cli/datumctl_activity",
+          "docs/cli/datumctl_api-resources",
+          "docs/cli/datumctl_api-versions",
+          "docs/cli/datumctl_apply",
+          "docs/cli/datumctl_auth",
+          "docs/cli/datumctl_completion",
+          "docs/cli/datumctl_create",
+          "docs/cli/datumctl_delete",
+          "docs/cli/datumctl_describe",
+          "docs/cli/datumctl_diff",
+          "docs/cli/datumctl_docs",
+          "docs/cli/datumctl_edit",
+          "docs/cli/datumctl_explain",
+          "docs/cli/datumctl_get",
+          "docs/cli/datumctl_mcp"
         ]
       },
       {
         "tab": "Guides",
         "icon": "glasses",
         "pages": [
-          "guides/protect-an-app",
-          "apps/expose-localhost",
-          "guides/custom-domain-github-pages"
+          "docs/guides/protect-an-app",
+          "docs/guides/expose-localhost",
+          "docs/guides/custom-domain-github-pages"
         ]
       }
     ]
