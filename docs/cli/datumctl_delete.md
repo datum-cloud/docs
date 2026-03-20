@@ -27,82 +27,82 @@ datumctl delete ([-f FILENAME] | [-k DIRECTORY] | TYPE [(NAME | -l label | --all
 ```
   # Delete a pod using the type and name specified in pod.json
   kubectl delete -f ./pod.json
-  
+
   # Delete resources from a directory containing kustomization.yaml - e.g. dir/kustomization.yaml
   kubectl delete -k dir
-  
+
   # Delete resources from all files that end with '.json'
   kubectl delete -f '*.json'
-  
+
   # Delete a pod based on the type and name in the JSON passed into stdin
   cat pod.json | kubectl delete -f -
-  
+
   # Delete pods and services with same names "baz" and "foo"
   kubectl delete pod,service baz foo
-  
+
   # Delete pods and services with label name=myLabel
   kubectl delete pods,services -l name=myLabel
-  
+
   # Delete a pod with minimal delay
   kubectl delete pod foo --now
-  
+
   # Force delete a pod on a dead node
   kubectl delete pod foo --force
-  
+
   # Delete all pods
   kubectl delete pods --all
-  
+
   # Delete all pods only if the user confirms the deletion
   kubectl delete pods --all --interactive
 ```
 
 ### Options
 
-```
-      --all                             Delete all resources, in the namespace of the specified resource types.
-  -A, --all-namespaces                  If present, list the requested object(s) across all namespaces. Namespace in current context is ignored even if specified with --namespace.
-      --cascade string[="background"]   Must be "background", "orphan", or "foreground". Selects the deletion cascading strategy for the dependents (e.g. Pods created by a ReplicationController). Defaults to background. (default "background")
-      --dry-run string[="unchanged"]    Must be "none", "server", or "client". If client strategy, only print the object that would be sent, without sending it. If server strategy, submit server-side request without persisting the resource. (default "none")
-      --field-selector string           Selector (field query) to filter on, supports '=', '==', and '!='.(e.g. --field-selector key1=value1,key2=value2). The server only supports a limited number of field queries per type.
-  -f, --filename strings                containing the resource to delete.
-      --force                           If true, immediately remove resources from API and bypass graceful deletion. Note that immediate deletion of some resources may result in inconsistency or data loss and requires confirmation.
-      --grace-period int                Period of time in seconds given to the resource to terminate gracefully. Ignored if negative. Set to 1 for immediate shutdown. Can only be set to 0 when --force is true (force deletion). (default -1)
-  -h, --help                            help for delete
-      --ignore-not-found                Treat "resource not found" as a successful delete. Defaults to "true" when --all is specified.
-  -i, --interactive                     If true, delete resource only when user confirms.
-  -k, --kustomize string                Process a kustomization directory. This flag can't be used together with -f or -R.
-      --now                             If true, resources are signaled for immediate shutdown (same as --grace-period=1).
-  -o, --output string                   Output mode. Use "-o name" for shorter output (resource/name).
-      --raw string                      Raw URI to DELETE to the server.  Uses the transport specified by the kubeconfig file.
-  -R, --recursive                       Process the directory used in -f, --filename recursively. Useful when you want to manage related manifests organized within the same directory.
-  -l, --selector string                 Selector (label query) to filter on, supports '=', '==', '!=', 'in', 'notin'.(e.g. -l key1=value1,key2=value2,key3 in (value3)). Matching objects must satisfy all of the specified label constraints.
-      --timeout duration                The length of time to wait before giving up on a delete, zero means determine a timeout from the size of the object
-      --wait                            If true, wait for resources to be gone before returning. This waits for finalizers. (default true)
-```
+| Flag | Type | Description |
+|---|---|---|
+| `--all` | — | Delete all resources, in the namespace of the specified resource types. |
+| `-A`, `--all-namespaces` | — | If present, list the requested object(s) across all namespaces. Namespace in current context is ignored even if specified with `--namespace`. |
+| `--cascade` | string | Must be `"background"`, `"orphan"`, or `"foreground"`. Selects the deletion cascading strategy for the dependents. Defaults to background. (default `"background"`) |
+| `--dry-run` | string | Must be `"none"`, `"server"`, or `"client"`. If client strategy, only print the object that would be sent, without sending it. (default `"none"`) |
+| `--field-selector` | string | Selector (field query) to filter on, supports `=`, `==`, and `!=`. |
+| `-f`, `--filename` | strings | Containing the resource to delete. |
+| `--force` | — | If true, immediately remove resources from API and bypass graceful deletion. Requires confirmation. |
+| `--grace-period` | int | Period of time in seconds given to the resource to terminate gracefully. Ignored if negative. Set to 1 for immediate shutdown. Can only be set to 0 when `--force` is true. (default `-1`) |
+| `-h`, `--help` | — | Help for delete. |
+| `--ignore-not-found` | — | Treat "resource not found" as a successful delete. Defaults to `true` when `--all` is specified. |
+| `-i`, `--interactive` | — | If true, delete resource only when user confirms. |
+| `-k`, `--kustomize` | string | Process a kustomization directory. This flag can't be used together with `-f` or `-R`. |
+| `--now` | — | If true, resources are signaled for immediate shutdown (same as `--grace-period=1`). |
+| `-o`, `--output` | string | Output mode. Use `"-o name"` for shorter output (resource/name). |
+| `--raw` | string | Raw URI to DELETE to the server. Uses the transport specified by the kubeconfig file. |
+| `-R`, `--recursive` | — | Process the directory used in `-f`, `--filename` recursively. |
+| `-l`, `--selector` | string | Selector (label query) to filter on, supports `=`, `==`, `!=`, `in`, `notin`. |
+| `--timeout` | duration | The length of time to wait before giving up on a delete; zero means determine a timeout from the size of the object. |
+| `--wait` | — | If true, wait for resources to be gone before returning. This waits for finalizers. (default `true`) |
 
 ### Options inherited from parent commands
 
-```
-      --as string                      Username to impersonate for the operation. User could be a regular user or a service account in a namespace.
-      --as-group stringArray           Group to impersonate for the operation, this flag can be repeated to specify multiple groups.
-      --as-uid string                  UID to impersonate for the operation.
-      --as-user-extra stringArray      User extras to impersonate for the operation, this flag can be repeated to specify multiple values for the same key.
-      --certificate-authority string   Path to a cert file for the certificate authority
-      --disable-compression            If true, opt-out of response compression for all requests to the server
-      --insecure-skip-tls-verify       If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure
-      --log-flush-frequency duration   Maximum number of seconds between log flushes (default 5s)
-  -n, --namespace string               If present, the namespace scope for this CLI request
-      --organization string            organization name
-      --platform-wide                  access the platform root instead of a project or organization control plane
-      --project string                 project name
-      --request-timeout string         The length of time to wait before giving up on a single server request. Non-zero values should contain a corresponding time unit (e.g. 1s, 2m, 3h). A value of zero means don't timeout requests. (default "0")
-  -s, --server string                  The address and port of the Kubernetes API server
-      --tls-server-name string         Server name to use for server certificate validation. If it is not provided, the hostname used to contact the server is used
-      --token string                   Bearer token for authentication to the API server
-      --user string                    The name of the kubeconfig user to use
-  -v, --v Level                        number for the log level verbosity
-      --vmodule moduleSpec             comma-separated list of pattern=N settings for file-filtered logging (only works for the default text log format)
-```
+| Flag | Type | Description |
+|---|---|---|
+| `--as` | string | Username to impersonate for the operation. User could be a regular user or a service account in a namespace. |
+| `--as-group` | stringArray | Group to impersonate for the operation. Can be repeated to specify multiple groups. |
+| `--as-uid` | string | UID to impersonate for the operation. |
+| `--as-user-extra` | stringArray | User extras to impersonate for the operation. Can be repeated to specify multiple values for the same key. |
+| `--certificate-authority` | string | Path to a cert file for the certificate authority. |
+| `--disable-compression` | — | If true, opt-out of response compression for all requests to the server. |
+| `--insecure-skip-tls-verify` | — | If true, the server's certificate will not be checked for validity. This will make your HTTPS connections insecure. |
+| `--log-flush-frequency` | duration | Maximum number of seconds between log flushes. (default `5s`) |
+| `-n`, `--namespace` | string | If present, the namespace scope for this CLI request. |
+| `--organization` | string | Organization name. |
+| `--platform-wide` | — | Access the platform root instead of a project or organization control plane. |
+| `--project` | string | Project name. |
+| `--request-timeout` | string | The length of time to wait before giving up on a single server request. Non-zero values should contain a corresponding time unit (e.g. `1s`, `2m`, `3h`). A value of zero means don't timeout requests. (default `"0"`) |
+| `-s`, `--server` | string | The address and port of the Kubernetes API server. |
+| `--tls-server-name` | string | Server name to use for server certificate validation. If not provided, the hostname used to contact the server is used. |
+| `--token` | string | Bearer token for authentication to the API server. |
+| `--user` | string | The name of the kubeconfig user to use. |
+| `-v`, `--v` | Level | Number for the log level verbosity. |
+| `--vmodule` | moduleSpec | Comma-separated list of `pattern=N` settings for file-filtered logging (only works for the default text log format). |
 
 ### See also
 
