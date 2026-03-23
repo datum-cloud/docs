@@ -2,3 +2,103 @@
 html:not(.dark) code:not(pre code) {
   background-color: #e2e4e6;
 }
+
+/* Navbar: glass frost effect */
+#navbar-transition-maple {
+  align-items: center !important;
+  background-color: rgba(246, 246, 245, 0.45) !important;
+  backdrop-filter: blur(20px) saturate(1.8) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.8) brightness(1.05) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07) !important;
+}
+
+.dark #navbar-transition-maple {
+  background-color: rgba(12, 29, 49, 0.35) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Logo size */
+img.nav-logo {
+  height: 27px !important;
+}
+
+/* Logo and dark mode toggle: shift up 10px (desktop only) */
+@media (min-width: 1024px) {
+  img.nav-logo {
+    transform: translateY(-10px) !important;
+  }
+
+  button[aria-label="Toggle dark mode"] {
+    transform: translateY(-10px) !important;
+  }
+}
+
+/* Gaps between tab nav items */
+.nav-tabs {
+  column-gap: 40px !important;
+}
+
+/* Narrower left sidebar */
+#sidebar {
+  width: 260px !important;
+}
+
+/* Sidebar footer: style "Start for free" as a branded CTA button */
+#sidebar > ul {
+  width: calc(260px - 1px) !important;
+}
+
+#sidebar > ul li:has(> div:empty) {
+  display: none !important;
+}
+
+#sidebar > ul li:has(a[href*="auth.datum"]) a {
+  background-color: #9C7979 !important;
+  color: white !important;
+  padding: 5px 14px !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+}
+
+#sidebar > ul li:has(a[href*="auth.datum"]) a:hover {
+  opacity: 0.85 !important;
+  color: white !important;
+}
+
+/* Sidebar background color */
+#sidebar-content {
+  background-color: #efefee !important;
+}
+
+.dark #sidebar-content {
+  background-color: #142437 !important;
+}
+
+/* Reduce gap between logo and search bar */
+div:has(> div > #search-bar-entry) {
+  margin-top: 12px !important;
+}
+
+/* Offset navbar to match narrower sidebar */
+#navbar-transition-maple {
+  left: 260px !important;
+}
+
+/* Tighter sidebar nav item padding */
+#navigation-items a {
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+}
+
+/* Tighter sidebar group header bottom margin */
+#navigation-items .sidebar-group-header {
+  margin-bottom: 6px !important;
+}
+
+/* Tighter spacing between section groups */
+#navigation-items > div {
+  margin-top: 16px !important;
+}

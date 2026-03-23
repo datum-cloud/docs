@@ -1,36 +1,34 @@
 {
   "$schema": "https://www.mintlify.com/docs.json",
-  "theme": "palm",
+  "theme": "maple",
   "name": "Datum Documentation",
   "logo": {
     "light": "https://www.datum.net/datum-light.svg",
     "dark": "https://www.datum.net/datum-dark.svg",
     "href": "https://www.datum.net/"
   },
-  "favicon": "/favicon.svg",
+  "favicon": {
+    "light": "https://www.datum.net/favicons/favicon-light-128x128.png",
+    "dark": "https://www.datum.net/favicons/favicon-dark-128x128.png"
+  },
   "colors": {
     "primary": "#9C7979",
     "light": "#E6F59F",
     "dark": "#C8E86A"
   },
-  "topbar": {
+  "navbar": {
     "links": [
       {
-        "name": "Status",
-        "url": "https://status.datum.net"
+        "label": "Status",
+        "href": "https://www.datumstatus.net/"
       }
-    ],
-    "cta": {
-      "type": "link",
-      "name": "Get Started",
-      "url": "https://app.datum.net"
-    }
+    ]
   },
   "navigation": {
     "tabs": [
       {
         "tab": "Docs",
-        "icon": "book",
+        "icon": "layer-group",
         "pages": [
           "docs/quickstart",
           {
@@ -84,7 +82,7 @@
       },
       {
         "tab": "datumctl (CLI)",
-        "icon": "bars-progress",
+        "icon": "terminal",
         "pages": [
           "docs/datumctl/overview",
           "docs/datumctl/authentication",
@@ -93,7 +91,7 @@
       },
       {
         "tab": "CLI Commands",
-        "icon": "code",
+        "icon": "rectangle-list",
         "pages": [
           "docs/cli/options",
           {
@@ -140,7 +138,7 @@
       },
       {
         "tab": "Guides",
-        "icon": "glasses",
+        "icon": "map",
         "pages": [
           "docs/guides/protect-an-app",
           "docs/guides/expose-localhost",
@@ -150,10 +148,13 @@
     ]
   },
   "search": {
-    "prompt": "Search Datum docs..."
+    "prompt": "Search..."
   },
   "feedback": {
     "thumbsRating": true
+  },
+  "contextual": {
+    "options": ["copy", "chatgpt", "claude"]
   },
   "integrations": {
     "fathom": {
