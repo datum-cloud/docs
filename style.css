@@ -1,3 +1,21 @@
+/* Match datum.net border radius (rounded-md = 6px) */
+[class~="rounded-lg"],
+[class~="rounded-xl"],
+[class~="rounded-2xl"],
+[class~="rounded-search"] {
+  border-radius: 0.375rem !important;
+}
+
+[class~="rounded-l-xl"] {
+  border-top-left-radius: 0.375rem !important;
+  border-bottom-left-radius: 0.375rem !important;
+}
+
+[class~="rounded-r-xl"] {
+  border-top-right-radius: 0.375rem !important;
+  border-bottom-right-radius: 0.375rem !important;
+}
+
 /* Inline code contrast in light mode */
 html:not(.dark) code:not(pre code) {
   background-color: #e2e4e6;
@@ -49,9 +67,9 @@ img.nav-logo {
   font-size: 0.75rem !important;
 }
 
-#sidebar > ul li a {
-  padding-top: 4px !important;
-  padding-bottom: 4px !important;
+#sidebar ul li a {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
 }
 
 #sidebar > ul li:has(> div:empty) {
