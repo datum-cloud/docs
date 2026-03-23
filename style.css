@@ -43,9 +43,15 @@ img.nav-logo {
   width: 260px !important;
 }
 
-/* Sidebar footer: style "Start for free" as a branded CTA button */
+/* Sidebar footer: smaller links */
 #sidebar > ul {
   width: calc(260px - 1px) !important;
+  font-size: 0.75rem !important;
+}
+
+#sidebar > ul li a {
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
 }
 
 #sidebar > ul li:has(> div:empty) {
@@ -87,6 +93,24 @@ div:has(> div > #search-bar-entry) {
   left: 260px !important;
 }
 
+/* Smaller contextual menu */
+#page-context-menu button {
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+#page-context-menu .flex.items-center.gap-2 {
+  font-size: 0.75rem !important;
+  gap: 4px !important;
+}
+
+#page-context-menu svg {
+  width: 13px !important;
+  height: 13px !important;
+}
+
 /* Tighter sidebar nav item padding */
 #navigation-items a {
   padding-top: 3px !important;
@@ -101,4 +125,10 @@ div:has(> div > #search-bar-entry) {
 /* Tighter spacing between section groups */
 #navigation-items > div {
   margin-top: 16px !important;
+}
+
+/* Tighter ToC item padding */
+#table-of-contents-content .toc-item a {
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
 }
