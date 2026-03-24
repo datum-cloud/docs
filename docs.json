@@ -68,7 +68,6 @@
             "group": "Platform",
             "pages": [
               "docs/platform/setup",
-              "docs/platform/limits",
               "docs/platform/metrics-export",
               "docs/platform/activity-logs",
               "docs/platform/secrets",
