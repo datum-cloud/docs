@@ -1,7 +1,7 @@
 {
   "$schema": "https://www.mintlify.com/docs.json",
-  "theme": "maple",
-  "name": "Datum Documentation",
+  "theme": "mint",
+  "name": "Datum Cloud Docs",
   "logo": {
     "light": "https://www.datum.net/datum-light.svg",
     "dark": "https://www.datum.net/datum-dark.svg",
@@ -12,9 +12,22 @@
     "dark": "https://www.datum.net/favicons/favicon-dark-128x128.png"
   },
   "colors": {
-    "primary": "#9C7979",
-    "light": "#E6F59F",
-    "dark": "#C8E86A"
+    "primary": "#6366f1",
+    "light": "#818cf8",
+    "dark": "#4f46e5"
+  },
+  "topbar": {
+    "links": [
+      {
+        "name": "Status",
+        "url": "https://status.datum.net"
+      }
+    ],
+    "cta": {
+      "type": "link",
+      "name": "Get Started",
+      "url": "https://app.datum.net"
+    }
   },
   "navbar": {
     "links": [
@@ -28,7 +41,7 @@
     "tabs": [
       {
         "tab": "Docs",
-        "icon": "layer-group",
+        "icon": "book",
         "pages": [
           "docs/quickstart",
           {
@@ -67,14 +80,14 @@
             "group": "Domains & DNS",
             "pages": [
               "docs/domain-dns/domains",
-              "docs/domain-dns/dns",
-              "docs/domain-dns/faqs"
+              "docs/domain-dns/dns"
             ]
           },
+          "docs/desktop-apps",
+          "dev-tools/mcp",
           {
             "group": "Tools",
             "pages": [
-              "docs/desktop-apps",
               "docs/mcp"
             ]
           }
@@ -82,8 +95,11 @@
       },
       {
         "tab": "datumctl (CLI)",
-        "icon": "terminal",
+        "icon": "bars-progress",
         "pages": [
+          "dev-tools/datumctl/overview",
+          "dev-tools/datumctl/authentication",
+          "dev-tools/datumctl/activity",
           "docs/datumctl/overview",
           "docs/datumctl/authentication",
           "docs/datumctl/activity"
@@ -91,8 +107,24 @@
       },
       {
         "tab": "CLI Commands",
-        "icon": "rectangle-list",
+        "icon": "code",
         "pages": [
+          "dev-tools/datumctl/command/options",
+          "dev-tools/datumctl/command/datumctl_activity",
+          "dev-tools/datumctl/command/datumctl_api-resources",
+          "dev-tools/datumctl/command/datumctl_api-versions",
+          "dev-tools/datumctl/command/datumctl_apply",
+          "dev-tools/datumctl/command/datumctl_auth",
+          "dev-tools/datumctl/command/datumctl_completion",
+          "dev-tools/datumctl/command/datumctl_create",
+          "dev-tools/datumctl/command/datumctl_delete",
+          "dev-tools/datumctl/command/datumctl_describe",
+          "dev-tools/datumctl/command/datumctl_diff",
+          "dev-tools/datumctl/command/datumctl_docs",
+          "dev-tools/datumctl/command/datumctl_edit",
+          "dev-tools/datumctl/command/datumctl_explain",
+          "dev-tools/datumctl/command/datumctl_get",
+          "dev-tools/datumctl/command/datumctl_mcp",
           "docs/cli/options",
           {
             "group": "Authentication",
@@ -138,8 +170,11 @@
       },
       {
         "tab": "Guides",
-        "icon": "map",
+        "icon": "glasses",
         "pages": [
+          "guides/protect-an-app",
+          "apps/expose-localhost",
+          "guides/custom-domain-github-pages",
           "docs/guides/protect-an-app",
           "docs/guides/expose-localhost",
           "docs/guides/custom-domain-github-pages"
@@ -154,7 +189,11 @@
     "thumbsRating": true
   },
   "contextual": {
-    "options": ["copy", "chatgpt", "claude"]
+    "options": [
+      "copy",
+      "chatgpt",
+      "claude"
+    ]
   },
   "integrations": {
     "fathom": {
@@ -180,14 +219,18 @@
       "youtube": "https://link.datum.net/youtube"
     }
   },
+  "description": "Guides and examples for Datum's open network cloud",
+  "appearance": {
+    "default": "system"
+  },
+  "icons": {
+    "library": "fontawesome"
+  },
   "background": {
     "color": {
       "dark": "#0C1D31",
       "light": "#F6F6F5"
     }
-  },
-  "appearance": {
-    "default": "light"
   },
   "fonts": {
     "family": "Inter",

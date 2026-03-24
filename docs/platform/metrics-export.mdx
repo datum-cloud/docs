@@ -1,3 +1,53 @@
 ---
-title: Metrics export
+title: "Metrics export"
 ---
+
+Datum provides baseline "proof of life" dashboards in our customer portal, but expect that most users would prefer to view Datum telemetry alongside other metrics.
+
+Datum collects OpenTelemetry metrics from your Datum infrastructure and services, providing visibility into the performance and health of your workloads.
+
+## **Exporting Metrics**
+
+We support exporting metrics to [**Grafana Cloud**](https://grafana.com/) using ExportPolicies. Each ExportPolicy defines:
+
+- **Sources**: Select metrics using MetricSQL queries to filter which telemetry data to export
+- **Sinks**: Configure destination endpoints where metrics should be sent (Prometheus remote write endpoints for Grafana Cloud)
+
+## **Setup**
+
+Setup an Export Policy via the Datum Portal within the project of your choice.
+
+<Frame caption="Step 1: Provide the Grafana instance URL">
+  ![Grafana Access](/images/grafana-access.png)
+</Frame>
+
+<Frame caption="Step 2: Configure your export policy">
+  ![Grafana Finish Setup](/images/grafana-finish-setup.png)
+</Frame>
+
+## **Datum Dashboards in Grafana Cloud**
+
+To add prebuilt Datum dashboards in Grafana Cloud, go to **Dashboards**, select **New dashboard**, then choose **Import dashboard**. The Datum dashboards can be loaded using the following Grafana IDs.
+
+### **Datum Overview**
+
+Grafana ID: **23939**
+
+Provides real-time visibility into Datum Proxy infrastructure, including:
+
+- Total HTTP proxies, hostnames, and domains
+- Upstream requests per second (RPS) by region
+- Global response codes and latency percentiles
+- Domain and proxy health status
+
+### **Datum Proxy**
+
+Grafana ID: **24261**
+
+Offers a real-time view of HTTP proxy hostnames and regional upstream traffic, including:
+
+- Regional RPS and upstream response codes
+- Latency percentiles (p90, p99)
+- Domain and proxy status
+
+For additional help, consult the [<u>Grafana Cloud documentation</u>](https://grafana.com/docs/grafana-cloud/).
