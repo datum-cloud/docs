@@ -1,3 +1,25 @@
 ---
-title: Overview
+title: "Overview"
 ---
+
+Our AI Edge service is built on Envoy and providers an intelligent HTTPProxy along with a Coraza-based Web Application Firewall (WAF).
+
+AI Edges help you protect and route internet traffic to your backend services. We support HTTP(S) 1.1, HTTP2, gRPC, and WebSockets.
+
+<Frame caption="AI Edges can be configured with custom hostnames and protection">
+  ![AI Edge Details](/images/AI-Edge-details.png)
+</Frame>
+
+## Features
+
+Each AI Edge is deployed with a default hostname and HTTPS is enforced (this can be removed). 
+
+- **Protection** - Protection is provided by the [**<u>OWASP Coraza Web Application Firewall (WAF)</u>**](https://www.coraza.io/)**.** By default, Protection is in "observe" mode and can be set to enforced status. If enforced, you can select either Level 1 (relaxed) or Level 2 (balanced).
+- **Custom Hostnames** – Verify domains (or use already verified domain resources) to use custom hostnames with an AI Edge.
+- **Basic Authentication** - Add a username and password to restrict access to an AI Edge.
+
+Creature comforts to understand the health of your AI Edges include:
+
+- **Status **– View status “Accepted” and “Programmed”, Generated hostname(s), Custom hostname verification status, and TLS verification status.
+- **Metrics** - In the portal we provide a variety of baseline metrics, filtered by region, including: global upstream latency percentile, regional upstream RPS,  and regional upstream response.
+- **Activity Logs** - View and filter activity across a project, and filter by resource type (including AI Edge) and action.

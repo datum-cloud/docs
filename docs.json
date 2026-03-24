@@ -77,14 +77,12 @@
           {
             "group": "AI Edge",
             "pages": [
-              "docs/ai-edge/overview",
-              "docs/ai-edge/troubleshooting"
+              "docs/ai-edge/overview"
             ]
           },
           {
             "group": "Connectors",
             "pages": [
-              "docs/connectors/overview",
               "docs/connectors/tunnels"
             ]
           },
