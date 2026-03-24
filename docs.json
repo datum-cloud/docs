@@ -56,11 +56,11 @@
         "groups": [
           {
             "group": "TLDR",
+            "icon": "fire",
             "pages": [
-              "docs/quickstart",
+              "docs/overview",
               "docs/features",
-              "docs/roadmap",
-              "docs/kubernetes-bet",
+              "docs/kubernetes",
               "docs/get-involved"
             ]
           },
@@ -173,7 +173,7 @@
         "tab": "Guides",
         "icon": "map",
         "pages": [
-          "docs/guides/expose-localhost",
+          "docs/guides/github-pages-custom-domain",
           "docs/guides/custom-domain-apps"
         ]
       }

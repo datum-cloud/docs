@@ -1,0 +1,185 @@
+---
+title: "GitHub Pages Custom Domain"
+---
+
+In this guide you’ll learn how to serve GitHub pages through a custom domain using Datum Cloud’s AI Edge as a reverse proxy. Here's what we'll do:
+
+- Configure an AI edge with a GitHub Page as the origin
+- Add custom hostnames, URL path rewriting, and enforced redirect
+- Update your DNS records to complete the endpoint redirect 
+
+What you’ll need: 
+
+- A Datum Cloud Account 
+- A GitHub page site (note: these same steps can be followed using any third-party page site) 
+- A live domain (in this guide example, it is managed in Cloudflare) 
+
+## Create an AI Edge with the GitHub Page Origin 
+
+[<u>Login</u>](https://auth.datum.net/ui/v2/login/loginname) to your Datum Cloud Account. If you don’t have an account,[<u> create one for free.</u>](https://auth.datum.net/ui/v2/login/register) 
+
+In the Datum Cloud Console. 
+
+\
+
+Navigate to AI Edge and add a new AI Edge. Set the origin to your GitHub page-based URL. 
+
+\
+\
+
+[<u>https://datum-cloud.github.io</u>](https://datum-cloud.github.io) 
+
+\
+
+### Add the Hostnames 
+
+\
+
+We’ll need to know which host headers to accept and route through our edge. To do this, add both the apex domain and the www subdomain as hostnames in the console. 
+
+\
+\
+
+[<u>cloudvalid.com</u>](http://cloudvalid.com) 
+
+[<u>www.cloudvalid.com</u>](http://www.cloudvalid.com)
+
+\
+\
+
+## Add a Custom URLRewrite 
+
+To load the site from the GitHub repo, we’ll need to rewrite the request to include / as a prefix before forwarding to the origin. 
+
+\
+
+In the HTTPRoute configuration, add a URLRewrite filter with a replacePrefixMatch rule. 
+
+\
+\
+\
+
+filters:
+
+  - type: URLRewrite
+
+    urlRewrite:
+
+      path:
+
+        type: ReplacePrefixMatch
+
+        replacePrefixMatch: /[cloudvalid.com](http://cloudvalid.com)
+
+\
+\
+
+💡 If your GitHub Pages repository uses a different path prefix, update replacePrefixMatch to match. The value must correspond to the repository or subfolder path that GitHub Pages serves your site from.
+
+## Add a Force Redirect
+
+To canonicalize traffic and ensure traffic is properly routed, add a permanent 301 redirect rule. 
+
+\
+\
+
+rules:
+
+  - matches:
+
+      - headers:
+
+          - name: Host
+
+            value: [cloudvalid.com](http://cloudvalid.com)
+
+    filters:
+
+      - type: RequestRedirect
+
+        requestRedirect:
+
+          hostname: [www.cloudvalid.com](http://www.cloudvalid.com)
+
+          statusCode: 301
+
+\
+\
+
+ℹ️ Place the redirect rule _before_ the URL rewrite rule in your route so apex requests are redirected without being rewritten first.
+
+\
+
+## Verify the Proxy
+
+Confirm the Edge is working correctly by sending a request directly to the Datum Cloud proxy URL with a host header override. 
+
+\
+
+Terminal: 
+
+\
+\
+
+[http://0dbfa9aa6b1b4c739f99382f405d4ac5.datumproxy.net](http://0dbfa9aa6b1b4c739f99382f405d4ac5.datumproxy.net) host:[www.cloudvalid.com](http://www.cloudvalid.com)
+
+\
+\
+
+You should receive a 200 OK response with the HTML content of your GitHub Pages site. If you see a 404, double-check that the replacePrefixMatch value in Step 3 matches the exact path GitHub Pages uses to serve your site.
+
+\
+
+⚠️ Do not proceed to Step 6 until this request returns the expected site content. Cutting over DNS while the proxy is misconfigured will cause a live outage.
+
+\
+
+## Update DNS Records 
+
+\
+
+With the edge verified, it's time to point your domain's DNS at Datum Cloud's IPs. This is a two-part change: first remove the existing A records, then add new ones pointing to the Datum Cloud IP addresses.
+
+#### **Remove existing apex A records**
+
+In your Cloudflare dashboard, navigate to the DNS settings for [cloudvalid.com](http://cloudvalid.com) and delete the two existing A records on the apex domain (@ / [cloudvalid.com](http://cloudvalid.com)). These are likely pointing to your previous host or GitHub Pages' own IPs.
+
+⚠️ Deleting the A records will cause a brief period where the apex domain does not resolve. Complete the next step immediately to minimize downtime.
+
+#### **Add Datum Cloud A records**
+
+Create two new A records for the apex domain pointing to Datum Cloud's anycast IPs:
+
+Cloudflare DNS — A records
+
+\
+
+# Record 1
+
+Type:    A
+
+Name:    @   ([cloudvalid.com](http://cloudvalid.com))
+
+Content: 67.14.168.1
+
+Proxy:   DNS only  (orange cloud OFF)
+
+\
+
+# Record 2
+
+Type:    A
+
+Name:    @   ([cloudvalid.com](http://cloudvalid.com))
+
+Content: 67.14.164.1
+
+Proxy:   DNS only  (orange cloud OFF)
+
+ℹ️ Set the Cloudflare proxy status to **DNS only** (grey cloud). Enabling the Cloudflare proxy (orange cloud) in front of Datum Cloud would double-proxy your traffic, which is unnecessary and may cause TLS or header issues.
+
+Once the A records are saved and DNS propagates (typically within a few minutes on Cloudflare), navigating to [https://cloudvalid.com](https://cloudvalid.com) should redirect to [https://www.cloudvalid.com](https://www.cloudvalid.com) and load your GitHub Pages site as expected.
+
+\
+
+You've successfully routed your GitHub Pages site through Datum Cloud AI Edge on a custom domain.
