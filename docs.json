@@ -84,7 +84,6 @@
             ]
           },
           "docs/desktop-apps",
-          "dev-tools/mcp",
           {
             "group": "Tools",
             "pages": [
