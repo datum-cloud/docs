@@ -6,16 +6,14 @@ Datum provides baseline "proof of life" dashboards in our customer portal, but e
 
 Datum collects OpenTelemetry metrics from your Datum infrastructure and services, providing visibility into the performance and health of your workloads.
 
-## **Exporting Metrics**
+## **Exporting to Grafana**
 
 We support exporting metrics to [**Grafana Cloud**](https://grafana.com/) using ExportPolicies. Each ExportPolicy defines:
 
 - **Sources**: Select metrics using MetricSQL queries to filter which telemetry data to export
 - **Sinks**: Configure destination endpoints where metrics should be sent (Prometheus remote write endpoints for Grafana Cloud)
 
-## **Setup**
-
-Setup an Export Policy via the Datum Portal within the project of your choice.
+You can quickly setup an Export Policy via the Datum Portal. Just go to the project of your choice and find the Metrics tab, then follow the instructions.
 
 <Frame caption="Step 1: Provide the Grafana instance URL">
   ![Grafana Access](/images/grafana-access.png)
