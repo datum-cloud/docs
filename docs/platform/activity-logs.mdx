@@ -1,3 +1,17 @@
 ---
-title: Activity Logs
+title: "Activity Logs"
 ---
+
+## Portal
+
+Our cloud portal supports querying and filtering audit logs to understand what changes are being made to resources across your organization and projects. You can access activity logs in the organization's settings page of the cloud portal.
+
+<Frame>
+  ![Activity Logs](/images/activity-logs.png)
+</Frame>
+
+You can also query and filter audit logs for a project by navigating to a project's settings page.
+
+## Command Line
+
+Our Command Line tool (`datumctl` ) allows you to quickly browse audit logs from the platform and pipe results into `jq` or other tools for detailed processing. By default the query command will retrieve the last 24 hours of activity. You can use the `--filter` option to specify a [<u>CEL expression</u>](https://cel.dev/) to filter the audit logs that are returned.
