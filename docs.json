@@ -53,8 +53,17 @@
       {
         "tab": "Docs",
         "icon": "layer-group",
-        "pages": [
-          "docs/quickstart",
+        "groups": [
+          {
+            "group": "TLDR",
+            "pages": [
+              "docs/quickstart",
+              "docs/features",
+              "docs/roadmap",
+              "docs/kubernetes-bet",
+              "docs/get-involved"
+            ]
+          },
           {
             "group": "Platform",
             "pages": [
@@ -63,7 +72,8 @@
               "docs/platform/limits",
               "docs/platform/metrics-export",
               "docs/platform/activity-logs",
-              "docs/platform/secrets"
+              "docs/platform/secrets",
+              "docs/platform/locations"
             ]
           },
           {
@@ -94,10 +104,10 @@
               "docs/domain-dns/dns"
             ]
           },
-          "docs/desktop-apps",
           {
             "group": "Tools",
             "pages": [
+              "docs/desktop-apps",
               "docs/mcp"
             ]
           }
@@ -163,9 +173,8 @@
         "tab": "Guides",
         "icon": "map",
         "pages": [
-          "docs/guides/protect-an-app",
           "docs/guides/expose-localhost",
-          "docs/guides/custom-domain-github-pages"
+          "docs/guides/custom-domain-apps"
         ]
       }
     ]

@@ -5,27 +5,11 @@ description: "Datum is an 'open network cloud' designed to unlock internet super
 
 ## Context
 
-Our platform aims to provide traditional internet-scale primitives (e.g. intelligent edge proxies, private backbones, cloud onramps, peering, meet-me-rooms, etc) but with an experience that is 100% programmatic, agent-first, and backed by AGPLv3 open source. 
+Our platform aims to provide traditional internet-scale primitives (e.g. intelligent edge proxies, private backbones, cloud onramps, peering, meet-me-rooms, etc) but with an experience that is 100% programmatic, agent-first, and backed by AGPLv3 open source.
 
-We believe that a network cloud in the AI era is a bit different than a traditional CDN, mainly because the use case is intelligence not caching. Additionally, we think that open (open source, open ecosystems) is a critical requirement in a world that is increasingly fragmented and regulated. 
+We believe that a network cloud in the AI era is a bit different than a traditional CDN, mainly because the use case is intelligence not caching. Additionally, we think that open (open source, open ecosystems) is a critical requirement in a world that is increasingly fragmented and regulated.
 
 Our target customer is a modern service provider, which we lovingly call [Alt Clouds](https://www.alt-cloud.org/). We're looking to support 1000's of them, so neutrality is an important feature.
-
-## Features & Roadmap
-
-We are currently building a public cloud with a generous "forever free" tier, and working closely with design partners on managed cloud and BYOC approaches.
-
-Our public cloud is opinionated, but powered by key partners. We call these our "house brand" services:
-
-- **AI Edge** - An envoy edge proxy and AI gateway, powered by Tetrate 
-- **Connectors** - Various connections, starting with QUIC tunnels, powered by Iroh
-- **Essentials**: DNS, domains, metrics export, activity logs, collaboration, etc.
-
-In flight:
-
-- **Uniworkers** - Millisecond cold-start, isolated compute, powered by Unikraft
-- **Galactic VPC** - Virtual private backbones that span anywhere, powered by SRv6
-- **vMMR** - A virtual "meet me room"
 
 ## Our Trends
 
@@ -38,33 +22,3 @@ We started Datum because we saw three big trends:
 <Note>
   We love to chat about these trends, but a quick primer is Zac's [blog post here](https://www.datum.net/blog/every-agent-needs-an-edge/).
 </Note>
-
-## Our Bet on Kubernetes CRDs
-
-Datum’s control plane is built on Kubernetes Custom Resource Definitions (CRDs). While you don’t have to use k8s to use Datum Cloud, it helps to understand what’s under the hood.
-
-- Ecosystem - We’ve invested in this approach to align with the largest ecosystem for cloud operators. If you’re a cloud native SRE or platform engineer, working with Datum capabilities exposed as resources should feel super comfy.
-- LLMs - Because Kubernetes patterns are so well established, LLMs are able to more easily and accurately interact with Datum’s platform.
-
-<Info>
-  For more information, please check out [this blog post](https://www.datum.net/blog/control-plane-for-modern-service-providers/) by Scot Schuchert-Wells.
-</Info>
-
-## **Locations**
-
-We deploy infrastructure in the top internet aggregation points globally. 
-
-Datum’s infrastructure footprint is organized into points of presence (PoPs) that are packaged into Regions and Availability Zones (AZs). Each Region represents a specific geographic and network boundary, while each AZ provides independent capacity within that Region. This structure supports predictable latency, fault isolation, and regulatory alignment.
-
-Similar to the large public clouds, Datum uses a country-anchored naming format with the following elements:
-
-<Tip>
-  \<Geography\>-\<Location\>-\<Number\>\<Count\>   = `us-east-1a`
-</Tip>
-
-| **Field** | **Description** |
-| --- | --- |
-| Geography | Two-letter ISO country code (example: US, DE, IN) |
-| Cardinal Direction | Directional indicator within the country: north, south, east, west, or central. |
-| Number | Region index within that location. |
-| Count | Availability Zone identifier: a, b, c, etc. |
