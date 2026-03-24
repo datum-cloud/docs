@@ -67,8 +67,7 @@
           {
             "group": "Platform",
             "pages": [
-              "docs/platform/account",
-              "docs/platform/orgs-projects",
+              "docs/platform/setup",
               "docs/platform/limits",
               "docs/platform/metrics-export",
               "docs/platform/activity-logs",
@@ -80,7 +79,6 @@
             "group": "AI Edge",
             "pages": [
               "docs/ai-edge/overview",
-              "docs/ai-edge/configuration",
               "docs/ai-edge/troubleshooting"
             ]
           },
@@ -222,7 +220,7 @@
       "youtube": "https://link.datum.net/youtube"
     }
   },
-  "description": "Guides and examples for Datum's open network cloud",
+  "description": "Learn how to use Datum's open network cloud",
   "appearance": {
     "default": "system"
   },
