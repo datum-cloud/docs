@@ -12,36 +12,47 @@
     "dark": "https://www.datum.net/favicons/favicon-dark-128x128.png"
   },
   "colors": {
-    "primary": "#6366f1",
-    "light": "#818cf8",
-    "dark": "#4f46e5"
-  },
-  "topbar": {
-    "links": [
-      {
-        "name": "Status",
-        "url": "https://status.datum.net"
-      }
-    ],
-    "cta": {
-      "type": "link",
-      "name": "Get Started",
-      "url": "https://app.datum.net"
-    }
+    "primary": "#BF9595",
+    "light": "#ECD0D0",
+    "dark": "#4D6356"
   },
   "navbar": {
     "links": [
       {
         "label": "Status",
         "href": "https://www.datumstatus.net/"
+      },
+      {
+        "type": "button",
+        "label": "Dashboard",
+        "href": "https://app.datum.net"
       }
     ]
   },
   "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Discord",
+          "icon": "discord",
+          "href": "https://link.datum.net/discord"
+        },
+        {
+          "anchor": "YouTube",
+          "icon": "youtube",
+          "href": "https://link.datum.net/youtube"
+        },
+        {
+          "anchor": "GitHub",
+          "icon": "github",
+          "href": "https://link.datum.net/github"
+        }
+      ]
+    },
     "tabs": [
       {
         "tab": "Docs",
-        "icon": "book",
+        "icon": "layer-group",
         "pages": [
           "docs/quickstart",
           {
@@ -94,11 +105,8 @@
       },
       {
         "tab": "datumctl (CLI)",
-        "icon": "bars-progress",
+        "icon": "terminal",
         "pages": [
-          "dev-tools/datumctl/overview",
-          "dev-tools/datumctl/authentication",
-          "dev-tools/datumctl/activity",
           "docs/datumctl/overview",
           "docs/datumctl/authentication",
           "docs/datumctl/activity"
@@ -106,24 +114,8 @@
       },
       {
         "tab": "CLI Commands",
-        "icon": "code",
+        "icon": "rectangle-list",
         "pages": [
-          "dev-tools/datumctl/command/options",
-          "dev-tools/datumctl/command/datumctl_activity",
-          "dev-tools/datumctl/command/datumctl_api-resources",
-          "dev-tools/datumctl/command/datumctl_api-versions",
-          "dev-tools/datumctl/command/datumctl_apply",
-          "dev-tools/datumctl/command/datumctl_auth",
-          "dev-tools/datumctl/command/datumctl_completion",
-          "dev-tools/datumctl/command/datumctl_create",
-          "dev-tools/datumctl/command/datumctl_delete",
-          "dev-tools/datumctl/command/datumctl_describe",
-          "dev-tools/datumctl/command/datumctl_diff",
-          "dev-tools/datumctl/command/datumctl_docs",
-          "dev-tools/datumctl/command/datumctl_edit",
-          "dev-tools/datumctl/command/datumctl_explain",
-          "dev-tools/datumctl/command/datumctl_get",
-          "dev-tools/datumctl/command/datumctl_mcp",
           "docs/cli/options",
           {
             "group": "Authentication",
@@ -169,11 +161,8 @@
       },
       {
         "tab": "Guides",
-        "icon": "glasses",
+        "icon": "map",
         "pages": [
-          "guides/protect-an-app",
-          "apps/expose-localhost",
-          "guides/custom-domain-github-pages",
           "docs/guides/protect-an-app",
           "docs/guides/expose-localhost",
           "docs/guides/custom-domain-github-pages"
@@ -184,14 +173,20 @@
   "search": {
     "prompt": "Search..."
   },
+  "ai": {
+    "type": "chat"
+  },
+  "seo": {
+    "indexing": "all"
+  },
   "feedback": {
     "thumbsRating": true
   },
   "contextual": {
     "options": [
-      "copy",
+      "claude",
       "chatgpt",
-      "claude"
+      "copy"
     ]
   },
   "integrations": {
