@@ -214,8 +214,9 @@
   "footer": {
     "socials": {
       "discord": "https://link.datum.net/discord",
-      "linkedin": "https://link.datum.net/linkedin",
-      "youtube": "https://link.datum.net/youtube"
+      "youtube": "https://link.datum.net/youtube",
+      "github": "https://link.datum.net/github",
+      "linkedin": "https://link.datum.net/linkedin"
     }
   },
   "description": "Learn how to use Datum's open network cloud",
@@ -228,7 +229,7 @@
   "background": {
     "color": {
       "dark": "#0C1D31",
-      "light": "#F6F6F5"
+      "light": "#ffffff"
     }
   },
   "fonts": {

@@ -29,7 +29,7 @@ html:not(.dark) code:not(pre code) {
 /* Navbar: glass frost effect */
 #navbar-transition {
   align-items: center !important;
-  background-color: rgba(246, 246, 245, 0.45) !important;
+  background-color: rgba(255, 255, 255, 0.45) !important;
   backdrop-filter: blur(20px) saturate(1.8) brightness(1.05) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.8) brightness(1.05) !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.07) !important;
@@ -42,7 +42,7 @@ html:not(.dark) code:not(pre code) {
 
 /* Logo size */
 img.nav-logo {
-  height: 24px !important;
+  height: 27px !important;
 }
 
 /* Gaps between tab nav items */
@@ -83,9 +83,9 @@ img.nav-logo {
   margin-bottom: 6px !important;
 }
 
-/* Tighter spacing between section groups */
+/* Spacing between section groups */
 #navigation-items > div {
-  margin-top: 16px !important;
+  margin-top: 28px !important;
 }
 
 /* Tighter anchor gaps */
@@ -133,9 +133,17 @@ a.nav-anchor {
   }
 }
 
-/* Active nav state — clearer pill with stronger presence */
+/* Active nav state */
 #navigation-items li[data-active="true"] > a {
-  background-color: rgba(191, 149, 149, 0.15) !important;
+  background-color: #4D6356 !important;
+  color: #E6F59F !important;
+  text-shadow: none !important;
+}
+
+.dark #navigation-items li[data-active="true"] > a {
+  background-color: #E6F59F !important;
+  color: #4D6356 !important;
+  text-shadow: none !important;
 }
 
 /* Fix content left gap to match custom sidebar width */
