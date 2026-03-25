@@ -178,9 +178,6 @@
   "search": {
     "prompt": "Search..."
   },
-  "ai": {
-    "type": "chat"
-  },
   "seo": {
     "indexing": "all"
   },

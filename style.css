@@ -129,18 +129,6 @@ a.nav-anchor {
   }
 }
 
-
-/* Search and Ask AI side by side */
-@media (min-width: 1024px) {
-  #search-bar-entry {
-    position: static !important;
-    transform: none !important;
-    width: auto !important;
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-  }
-}
-
 /* Active nav state */
 #navigation-items li[data-active="true"] > a {
   background-color: #4D6356 !important;
