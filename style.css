@@ -88,6 +88,14 @@ img.nav-logo {
   margin-top: 28px !important;
 }
 
+/* Muted auto-generated footer text */
+.mdx-content h6:last-child {
+  font-size: 0.8rem !important;
+  font-weight: 400 !important;
+  color: #9ca3af !important;
+  margin-top: 2rem !important;
+}
+
 /* Tighter anchor gaps */
 a.nav-anchor {
   margin-bottom: 4px !important;
@@ -121,15 +129,15 @@ a.nav-anchor {
   }
 }
 
-/* Center search bar in navbar */
+
+/* Search and Ask AI side by side */
 @media (min-width: 1024px) {
   #search-bar-entry {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(480px, 28vw);
-    pointer-events: auto;
-    z-index: 10;
+    position: static !important;
+    transform: none !important;
+    width: auto !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
   }
 }
 

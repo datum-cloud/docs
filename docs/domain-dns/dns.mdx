@@ -7,24 +7,24 @@ We offer authoritative DNS hosting for your domains that can be manage through o
 ## Current features
 
 1. Zone Management – Add DNS zones for any domain and subdomain, whether they are hosted by Datum or externally, for broad visibility across all of your DNS zones.
-2. Global Authoritative DNS – Datum serves authoritative DNS via a globally distributed anycast system for performance and redundancy. Any domain or subdomain can use Datum’s authoritative DNS by setting up the domain in Datum Cloud ([<u>cloud.datum.net</u>](http://cloud.datum.net) or via _datumctl_) and then adjusting your domain to point to Datum’s nameservers:
-   - [<u>ns1.datumdomains.net</u>](http://ns1.datumdomains.net)
-   - [<u>ns2.datumdomains.net</u>](http://ns2.datumdomains.net)
-   - [<u>ns3.datumdomains.net</u>](http://ns3.datumdomains.net)
-   - [<u>ns4.datumdomains.net</u>](http://ns4.datumdomains.net)
+2. Global Authoritative DNS – Datum serves authoritative DNS via a globally distributed anycast system for performance and redundancy. Any domain or subdomain can use Datum’s authoritative DNS by setting up the domain in Datum Cloud ([cloud.datum.net](http://cloud.datum.net) or via _datumctl_) and then adjusting your domain to point to Datum’s nameservers:
+   - [ns1.datumdomains.net](http://ns1.datumdomains.net)
+   - [ns2.datumdomains.net](http://ns2.datumdomains.net)
+   - [ns3.datumdomains.net](http://ns3.datumdomains.net)
+   - [ns4.datumdomains.net](http://ns4.datumdomains.net)
 3. Bulk Import/Export – Import existing zone files (BIND format, screenshot from DNS provider, sync by querying for DNS records) or export current configurations
 4. Record Operations – Add, edit, and delete modern DNS records: A, AAAA, CAA, NS, SRV, TXT, CNAME, MX, SOA, TLSA, SVCB, HTTPS.
 5. View zone details - Active nameserver assignments; Record count and zone size; Last modified timestamp.
 6. Audit Log – Track all zone and record changes with user attribution and timestamps
 7. Project Scoped – Manage zones within individual projects with role-based access control
 
-## **DNS record types & behaviors**
+## DNS record types & behaviors
 
 Most record types are standardized (A, AAAA, CNAME, etc.), but some DNS “record-like” features are provider-specific behaviors (for example, “CNAME flattening”).
 
-See <u>ALIAS (“CNAME flattening”)</u> for details.
+See ALIAS (“CNAME flattening”) for details.
 
-## **Concepts and Definitions**
+## Concepts and Definitions
 
 1. **DNS Zone -** A DNS zone is a segment of the Domain Name System that contains the DNS records for one domain or subdomain, managed as a single administrative unit.
 2. **DNS Host -** A DNS host is the provider or server that stores and serves the DNS records for your domain, responding to queries from the internet. Some examples of DNS are Datum, Cloudflare, Amazon Route 53, and Godaddy.
@@ -33,9 +33,9 @@ See <u>ALIAS (“CNAME flattening”)</u> for details.
 5. **BIND Format -** BIND format is a standardized text format used to represent DNS zone files, listing all the records and settings that define a domain’s configuration.
 6. **Domain Connect -** Domain Connect is an open standard that allows web services and domain registrars to automatically configure DNS settings for users with simple authorization.
 
-## **ALIAS / CNAME flattening**
+## ALIAS / CNAME flattening
 
-### **What is an ALIAS record?**
+### What is an ALIAS record?
 
 An **ALIAS** record is a provider-side feature that lets you point a hostname (including the **zone apex**, like `example.com`) at another hostname the way a CNAME does, while still returning **A/AAAA answers** to clients.
 
@@ -44,14 +44,14 @@ Different providers use different names for the same idea:
 - **Cloudflare** commonly describes this as **“CNAME flattening”**
 - Other DNS providers may call it **ALIAS**, **ANAME**, or **flattened CNAME**
 
-### **When you should use ALIAS**
+### When you should use ALIAS
 
 Use ALIAS when you want “point this name at that hostname” behavior but **you can’t (or shouldn’t) use CNAME**, most commonly:
 
 - At the **zone apex** (`example.com`) where CNAME is not allowed by standard DNS rules.
 - When you want the convenience of targeting a hostname that may change IPs (CDNs, hosted services), but still need clients to receive A/AAAA records.
 
-### **Expected Name and Value**
+### Expected Name and Value
 
 - **Name**: the hostname inside the zone you’re creating the record for.
   - For the zone apex, many DNS tools use `@` (BIND/zone-file notation) to mean “the zone root”.
@@ -60,7 +60,7 @@ Use ALIAS when you want “point this name at that hostname” behavior but **yo
   - ALIAS values should be **hostnames**, not IP addresses.
   - The target hostname should ultimately resolve to **A and/or AAAA** records (directly or through other DNS indirection).
 
-### **How it works (what it does)**
+### How it works (what it does)
 
 ALIAS does **not** exist as a standardized DNS RRType that recursive resolvers understand everywhere. Instead, the DNS provider’s authoritative system does the work:
 
@@ -70,12 +70,12 @@ ALIAS does **not** exist as a standardized DNS RRType that recursive resolvers u
 
 Important consequence: clients typically **do not** see a CNAME in the response. They see `A`/`AAAA` records for the name they queried.
 
-### **What to expect compared to CNAME**
+### What to expect compared to CNAME
 
 - **CNAME**: returns a CNAME response and relies on the resolver to chase it.
 - **ALIAS / “CNAME flattening”**: returns `A`/`AAAA` directly (synthesized by the DNS provider).
 
-### **Notes and limitations**
+### Notes and limitations
 
 - **Portability**: ALIAS/flattening is not uniform across providers. If you move DNS providers, you may need to translate this into whatever equivalent that provider supports.
 - **Answer types**: ALIAS is primarily about synthesizing `A`/`AAAA` answers. It is not a general replacement for other record types.
