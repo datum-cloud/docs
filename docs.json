@@ -167,9 +167,10 @@
       {
         "tab": "Guides",
         "icon": "map",
+        "hidden": true,
         "pages": [
-          "docs/guides/github-pages-custom-domain",
-          "docs/guides/custom-domain-apps"
+          "docs/guides/github-custom-domain",
+          "docs/guides/mintlify-custom-domain"
         ]
       }
     ]
