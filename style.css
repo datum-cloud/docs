@@ -141,10 +141,3 @@ a.nav-anchor {
   color: #4D6356 !important;
   text-shadow: none !important;
 }
-
-/* Fix content left gap to match custom sidebar width */
-@media (min-width: 1024px) {
-  #content-area {
-    padding-left: 320px !important;
-  }
-}
