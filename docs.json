@@ -7,10 +7,7 @@
     "dark": "https://www.datum.net/datum-dark.svg",
     "href": "https://www.datum.net/"
   },
-  "favicon": {
-    "light": "https://www.datum.net/favicons/favicon-light-128x128.png",
-    "dark": "https://www.datum.net/favicons/favicon-dark-128x128.png"
-  },
+  "favicon": "https://www.datum.net/favicons/favicon-dark-128x128.png",
   "seo": {
     "metatags": {
       "og:image": "https://www.datum.net/docs/images/og-doc.png"
