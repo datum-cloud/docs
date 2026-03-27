@@ -56,7 +56,6 @@
         "groups": [
           {
             "group": "TLDR",
-            "icon": "fire",
             "pages": [
               "docs/overview",
               "docs/features",
