@@ -7,11 +7,9 @@
     "dark": "https://www.datum.net/datum-dark.svg",
     "href": "https://www.datum.net/"
   },
-  "favicon": "https://www.datum.net/favicons/favicon-dark-128x128.png",
-  "seo": {
-    "metatags": {
-      "og:image": "https://www.datum.net/docs/images/og-doc.png"
-    }
+  "favicon": {
+    "light": "https://www.datum.net/favicons/favicon-light-128x128.png",
+    "dark": "https://www.datum.net/favicons/favicon-light-128x128.png"
   },
   "colors": {
     "primary": "#BF9595",
@@ -180,8 +178,14 @@
   "search": {
     "prompt": "Search..."
   },
+  "ai": {
+    "type": "chat"
+  },
   "seo": {
-    "indexing": "all"
+    "indexing": "all",
+    "metatags": {
+      "og:image": "https://www.datum.net/docs/images/og-doc.png"
+    }
   },
   "feedback": {
     "thumbsRating": true
@@ -213,12 +217,12 @@
   "footer": {
     "socials": {
       "discord": "https://link.datum.net/discord",
+      "linkedin": "https://link.datum.net/linkedin",
       "youtube": "https://link.datum.net/youtube",
-      "github": "https://link.datum.net/github",
-      "linkedin": "https://link.datum.net/linkedin"
+      "github": "https://link.datum.net/github"
     }
   },
-  "description": "Learn how to use Datum's open network cloud",
+  "description": "Learn about Datum's open network cloud",
   "appearance": {
     "default": "system"
   },
@@ -228,7 +232,7 @@
   "background": {
     "color": {
       "dark": "#0C1D31",
-      "light": "#ffffff"
+      "light": "#F6F6F5"
     }
   },
   "fonts": {
