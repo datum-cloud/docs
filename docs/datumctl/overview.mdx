@@ -7,10 +7,7 @@ description: "datumctl is the command-line tool for working with Datum Cloud and
 
 If you’ve used kubectl,`datumctl`follows a similar model: resources, commands, and predictable structure.
 
-It lets you:
-
-- log in to your Datum account
-- create and manage resources (projects, AI Edges, DNS, etc.)
+It lets you log in to your Datum account and then both create and manage resources (projects, AI Edges, DNS, etc.)
 
 If you’re comfortable in a terminal,`datumctl`is the fastest and best way to interact with Datum.
 
@@ -18,26 +15,14 @@ If you’re comfortable in a terminal,`datumctl`is the fastest and best way to i
 
 `datumctl`is designed with a few core principles in mind:
 
-- **Secure by default - **Uses modern authentication (OIDC with PKCE). No static API keys required.
-- **Simple and consistent - **Commands follow a predictable structure so they’re easy to learn and remember.
-- **Built to grow - **New resources and features can be added without changing how the CLI feels.
+- **Security** - Uses modern authentication (OIDC with PKCE). No static API keys required.
+- **Consistency** - Commands follow a predictable structure so they’re easy to learn and remember.
+- **Scalability** - New resources  can be added without changing how the CLI feels.
 
 ## How it works
 
 At a high level,`datumctl`does three things:
 
-**Authenticates you**
-
-- Opens a browser login
-- Stores credentials securely
-- Refreshes tokens automatically
-
-**Talks to the Datum API**
-
-- Sends requests to create, read, update, and delete resources
-- Handles authentication behind the scenes
-
-**Formats output**
-
-- Displays results as tables by default
-- Supports JSON and YAML
+1. **Authenticates you - **Opens a browser login, stores credentials securely, and refreshes tokens automatically
+2. **Talks to the Datum API - **Sends requests to create, read, update, and delete resources with authentication handled behind the scenes
+3. **Formats output - **Displays results as tables by default (supports JSON and YAML)
