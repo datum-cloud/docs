@@ -1,30 +1,43 @@
 ---
 title: "Overview"
+description: "datumctl is the command-line tool for working with Datum Cloud and follows a similar model to kubectl: resources, commands, and predictable structure."
 ---
 
-`datumctl` is the command-line interface for interacting with Datum Cloud. It is
-built using Go and the [Cobra](https://cobra.dev/) library for CLI structure.
+`datumctl`is the command-line tool for working with Datum Cloud. You can download and install it via [our downloads page](https://www.datum.net/download/datumctl/).
+
+If you’ve used kubectl,`datumctl`follows a similar model: resources, commands, and predictable structure.
+
+It lets you:
+
+- log in to your Datum account
+- create and manage resources (projects, AI Edges, DNS, etc.)
+
+If you’re comfortable in a terminal,`datumctl`is the fastest and best way to interact with Datum.
 
 ## Design goals
 
-*   **Secure Authentication:** Prioritize secure, modern authentication flows
-    (OIDC/PKCE) over static credentials.
-*   **Usability:** Provide a clear and consistent command structure.
-*   **Extensibility:** Allow for easy addition of new commands and resource
-    types.
-*   **Integration:** Serve as a reliable component for other tools,
-    particularly `kubectl` via exec plugins.
+`datumctl`is designed with a few core principles in mind:
 
-## Key components
+- **Secure by default - **Uses modern authentication (OIDC with PKCE). No static API keys required.
+- **Simple and consistent - **Commands follow a predictable structure so they’re easy to learn and remember.
+- **Built to grow - **New resources and features can be added without changing how the CLI feels.
 
-*   **Authentication (`internal/cmd/auth`, `internal/authutil`):** Handles the
-    OIDC login flow, secure credential storage (keyring), token management
-    (retrieval, refresh), and kubeconfig updates.
-*   **API Interaction (`internal/resourcemanager`, etc.):** Contains logic for
-    communicating with Datum Cloud APIs (e.g., REST for listing
-    organizations). Uses standard Go HTTP clients, typically configured with
-    OAuth2 transports managed by `authutil`.
-*   **Command Structure (`internal/cmd`, `main.go`):** Defines the CLI commands,
-    flags, and arguments using Cobra.
-*   **Output Formatting (`internal/output`):** Provides helpers for displaying
-    command output in different formats (table, JSON, YAML).
+## How it works
+
+At a high level,`datumctl`does three things:
+
+**Authenticates you**
+
+- Opens a browser login
+- Stores credentials securely
+- Refreshes tokens automatically
+
+**Talks to the Datum API**
+
+- Sends requests to create, read, update, and delete resources
+- Handles authentication behind the scenes
+
+**Formats output**
+
+- Displays results as tables by default
+- Supports JSON and YAML
