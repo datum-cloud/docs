@@ -2,9 +2,9 @@
 title: "Activity"
 ---
 
-The `datumctl activity` command is available for interacting with the [activity
-service] we've made available to Datum Cloud consumers. The activity service
-allows users to query for audit logs that are collected for all interactions
+The `datumctl activity` command lets you interact with the [activity
+service]. The activity service
+allows you to query for audit logs that are collected for all interactions
 with the platform.
 
 You can see the full list of commands and CLI options by using the `--help`
@@ -20,12 +20,12 @@ most frequently used commands.
 [activity service]: https://github.com/datum-cloud/activity
 [milo]: https://github.com/datum-cloud/milo
 
-## Querying audit logs
+## Querying Audit Logs
 
 The `datumctl activity query` command is available to query the system for audit
 logs to understand what's happening within your organization and projects.
 
-### Project and organization audit logs
+### Project and Organization Audit Logs
 
 Use the `--project` and `--organization` flag to control which context audit
 logs are retrieved from.
@@ -80,8 +80,8 @@ You can also use the `--all-pages` option to retrieve all pages.
 ### Output
 
 The `--output` or `-o` option is available to control the format that's
-returned. By default the query command will output a table with common fields
-that are helpful to users to understand the activity. You can also output the
+returned. By default the query command outputs a table with common fields
+to help you understand the activity. You can also output the
 results as `yaml` or `json` to see the full audit logs that were retrieved by
 the query.
 
