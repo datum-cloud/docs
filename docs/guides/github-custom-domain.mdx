@@ -52,7 +52,9 @@ filters:
 
         replacePrefixMatch: /[cloudvalid.com](http://cloudvalid.com)
 
-💡 If your GitHub Pages repository uses a different path prefix, update replacePrefixMatch to match. The value must correspond to the repository or subfolder path that GitHub Pages serves your site from.
+<Tip>
+If your GitHub Pages repository uses a different path prefix, update replacePrefixMatch to match. The value must correspond to the repository or subfolder path that GitHub Pages serves your site from.
+</Tip>
 
 ## Add a Force Redirect
 
@@ -78,7 +80,9 @@ rules:
 
           statusCode: 301
 
-ℹ️ Place the redirect rule _before_ the URL rewrite rule in your route so apex requests are redirected without being rewritten first.
+<Info>
+Place the redirect rule _before_ the URL rewrite rule in your route so apex requests are redirected without being rewritten first.
+</Info>
 
 ## Verify the Proxy
 
@@ -90,7 +94,9 @@ Terminal: 
 
 You should receive a 200 OK response with the HTML content of your GitHub Pages site. If you see a 404, double-check that the replacePrefixMatch value in Step 3 matches the exact path GitHub Pages uses to serve your site.
 
-⚠️ Do not proceed to Step 6 until this request returns the expected site content. Cutting over DNS while the proxy is misconfigured will cause a live outage.
+<Warning>
+Do not proceed to Step 6 until this request returns the expected site content. Cutting over DNS while the proxy is misconfigured will cause a live outage.
+</Warning>
 
 ## Update DNS Records 
 
@@ -100,7 +106,9 @@ With the edge verified, it's time to point your domain's DNS at Datum Cloud's IP
 
 In your Cloudflare dashboard, navigate to the DNS settings for [cloudvalid.com](http://cloudvalid.com) and delete the two existing A records on the apex domain (@ / [cloudvalid.com](http://cloudvalid.com)). These are likely pointing to your previous host or GitHub Pages' own IPs.
 
-⚠️ Deleting the A records will cause a brief period where the apex domain does not resolve. Complete the next step immediately to minimize downtime.
+<Warning>
+Deleting the A records will cause a brief period where the apex domain does not resolve. Complete the next step immediately to minimize downtime.
+</Warning>
 
 #### **Add Datum Cloud A records**
 
@@ -128,7 +136,9 @@ Content: 67.14.164.1
 
 Proxy:   DNS only  (orange cloud OFF)
 
-ℹ️ Set the Cloudflare proxy status to **DNS only** (grey cloud). Enabling the Cloudflare proxy (orange cloud) in front of Datum Cloud would double-proxy your traffic, which is unnecessary and may cause TLS or header issues.
+<Info>
+Set the Cloudflare proxy status to **DNS only** (grey cloud). Enabling the Cloudflare proxy (orange cloud) in front of Datum Cloud would double-proxy your traffic, which is unnecessary and may cause TLS or header issues.
+</Info>
 
 Once the A records are saved and DNS propagates (typically within a few minutes on Cloudflare), navigating to [https://cloudvalid.com](https://cloudvalid.com) should redirect to [https://www.cloudvalid.com](https://www.cloudvalid.com) and load your GitHub Pages site as expected.
 
