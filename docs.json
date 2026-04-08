@@ -193,7 +193,8 @@
     "options": [
       "claude",
       "chatgpt",
-      "copy"
+      "copy",
+      "view"
     ]
   },
   "integrations": {
