@@ -1,5 +1,6 @@
 ---
 title: "datumctl get"
+description: "Use datumctl get to display one or many resources in a table, allowing you to filter using a labor selector and selector flag"
 ---
 
 Display one or many resources

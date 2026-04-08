@@ -1,5 +1,6 @@
 ---
 title: "datumctl auth"
+description: "Use datumctl auth to authenticate with Datum Cloud"
 ---
 
 Authenticate with Datum Cloud

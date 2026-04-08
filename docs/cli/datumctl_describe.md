@@ -1,5 +1,6 @@
 ---
 title: "datumctl describe"
+description: "Use datumctl describe to show details ofa specific resource or group of resources"
 ---
 
 Show details of a specific resource or group of resources

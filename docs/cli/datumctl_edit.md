@@ -1,5 +1,6 @@
 ---
 title: "datumctl edit"
+description: "The datumctl edit command allows you to directly edit any API resource you can retrieve via the command-line tools"
 ---
 
 Edit a resource on the server

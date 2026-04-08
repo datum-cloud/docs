@@ -1,5 +1,6 @@
 ---
 title: "datumctl create"
+description: "Create a resource from a file or from stdin with datumctl create"
 ---
 
 Create a resource from a file or from stdin

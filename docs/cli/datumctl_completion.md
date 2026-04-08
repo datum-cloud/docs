@@ -1,5 +1,6 @@
 ---
 title: "datumctl completion"
+description: "Use datumctl completion to generate the autocpmpletion script for the specified shell"
 ---
 
 Generate the autocompletion script for the specified shell

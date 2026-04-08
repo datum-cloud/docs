@@ -1,5 +1,6 @@
 ---
 title: "datumctl docs"
+description: "datumctl is the command-line tool for working with Datum Cloud, it is the fastest and best way to interact with Datum for both developer and agentic users"
 ---
 
 Documentation and API exploration commands

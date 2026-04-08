@@ -1,5 +1,6 @@
 ---
 title: "datumctl explain"
+description: "how to use CLI commands datumctl explain"
 ---
 
 Get documentation for a resource

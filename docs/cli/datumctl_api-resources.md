@@ -1,5 +1,6 @@
 ---
 title: "datumctl api-resources"
+description: "Use datumctl api-resources to print the supported API resources on the server"
 ---
 
 Print the supported API resources on the server

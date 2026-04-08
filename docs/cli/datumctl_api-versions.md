@@ -1,5 +1,6 @@
 ---
 title: "datumctl api-versions"
+description: "How to use datumctl api-versions"
 ---
 
 Print the supported API versions on the server, in the form of "group/version"

@@ -1,5 +1,6 @@
 ---
 title: "datumctl apply"
+description: "Apply a configuration to a resource by file name or stdin with datumctl apply"
 ---
 
 Apply a configuration to a resource by file name or stdin

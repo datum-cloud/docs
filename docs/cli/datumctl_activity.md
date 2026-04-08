@@ -1,5 +1,6 @@
 ---
 title: "datumctl activity"
+description: "The datumctl activity command lets you interact with the activity service. The activity service allows you to query for audit logs that are collected for all interactions with the platform."
 ---
 
 Query control plane audit logs

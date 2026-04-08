@@ -1,5 +1,6 @@
 ---
 title: "datumctl mcp"
+description: "CLI commands datumctl mcp to start a local MCP server and expose tools"
 ---
 
 Start the Datum MCP server

@@ -1,5 +1,6 @@
 ---
 title: "datumctl delete"
+description: "Delete resources by file names, stdin, resources and names or by resourcesand label selector"
 ---
 
 Delete resources by file names, stdin, resources and names, or by resources and label selector

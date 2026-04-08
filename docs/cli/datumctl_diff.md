@@ -1,5 +1,6 @@
 ---
 title: "datumctl diff"
+description: "How to use CLI commands datumctl diff to diff the liver version against a would-be applied version"
 ---
 
 Diff the live version against a would-be applied version
