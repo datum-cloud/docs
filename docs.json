@@ -57,52 +57,52 @@
           {
             "group": "TLDR",
             "pages": [
-              "docs/overview",
-              "docs/features",
-              "docs/kubernetes",
-              "docs/get-involved"
+              "overview",
+              "features",
+              "kubernetes",
+              "get-involved"
             ]
           },
           {
             "group": "Platform",
             "pages": [
-              "docs/platform/setup",
-              "docs/platform/metrics-export",
-              "docs/platform/activity-logs",
-              "docs/platform/secrets",
-              "docs/platform/locations"
+              "platform/setup",
+              "platform/metrics-export",
+              "platform/activity-logs",
+              "platform/secrets",
+              "platform/locations"
             ]
           },
           {
             "group": "AI Edge",
             "pages": [
-              "docs/ai-edge/overview"
+              "ai-edge/overview"
             ]
           },
           {
             "group": "Connectors",
             "pages": [
-              "docs/connectors/tunnels"
+              "connectors/tunnels"
             ]
           },
           {
             "group": "Galactic VPC",
             "pages": [
-              "docs/galactic-vpc/overview"
+              "galactic-vpc/overview"
             ]
           },
           {
             "group": "Domains & DNS",
             "pages": [
-              "docs/domain-dns/domains",
-              "docs/domain-dns/dns"
+              "domain-dns/domains",
+              "domain-dns/dns"
             ]
           },
           {
             "group": "Tools",
             "pages": [
-              "docs/desktop-apps",
-              "docs/mcp"
+              "desktop-apps",
+              "mcp"
             ]
           }
         ]
@@ -111,54 +111,54 @@
         "tab": "datumctl (CLI)",
         "icon": "terminal",
         "pages": [
-          "docs/datumctl/overview",
-          "docs/datumctl/authentication",
-          "docs/datumctl/activity"
+          "datumctl/overview",
+          "datumctl/authentication",
+          "datumctl/activity"
         ]
       },
       {
         "tab": "CLI Commands",
         "icon": "rectangle-list",
         "pages": [
-          "docs/cli/options",
+          "cli/options",
           {
             "group": "Authentication",
             "pages": [
-              "docs/cli/datumctl_auth"
+              "cli/datumctl_auth"
             ]
           },
           {
             "group": "Resource Management",
             "pages": [
-              "docs/cli/datumctl_apply",
-              "docs/cli/datumctl_create",
-              "docs/cli/datumctl_delete",
-              "docs/cli/datumctl_describe",
-              "docs/cli/datumctl_diff",
-              "docs/cli/datumctl_edit",
-              "docs/cli/datumctl_get"
+              "cli/datumctl_apply",
+              "cli/datumctl_create",
+              "cli/datumctl_delete",
+              "cli/datumctl_describe",
+              "cli/datumctl_diff",
+              "cli/datumctl_edit",
+              "cli/datumctl_get"
             ]
           },
           {
             "group": "Discovery",
             "pages": [
-              "docs/cli/datumctl_api-resources",
-              "docs/cli/datumctl_api-versions",
-              "docs/cli/datumctl_explain"
+              "cli/datumctl_api-resources",
+              "cli/datumctl_api-versions",
+              "cli/datumctl_explain"
             ]
           },
           {
             "group": "Activity",
             "pages": [
-              "docs/cli/datumctl_activity"
+              "cli/datumctl_activity"
             ]
           },
           {
             "group": "Tools",
             "pages": [
-              "docs/cli/datumctl_completion",
-              "docs/cli/datumctl_docs",
-              "docs/cli/datumctl_mcp"
+              "cli/datumctl_completion",
+              "cli/datumctl_docs",
+              "cli/datumctl_mcp"
             ]
           }
         ]
@@ -168,8 +168,8 @@
         "icon": "map",
         "hidden": true,
         "pages": [
-          "docs/guides/github-custom-domain",
-          "docs/guides/mintlify-custom-domain"
+          "guides/github-custom-domain",
+          "guides/mintlify-custom-domain"
         ]
       }
     ]
