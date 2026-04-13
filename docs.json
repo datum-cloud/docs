@@ -55,6 +55,12 @@
         "icon": "layer-group",
         "groups": [
           {
+            "group": "Documentation",
+            "pages": [
+              "index"
+            ]
+          },
+          {
             "group": "TLDR",
             "pages": [
               "overview",
