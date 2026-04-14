@@ -1,0 +1,42 @@
+---
+title: "Issue Workflow"
+description: "How to link GitHub issues to wiki pages and keep project and customer documentation in sync."
+sidebarTitle: "Issue Workflow"
+---
+
+## Linking Issues to Wiki Pages
+
+Any wiki page (customer, project, etc.) can reference GitHub issues directly using a Markdown link:
+
+```md
+- [datum-cloud/infra#123](https://github.com/datum-cloud/infra/issues/123) — Brief description
+```
+
+List open issues in the **Open Issues** section of the relevant customer or project page. When an issue closes, move it to a **Resolved Issues** section or remove it.
+
+## Keeping Things in Sync
+
+Mintlify doesn't auto-sync with GitHub Issues natively, but you can stay in sync with a simple convention:
+
+1. **When opening an issue** — add a link to it in the relevant wiki page (customer or project)
+2. **When closing an issue** — update the wiki page with the outcome
+3. **For large features** — create a dedicated project page and link all related issues there
+
+## Using GitHub Issue Templates
+
+For issues that relate to customer requests or project milestones, add a wiki link in the issue body:
+
+```md
+**Wiki:** https://wiki.datum.net/customers/acme-corp
+```
+
+This creates a two-way reference — the issue links to the wiki, and the wiki links to the issue.
+
+## Automation (Optional)
+
+For teams that want automated sync, a GitHub Action can be configured to:
+
+- Post a comment on an issue when the linked wiki page is updated
+- Open a PR to update wiki pages when issues are closed
+
+This requires a workflow file in the relevant repo. See the [GitHub Actions docs](https://docs.github.com/en/actions) to set this up.

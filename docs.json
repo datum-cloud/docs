@@ -1,0 +1,119 @@
+{
+  "$schema": "https://www.mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Datum Internal Wiki",
+  "logo": {
+    "light": "https://www.datum.net/datum-light.svg",
+    "dark": "https://www.datum.net/datum-dark.svg",
+    "href": "https://www.datum.net/"
+  },
+  "favicon": {
+    "light": "https://www.datum.net/favicons/favicon-light-128x128.png",
+    "dark": "https://www.datum.net/favicons/favicon-light-128x128.png"
+  },
+  "colors": {
+    "primary": "#4D6356",
+    "light": "#ECD0D0",
+    "dark": "#0C1D31"
+  },
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Wiki",
+        "icon": "book-open",
+        "groups": [
+          {
+            "group": "Home",
+            "pages": ["index"]
+          },
+          {
+            "group": "Getting Started",
+            "pages": [
+              "getting-started/onboarding",
+              "getting-started/tools",
+              "getting-started/day-one"
+            ]
+          },
+          {
+            "group": "People & HR",
+            "pages": [
+              "people/contacts",
+              "people/team",
+              "people/benefits",
+              "people/pto",
+              "people/performance"
+            ]
+          },
+          {
+            "group": "Operations",
+            "pages": [
+              "operations/expenses",
+              "operations/tools",
+              "operations/remote-work"
+            ]
+          },
+          {
+            "group": "Company & Culture",
+            "pages": [
+              "company/about",
+              "company/values",
+              "company/investors"
+            ]
+          },
+          {
+            "group": "GitHub",
+            "pages": [
+              "github/index",
+              "github/issue-workflow"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Projects",
+        "icon": "diagram-project",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": ["projects/index"]
+          },
+          {
+            "group": "Customers",
+            "pages": [
+              "customers/index",
+              "customers/template"
+            ]
+          },
+          {
+            "group": "Templates",
+            "pages": ["projects/template"]
+          }
+        ]
+      }
+    ]
+  },
+  "search": {
+    "prompt": "Search wiki..."
+  },
+  "ai": {
+    "type": "chat"
+  },
+  "feedback": {
+    "thumbsRating": true
+  },
+  "appearance": {
+    "default": "system"
+  },
+  "icons": {
+    "library": "fontawesome"
+  },
+  "background": {
+    "color": {
+      "dark": "#0C1D31",
+      "light": "#F6F6F5"
+    }
+  },
+  "fonts": {
+    "family": "Inter"
+  }
+}
