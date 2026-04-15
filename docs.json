@@ -168,15 +168,6 @@
             ]
           }
         ]
-      },
-      {
-        "tab": "Guides",
-        "icon": "map",
-        "hidden": true,
-        "pages": [
-          "guides/github-custom-domain",
-          "guides/mintlify-custom-domain"
-        ]
       }
     ]
   },
