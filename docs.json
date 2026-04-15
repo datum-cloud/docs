@@ -249,5 +249,11 @@
     "body": {
       "family": "Inter"
     }
+  },
+  "api": {
+    "playground": {
+      "proxy": false,
+      "display": "none"
+    }
   }
 }
