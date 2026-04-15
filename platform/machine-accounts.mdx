@@ -1,0 +1,48 @@
+---
+title: "Machine Accounts"
+description: "Create non-human identities for applications, CI/CD pipelines, and services to authenticate with Datum APIs"
+---
+
+Machine accounts give non-human workloads — CI/CD pipelines, backend services, and scripts — a stable cryptographic identity to call Datum APIs. They authenticate using RSA key pairs rather than shared passwords or long-lived user tokens.
+
+## When to use machine accounts
+
+| Use case | Example |
+|----------|---------|
+| CI/CD pipelines | GitHub Actions deploying resources on every merge |
+| Kubernetes workloads | A pod calling the Datum API using a projected secret |
+| Backend services | A service authenticating as itself, not as a user |
+| Local automation | Scripts that run without a browser-based login |
+
+## Create a machine account
+
+1. Open your project in the [Datum Cloud portal](https://cloud.datum.net).
+2. Navigate to **Machine Accounts** in the left sidebar.
+3. Click **Create machine account**.
+4. Enter a lowercase name (e.g. `ci-deploy`) and an optional display name.
+5. Choose a key type:
+   - **Datum-managed** — Datum generates an RSA key pair. The private key is shown **once** at creation time. Download it as a JSON credentials file before closing the wizard.
+   - **User-managed** — You provide your own RSA public key in PEM format. Datum stores only the public key and never sees your private key.
+6. Click **Create**. Once the account's identity email is provisioned, your credentials are ready.
+
+<Note>
+  For datum-managed keys, the private key is only displayed once. Download the credentials file before closing the wizard — it cannot be recovered later.
+</Note>
+
+## Manage keys
+
+Open a machine account and navigate to the **Keys** tab to add or revoke keys.
+
+- **Add a key** — create an additional datum-managed or user-managed key at any time.
+- **Revoke a key** — immediately invalidates the key. Any tokens issued with it will stop working at expiry.
+
+To rotate keys with zero downtime: add the new key, update your workloads to use it, then revoke the old key.
+
+## Assign roles
+
+Machine accounts are IAM principals like any other member. Assign roles from the **Policy Bindings** tab on the account's detail page, or from **Settings → Members** in your project or organization.
+
+## Disable or delete an account
+
+- **Disable** — suspends authentication without removing the account or its keys. Re-enable at any time from the **Overview** tab.
+- **Delete** — permanently removes the account and revokes all associated keys. This cannot be undone.
