@@ -77,7 +77,6 @@
               "platform/activity-logs",
               "platform/secrets",
               "platform/machine-accounts",
-              "platform/machine-account-credentials",
               "platform/locations"
             ]
           },

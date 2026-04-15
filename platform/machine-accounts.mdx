@@ -46,3 +46,85 @@ Machine accounts are IAM principals like any other member. Assign roles from the
 
 - **Disable** — suspends authentication without removing the account or its keys. Re-enable at any time from the **Overview** tab.
 - **Delete** — permanently removes the account and revokes all associated keys. This cannot be undone.
+
+## Using credentials
+
+After creating a machine account, you'll have a credentials file to use for authentication.
+
+### Credentials file format
+
+When you create a datum-managed key, Datum returns a JSON credentials file:
+
+```json
+{
+  "type": "datum_machine_account",
+  "client_id": "...",
+  "private_key_id": "...",
+  "private_key": "-----BEGIN RSA PRIVATE KEY-----\n...",
+  "client_email": "my-account@my-namespace.my-project.iam.datum.net"
+}
+```
+
+Treat this file like a password — store it in a secrets manager and never commit it to source control.
+
+### datumctl
+
+```text
+datumctl auth login --credentials-file /path/to/credentials.json
+```
+
+Or set the environment variable so all subsequent commands pick it up automatically:
+
+```text
+export DATUM_CREDENTIALS_FILE=/path/to/credentials.json
+datumctl organizations list
+```
+
+### GitHub Actions
+
+Store the contents of the credentials file as a repository or organization secret (e.g. `DATUM_CREDENTIALS`), then write it to disk in your workflow:
+
+```yaml
+- name: Authenticate with Datum
+  run: echo "$DATUM_CREDENTIALS" > /tmp/datum-credentials.json
+  env:
+    DATUM_CREDENTIALS: ${{ secrets.DATUM_CREDENTIALS }}
+
+- name: Run datumctl
+  run: datumctl organizations list
+  env:
+    DATUM_CREDENTIALS_FILE: /tmp/datum-credentials.json
+```
+
+### Kubernetes
+
+Create a Kubernetes secret from the credentials file:
+
+```text
+kubectl create secret generic datum-credentials \
+  --from-file=credentials.json=/path/to/credentials.json
+```
+
+Mount it into your pod and point the environment variable at it:
+
+```yaml
+env:
+  - name: DATUM_CREDENTIALS_FILE
+    value: /var/secrets/datum/credentials.json
+volumeMounts:
+  - name: datum-credentials
+    mountPath: /var/secrets/datum
+    readOnly: true
+volumes:
+  - name: datum-credentials
+    secret:
+      secretName: datum-credentials
+```
+
+### Environment variable
+
+Any tool or SDK that respects `DATUM_CREDENTIALS_FILE` will authenticate automatically when the variable is set:
+
+```text
+export DATUM_CREDENTIALS_FILE=/path/to/credentials.json
+```
