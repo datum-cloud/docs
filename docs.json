@@ -251,9 +251,9 @@
     }
   },
   "api": {
-    "playground": {
-      "proxy": false,
-      "display": "none"
+    "examples": {
+      "autogenerate": false,
+      "prefill": false
     }
   }
 }
