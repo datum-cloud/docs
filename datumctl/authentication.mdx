@@ -5,7 +5,7 @@ description: "datumctl uses OAuth 2.0 and OpenID Connect (OIDC) with PKCE for se
 
 `datumctl` uses OAuth 2.0 and OpenID Connect (OIDC) with PKCE for secure authentication. You do not need to manage API keys. 
 
-## Getting Started
+## Getting started
 
 You authenticate through your browser, and `datumctl` stores your credentials securely in your system keyring. To get started, run the following command, which opens your browser and guides you through authentication.
 
@@ -29,7 +29,7 @@ This will output a table showing the Name, Email, and Status (Active or blank) f
 - `datumctl auth update-kubeconfig`
 - `datumctl auth switch`
 
-## Switching Active User
+## Switching active user
 
 If you have logged in with multiple user accounts (visible via `datumctl auth list`), you can switch which account is active using the `switch` command:
 
@@ -41,7 +41,7 @@ Replace `<user-email>` with the email address of the user you want to make activ
 
 After switching, subsequent commands that require authentication (like `datumctl organizations list` or `kubectl` operations configured via `update-kubeconfig`) will use the credentials of the newly activated user.
 
-## Logging Out
+## Logging out
 
 To remove stored credentials, use the `logout` command.
 

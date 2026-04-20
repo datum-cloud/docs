@@ -26,8 +26,8 @@ For example, here is how we describe the first region and availability zone in t
 
 Regions and AZs are defined by distance and policy boundaries.
 
-- When Points of Presence in the same country are separated by more than about 5 milliseconds round-trip time (RTT), a new Region is created.
-- If multiple PoPs exist in the same metro but operate independently (for example, separate network clusters or facilities), they are modeled as separate AZs. Increment the Count value to the next letter.
+- When Points of Presence in the same country are separated by more than about 5 milliseconds round-trip time (RTT), Datum creates a new Region.
+- If multiple PoPs exist in the same metro but operate independently (for example, separate network clusters or facilities), they become separate AZs. Increment the Count value to the next letter.
 - If PoPs are within about 5 milliseconds RTT and part of the same operational domain, they remain in the same Region. Example: us-east-1a, us-east-1b, us-east-1c.
 
 _Note: regulatory and export control requirements may restrict or define where data and workloads can reside. These boundaries take precedence over latency-based placement rules._
@@ -53,7 +53,7 @@ _Note: regulatory and export control requirements may restrict or define where d
 | us-west-1 | San Jose, California |
 | za-central-1 | Johannesburg |
 
-## Region Tracing
+## Region tracing
 
 Visit [<u>https://edge.datum.net/</u>](https://edge.datum.net/) to learn which Datum Region and availability zone you're reaching via anycast. If you're using Datum Tunnels, this will be your entrypoint into our network.
 
