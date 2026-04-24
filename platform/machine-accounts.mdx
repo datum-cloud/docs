@@ -20,10 +20,19 @@ Machine accounts give non-human workloads — CI/CD pipelines, backend services,
 2. Navigate to **Machine Accounts** in the left sidebar.
 3. Click **Create machine account**.
 4. Enter a lowercase name (e.g. `ci-deploy`) and an optional display name.
+   <Frame>
+     ![Image](/images/image.png)
+   </Frame>
 5. Choose a key type:
    - **Datum-managed** — Datum generates an RSA key pair. The private key is shown **once** at creation time. Download it as a JSON credentials file before closing the wizard.
    - **User-managed** — You provide your own RSA public key in PEM format. Datum stores only the public key and never sees your private key.
-6. Click **Create**. Once the account's identity email is provisioned, your credentials are ready.
+     <Frame>
+       ![Image](/images/image-1.png)
+     </Frame>
+6. Click **Create**. Once the account's identity email is provisioned, your credentials are ready.\
+   <Frame>
+     ![Image](/images/image-2.png)
+   </Frame>
 
 <Note>
   For datum-managed keys, the private key is only displayed once. Download the credentials file before closing the wizard — it cannot be recovered later.
@@ -41,6 +50,10 @@ To rotate keys with zero downtime: add the new key, update your workloads to use
 ## Assign roles
 
 Machine accounts are IAM principals like any other member. Assign roles from the **Policy Bindings** tab on the account's detail page, or from **Settings → Members** in your project or organization.
+
+<Frame>
+  ![Image](/images/image-3.png)
+</Frame>
 
 ## Disable or delete an account
 
