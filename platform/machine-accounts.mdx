@@ -8,7 +8,7 @@ Machine accounts give non-human workloads — CI/CD pipelines, backend services,
 ## When to use machine accounts
 
 | Use case | Example |
-|----------|---------|
+| --- | --- |
 | CI/CD pipelines | GitHub Actions deploying resources on every merge |
 | Kubernetes workloads | A pod calling the Datum API using a projected secret |
 | Backend services | A service authenticating as itself, not as a user |
@@ -61,11 +61,12 @@ When you create a datum-managed key, Datum returns a JSON credentials file:
   "client_id": "...",
   "private_key_id": "...",
   "private_key": "-----BEGIN RSA PRIVATE KEY-----\n...",
-  "client_email": "my-account@my-namespace.my-project.iam.datum.net"
+  "client_email": "my-account@my-namespace.my-project.iam.datum.net",
+  "scope": "..."
 }
 ```
 
-Treat this file like a password — store it in a secrets manager and never commit it to source control.
+**Treat this file like a password** — store it in a secrets manager and never commit it to source control.
 
 ### datumctl
 
@@ -120,6 +121,8 @@ volumes:
     secret:
       secretName: datum-credentials
 ```
+
+Alternatively, use a Datum Secret. If your cluster is already connected to Datum, you can store the credentials file as a Datum Secret and have it projected directly into your pods — no kubectl create secret step needed. See Secrets for setup.
 
 ### Environment variable
 

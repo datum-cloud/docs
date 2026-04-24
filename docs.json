@@ -73,10 +73,10 @@
             "group": "Platform",
             "pages": [
               "platform/setup",
+              "platform/machine-accounts",
               "platform/metrics-export",
               "platform/activity-logs",
               "platform/secrets",
-              "platform/machine-accounts",
               "platform/locations"
             ]
           },
