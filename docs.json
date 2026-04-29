@@ -177,7 +177,8 @@
   "seo": {
     "indexing": "all",
     "metatags": {
-      "og:image": "https://www.datum.net/docs/images/og-doc.png"
+      "og:image": "https://www.datum.net/docs/images/og-doc.png",
+      "canonical": "https://www.datum.net/docs"
     }
   },
   "feedback": {
