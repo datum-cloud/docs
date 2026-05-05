@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "097d325eb2bb1701bfd1efc8da897ce790374557",
+  "prompts": {
+    "eeda63f266a40662": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "acf86a51-1394-49b1-b78c-669d69dbf596",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "AriaEdo",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 1,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    }
+  }
+}
