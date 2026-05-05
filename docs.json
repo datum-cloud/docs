@@ -187,7 +187,6 @@
   },
   "contextual": {
     "options": [
-      "claude",
       "chatgpt",
       "copy",
       "view"
