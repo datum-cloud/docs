@@ -1,0 +1,49 @@
+---
+title: "Overview"
+description: "Self-contained instructions that teach AI agents how to perform Datum Cloud tasks."
+---
+
+Skills are folders containing a `SKILL.md` file with metadata and step-by-step instructions. Agents discover and load them on demand — no scaffolding, no config files. Datum's official skills cover the most common operations across AI Edge, DNS, Domains, and Metrics Export, with more on the way.
+
+These skills work with any agent with support for Skills like but not limited to: Claude, Codex, Cursor, Pi, OpenCode, Mistral Vibe.
+
+## Install
+
+Datum's skills live at **[github.com/datum-cloud/skills](https://github.com/datum-cloud/skills)**. Install for your agent of choice:
+
+<CodeGroup>
+
+```bash Claude Code
+/plugin marketplace add datum-cloud/skills
+/plugin install datum-cloud@datum-cloud
+```
+
+```bash npx skills
+npx skills add https://github.com/datum-cloud/skills
+```
+
+```bash Cursor
+# Settings → Rules → Add Rule → Remote Rule (GitHub)
+# Repository: datum-cloud/skills
+```
+
+</CodeGroup>
+
+## Available skills
+
+| Skill | Covers | Resources |
+|---|---|---|
+| [AI Edge](/agents/skills/ai-edge) | WAF, traffic protection, auth policies | TrafficProtectionPolicy, SecurityPolicy, BackendTrafficPolicy, Gateway, HTTPRoute |
+| [Client Traffic](/agents/skills/client-traffic) | TLS termination, HTTP/3, connection limits | ClientTrafficPolicy, Gateway |
+| [DNS](/agents/skills/dns) | Zones and records | DNSZone, DNSRecordSet, DNSZoneClass |
+| [Domains](/agents/skills/domains) | Domain attachment and verification | Domain |
+| [HTTPRoute](/agents/skills/httproute) | Path routing, traffic splitting, redirects, rewrites | HTTPRoute, Gateway |
+| [Metrics Export](/agents/skills/metrics-export) | Prometheus remote write pipelines | ExportPolicy |
+
+## How skills work alongside Datum MCP and datumctl
+
+Skills tell the agent *how* to think about a Datum resource — the canonical patterns, the right flags, the order of operations. Datum MCP and `datumctl` are *how* the agent acts. A skill might instruct "always preview HTTPProxy changes with `--dry-run` before applying" — the agent then uses `datumctl` to actually run the command. See [Agents Overview](/agents/overview) for the full picture.
+
+## Contributing
+
+Found something missing or wrong? Skills are open-source (Apache-2.0) and accept community contributions. See the [contributing guide](https://github.com/datum-cloud/skills/blob/main/CONTRIBUTING.md) or open an issue at [github.com/datum-cloud/skills/issues](https://github.com/datum-cloud/skills/issues).

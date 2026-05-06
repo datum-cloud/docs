@@ -103,10 +103,29 @@
             ]
           },
           {
+            "group": "Agents",
+            "pages": [
+              "agents/overview",
+              {
+                "group": "Skills",
+                "pages": [
+                  "agents/skills/index",
+                  "agents/skills/ai-edge",
+                  "agents/skills/client-traffic",
+                  "agents/skills/dns",
+                  "agents/skills/domains",
+                  "agents/skills/httproute",
+                  "agents/skills/metrics-export"
+                ]
+              },
+              "datum-mcp",
+              "agents/llms-txt"
+            ]
+          },
+          {
             "group": "Tools",
             "pages": [
-              "desktop-apps",
-              "datum-mcp"
+              "desktop-apps"
             ]
           }
         ]

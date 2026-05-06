@@ -1,0 +1,71 @@
+---
+title: "Client Traffic skill"
+description: "Teach agents to configure TLS termination, HTTP/3, connection limits, and client IP detection on Datum Cloud gateways."
+---
+
+The Client Traffic skill helps agents manage how Datum Cloud edge gateways accept and handle incoming client connections. It covers [AI Edge](/ai-edge/overview) gateway-level settings — TLS termination, mutual TLS (mTLS), HTTP/2 and HTTP/3 (QUIC), connection timeouts and limits, and real client IP detection — all configured by attaching a `ClientTrafficPolicy` to a Gateway listener.
+
+## Install
+
+<CodeGroup>
+
+```bash Claude Code
+/plugin marketplace add datum-cloud/skills
+/plugin install datum-cloud@datum-cloud
+```
+
+```bash npx skills
+npx skills add https://github.com/datum-cloud/skills
+```
+
+```bash Cursor
+# Settings → Rules → Add Rule → Remote Rule (GitHub)
+# Repository: datum-cloud/skills
+```
+
+</CodeGroup>
+
+<Note>
+Once installed, the skill activates automatically when you ask an agent to configure client traffic settings on Datum. No further configuration needed.
+</Note>
+
+## Capabilities
+
+- Configure TLS termination: minimum/maximum TLS version, cipher suites, ALPN protocols
+- Require and validate client certificates (mutual TLS / mTLS)
+- Enable HTTP/2 and HTTP/3 (QUIC) on gateway listeners
+- Set client-facing connection timeouts and idle timeouts
+- Enforce maximum concurrent connections and per-connection request limits
+- Detect real client IP from X-Forwarded-For headers or proxy protocol
+- Scope policies to a specific listener via `sectionName`
+- List, inspect, and update policies across a project
+- Preview changes before applying with `datumctl diff`
+- Delete policies safely
+- Check permissions before acting
+
+## How it relates to other Datum surfaces
+
+- **Product docs:** [AI Edge](/ai-edge/overview) — the human-facing reference for gateways and edge policies
+- **Datum MCP:** [Datum MCP](/datum-mcp) — for agents that need live read/write access to gateway resources during a session
+- **`datumctl`:** [datumctl overview](/datumctl/overview) — `get`, `describe`, `apply`, `diff`, `delete` commands the skill teaches agents to use
+
+## View the full skill
+
+The canonical SKILL.md lives in the [datum-cloud/skills](https://github.com/datum-cloud/skills) repo:
+
+<CardGroup cols={2}>
+  <Card
+    title="On GitHub"
+    icon="github"
+    href="https://github.com/datum-cloud/skills/blob/main/skills/client-traffic/SKILL.md"
+  >
+    Browse the skill source, including frontmatter and full instructions.
+  </Card>
+  <Card
+    title="Raw SKILL.md"
+    icon="file-code"
+    href="https://raw.githubusercontent.com/datum-cloud/skills/main/skills/client-traffic/SKILL.md"
+  >
+    Direct URL for agents that fetch skills by URL.
+  </Card>
+</CardGroup>

@@ -1,0 +1,43 @@
+---
+title: "llms.txt"
+description: "A single-file index agents can fetch to discover Datum's full documentation surface."
+---
+
+`llms.txt` is a small, machine-readable file at the root of the docs site that lists every page agents should know about. It's the lowest-friction way for an agent to bootstrap context about Datum without crawling — a single fetch, a complete map.
+
+## Where it lives
+
+The canonical URL: **[https://datum.net/docs/llms.txt](https://datum.net/docs/llms.txt)**
+
+It's regenerated automatically on every docs deploy, so the index always matches the live site.
+
+## Using it from an agent
+
+Most modern agents will fetch this automatically when given a Datum-related task. To prompt explicitly:
+
+```
+Fetch https://datum.net/docs/llms.txt before answering.
+Use it to discover relevant pages.
+```
+
+## What's in it
+
+The file is organized into two sections:
+
+- **Docs** — the full set of documentation pages, including:
+  - AI Edge (WAF, HTTPProxy, traffic protection)
+  - CLI commands (`datumctl` reference pages)
+  - Connectors / Tunnels
+  - Datum MCP
+  - `datumctl` guides (authentication, activity, overview)
+  - Desktop Apps
+  - DNS and Domains
+  - Galactic VPC
+  - Platform (account setup, service accounts, metrics export, secrets, locations, activity logs)
+  - Overview, Features, Kubernetes, Get Involved
+- **Optional** — community links (Discord, YouTube, GitHub)
+
+## Related
+
+- [Skills](/agents/skills) — pre-packaged procedural knowledge agents load on demand
+- [Datum MCP](/datum-mcp) — live API access via Model Context Protocol
