@@ -1,0 +1,34 @@
+---
+title: "Agents Overview"
+description: "How AI agents work with Datum Cloud — Skills, MCP, llms.txt, and datumctl."
+---
+
+Datum is built for agents as first-class users. Rather than wrapping an API in a chat interface, Datum exposes the same primitives humans use — YAML manifests, `datumctl` commands, and CRD-based resources — in ways that agents can reason about reliably. This section covers the four surfaces agents use to work with Datum: **Skills** (procedural know-how), **Datum MCP** (live API access), **llms.txt** (doc index), and **datumctl** (the CLI agents drive directly).
+
+## The four agent surfaces
+
+<CardGroup cols={2}>
+  <Card title="Skills" icon="book-open" href="/agents/skills">
+    Self-contained instructions agents load on demand. One skill per Datum resource — install once, agents handle the rest.
+  </Card>
+  <Card title="Datum MCP" icon="plug" href="/datum-mcp">
+    The official Model Context Protocol server. Gives agents authenticated, live access to Datum APIs.
+  </Card>
+  <Card title="llms.txt" icon="file-lines" href="/agents/llms-txt">
+    A single index file at datum.net/docs/llms.txt that agents fetch to discover the full documentation surface.
+  </Card>
+  <Card title="datumctl" icon="terminal" href="/datumctl/overview">
+    The CLI. Agents invoke it directly for any platform action — same surface humans use.
+  </Card>
+</CardGroup>
+
+## Which one should I use?
+
+| If your agent needs to… | Use |
+|---|---|
+| Know *how* to do a Datum task (e.g. attach a domain to an HTTPProxy) | **Skills** |
+| Read or write live Datum resources during a task | **Datum MCP** |
+| Discover what documentation exists | **llms.txt** |
+| Execute commands directly | **datumctl** |
+
+These surfaces layer together. A typical agent session loads one or two relevant Skills at startup, calls `datumctl` or Datum MCP to act, and falls back to `llms.txt` when it needs deeper context. See [Skills](/agents/skills) to get started.

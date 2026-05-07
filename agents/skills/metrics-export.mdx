@@ -1,0 +1,68 @@
+---
+title: "Metrics Export skill"
+description: "Teach agents to configure Prometheus remote write pipelines in Datum Cloud using ExportPolicy resources."
+---
+
+The Metrics Export skill helps agents configure [metrics export](/platform/metrics-export) pipelines in Datum Cloud — defining named sources (with optional MetricsQL filters) and sinks (Prometheus remote write endpoints) to ship project metrics to external observability platforms such as Grafana Cloud. It teaches agents the correct manifest structure, credential handling via Secrets, and per-sink health validation.
+
+## Install
+
+<CodeGroup>
+
+```bash Claude Code
+/plugin marketplace add datum-cloud/skills
+/plugin install datum-cloud@datum-cloud
+```
+
+```bash npx skills
+npx skills add https://github.com/datum-cloud/skills
+```
+
+```bash Cursor
+# Settings → Rules → Add Rule → Remote Rule (GitHub)
+# Repository: datum-cloud/skills
+```
+
+</CodeGroup>
+
+<Note>
+Once installed, the skill activates automatically when you ask an agent to work with Metrics Export on Datum. No further configuration needed.
+</Note>
+
+## Capabilities
+
+- List and describe export policies in a project
+- Create metrics export pipelines from YAML manifests
+- Filter exported metrics using MetricsQL selector expressions
+- Configure Prometheus remote write endpoints with Secret-backed credentials
+- Tune batching and retry behavior per sink
+- Apply changes idempotently
+- Preview changes before applying with `datumctl diff`
+- Delete export policies safely
+
+## How it relates to other Datum surfaces
+
+- **Product docs:** [Metrics Export](/platform/metrics-export) — the human-facing reference for the export pipeline and ExportPolicy resource
+- **Datum MCP:** [Datum MCP](/datum-mcp) — for agents that need live read/write access to export policies during a session
+- **`datumctl`:** [datumctl overview](/datumctl/overview) — `get`, `describe`, `apply`, `diff`, `delete` commands the skill teaches agents to use
+
+## View the full skill
+
+The canonical SKILL.md lives in the [datum-cloud/skills](https://github.com/datum-cloud/skills) repo:
+
+<CardGroup cols={2}>
+  <Card
+    title="On GitHub"
+    icon="github"
+    href="https://github.com/datum-cloud/skills/blob/main/skills/metrics-export/SKILL.md"
+  >
+    Browse the skill source, including frontmatter and full instructions.
+  </Card>
+  <Card
+    title="Raw SKILL.md"
+    icon="file-code"
+    href="https://raw.githubusercontent.com/datum-cloud/skills/main/skills/metrics-export/SKILL.md"
+  >
+    Direct URL for agents that fetch skills by URL.
+  </Card>
+</CardGroup>

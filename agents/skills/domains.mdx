@@ -1,0 +1,67 @@
+---
+title: "Domains skill"
+description: "Teach agents to attach and verify domains in Datum Cloud projects using datumctl."
+---
+
+The Domains skill helps agents manage [domain](/domain-dns/domains) resources in Datum Cloud — attaching domains to projects, retrieving verification tokens (DNS record or HTTP token), and applying changes idempotently. It teaches agents the correct workflow: apply the manifest, then check `status.verification` for the challenge before confirming ownership.
+
+## Install
+
+<CodeGroup>
+
+```bash Claude Code
+/plugin marketplace add datum-cloud/skills
+/plugin install datum-cloud@datum-cloud
+```
+
+```bash npx skills
+npx skills add https://github.com/datum-cloud/skills
+```
+
+```bash Cursor
+# Settings → Rules → Add Rule → Remote Rule (GitHub)
+# Repository: datum-cloud/skills
+```
+
+</CodeGroup>
+
+<Note>
+Once installed, the skill activates automatically when you ask an agent to work with Domains on Datum. No further configuration needed.
+</Note>
+
+## Capabilities
+
+- List and describe domains in a project
+- Attach domains to services via YAML manifests
+- Apply changes idempotently
+- Preview changes before applying with `datumctl diff`
+- Delete domains
+- Retrieve domain verification tokens (`status.verification.dnsRecord` or `status.verification.httpToken`)
+- Check permissions before acting
+
+## How it relates to other Datum surfaces
+
+- **Product docs:** [Domains](/domain-dns/domains) — the human-facing reference for domain management
+- **Datum MCP:** [Datum MCP](/datum-mcp) — for agents that need live read/write access to domain resources during a session
+- **`datumctl`:** [datumctl overview](/datumctl/overview) — `get`, `describe`, `apply`, `diff`, `delete` commands the skill teaches agents to use
+
+## View the full skill
+
+The canonical SKILL.md lives in the [datum-cloud/skills](https://github.com/datum-cloud/skills) repo:
+
+<CardGroup cols={2}>
+  <Card
+    title="On GitHub"
+    icon="github"
+    href="https://github.com/datum-cloud/skills/blob/main/skills/domains/SKILL.md"
+  >
+    Browse the skill source, including frontmatter and full instructions.
+  </Card>
+  <Card
+    title="Raw SKILL.md"
+    icon="file-code"
+    href="https://raw.githubusercontent.com/datum-cloud/skills/main/skills/domains/SKILL.md"
+  >
+    Direct URL for agents that fetch skills by URL.
+  </Card>
+</CardGroup>

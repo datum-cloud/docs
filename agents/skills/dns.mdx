@@ -1,0 +1,69 @@
+---
+title: "DNS skill"
+description: "Teach agents to manage DNS zones and record sets in Datum Cloud using datumctl."
+---
+
+The DNS skill helps agents manage [DNS](/domain-dns/dns) zones and record sets in Datum Cloud — creating, inspecting, updating, and deleting `DNSZone` and `DNSRecordSet` resources within a project. It covers all supported record types (A, AAAA, CNAME, MX, TXT, ALIAS, CAA, SRV, and more) and teaches agents to validate propagation after changes.
+
+## Install
+
+<CodeGroup>
+
+```bash Claude Code
+/plugin marketplace add datum-cloud/skills
+/plugin install datum-cloud@datum-cloud
+```
+
+```bash npx skills
+npx skills add https://github.com/datum-cloud/skills
+```
+
+```bash Cursor
+# Settings → Rules → Add Rule → Remote Rule (GitHub)
+# Repository: datum-cloud/skills
+```
+
+</CodeGroup>
+
+<Note>
+Once installed, the skill activates automatically when you ask an agent to work with DNS on Datum. No further configuration needed.
+</Note>
+
+## Capabilities
+
+- List and describe DNS zones in a project
+- Create DNS zones from YAML manifests
+- Manage DNS record sets (A, AAAA, CNAME, MX, TXT, ALIAS, CAA, SRV, and more)
+- Set and update TTL per record entry
+- Apply changes idempotently
+- Preview changes before applying with `datumctl diff`
+- Delete DNS zones and record sets safely
+- Validate DNS propagation via status conditions and external `dig` queries
+- Check permissions before acting
+
+## How it relates to other Datum surfaces
+
+- **Product docs:** [DNS](/domain-dns/dns) — the human-facing reference for DNS zones and records
+- **Datum MCP:** [Datum MCP](/datum-mcp) — for agents that need live read/write access to DNS resources during a session
+- **`datumctl`:** [datumctl overview](/datumctl/overview) — `get`, `describe`, `apply`, `diff`, `delete` commands the skill teaches agents to use
+
+## View the full skill
+
+The canonical SKILL.md lives in the [datum-cloud/skills](https://github.com/datum-cloud/skills) repo:
+
+<CardGroup cols={2}>
+  <Card
+    title="On GitHub"
+    icon="github"
+    href="https://github.com/datum-cloud/skills/blob/main/skills/dns/SKILL.md"
+  >
+    Browse the skill source, including frontmatter and full instructions.
+  </Card>
+  <Card
+    title="Raw SKILL.md"
+    icon="file-code"
+    href="https://raw.githubusercontent.com/datum-cloud/skills/main/skills/dns/SKILL.md"
+  >
+    Direct URL for agents that fetch skills by URL.
+  </Card>
+</CardGroup>
