@@ -41,7 +41,7 @@ Authenticate with Datum Cloud
 * [datumctl auth can-i](/docs/datumctl/command/datumctl_auth_can-i/)	 - Check whether an action is allowed
 * [datumctl auth get-token](/docs/datumctl/command/datumctl_auth_get-token/)	 - Retrieve access token for active user (raw or K8s format)
 * [datumctl auth list](/docs/datumctl/command/datumctl_auth_list/)	 - List locally authenticated users
-* [datumctl auth login](/docs/datumctl/command/datumctl_auth_login/)	 - Authenticate with Datum Cloud via OAuth2 PKCE flow
+* [datumctl login](/docs/datumctl/command/datumctl_login/)	 - Authenticate with Datum Cloud via OAuth2 PKCE flow
 * [datumctl auth logout](/docs/datumctl/command/datumctl_auth_logout/)	 - Remove local authentication credentials for a specified user or all users
 * [datumctl auth switch](/docs/datumctl/command/datumctl_auth_switch/)	 - Set the active authenticated user session
 * [datumctl auth update-kubeconfig](/docs/datumctl/command/datumctl_auth_update-kubeconfig/)	 - Update the kubeconfig file
