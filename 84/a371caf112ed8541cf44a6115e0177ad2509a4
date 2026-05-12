@@ -1,0 +1,47 @@
+cli/datumctl_diff.md
+  s_706b00410356e6::t_845093678d2c27 79
+cli/datumctl_get.md
+  s_706b00410356e6::t_845093678d2c27 123
+cli/datumctl_api-versions.md
+  s_706b00410356e6::t_845093678d2c27 55
+cli/datumctl_delete.md
+  s_706b00410356e6::t_845093678d2c27 110
+cli/datumctl_describe.md
+  s_706b00410356e6::t_845093678d2c27 86
+cli/datumctl_explain.md
+  s_706b00410356e6::t_845093678d2c27 78
+cli/datumctl_docs.md
+  s_706b00410356e6::t_845093678d2c27 44-46
+cli/datumctl_api-resources.md
+  s_706b00410356e6::t_845093678d2c27 79
+cli/datumctl_mcp.md
+  s_706b00410356e6::t_845093678d2c27 57
+cli/datumctl_activity.md
+  s_706b00410356e6::t_845093678d2c27 48-50
+cli/datumctl_auth.md
+  s_706b00410356e6::t_845093678d2c27 40-48
+cli/datumctl_create.md
+  s_706b00410356e6::t_845093678d2c27 78
+cli/datumctl_edit.md
+  s_706b00410356e6::t_845093678d2c27 92
+cli/datumctl_completion.md
+  s_706b00410356e6::t_845093678d2c27 46-50
+cli/datumctl_apply.md
+  s_706b00410356e6::t_845093678d2c27 99-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "84a371caf112ed8541cf44a6115e0177ad2509a4",
+  "prompts": {},
+  "sessions": {
+    "s_706b00410356e6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1e83a9b8-2e21-460f-88ce-07ab5558c162",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
