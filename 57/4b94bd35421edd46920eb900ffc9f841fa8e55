@@ -1,0 +1,21 @@
+datumctl/overview.mdx
+  s_8b03cbb47242b1::t_4f64b9bc337ae6 13-19
+cli/options.mdx
+  s_8b03cbb47242b1::t_25f6b8e54a9af6 9-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "574b94bd35421edd46920eb900ffc9f841fa8e55",
+  "prompts": {},
+  "sessions": {
+    "s_8b03cbb47242b1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "46722ff1-d434-42d5-a4e9-c27ffeb76c6a",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
