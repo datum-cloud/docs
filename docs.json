@@ -103,6 +103,14 @@
             ]
           },
           {
+            "group": "How-To Guides",
+            "pages": [
+              "how-to-guides/basic-auth",
+              "how-to-guides/oidc-google",
+              "how-to-guides/oidc-auth0"
+            ]
+          },
+          {
             "group": "Agents",
             "pages": [
               "agents/overview",

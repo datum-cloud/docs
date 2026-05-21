@@ -1,0 +1,316 @@
+---
+title: "OAuth 2.0 / OIDC Authentication with Google and Datum"
+description: "Configure OIDC authentication using Google OAuth 2.0 for applications behind a Datum gateway using datumctl and Envoy Gateway SecurityPolicy."
+---
+
+This guide describes how to configure **OAuth 2.0 / OIDC Authentication** for applications running behind a **Datum gateway** using `datumctl`. The configuration uses **Envoy Gateway `SecurityPolicy`** resources and applies to **Windows, macOS, and Linux**.
+
+---
+
+## Overview
+
+OIDC authentication protects an application by requiring users to sign in with their Google account before requests are forwarded to the origin. Envoy Gateway handles the OAuth 2.0 flow transparently — users are redirected to Google, authenticate, and are redirected back without any changes to your application.
+
+At a high level, this setup:
+
+1. Creates a **Google OAuth 2.0 Client** in Google Cloud Console
+2. Stores the client secret in a **Kubernetes Secret**
+3. Labels the Secret so it is synced to edge clusters
+4. Attaches a **SecurityPolicy** with OIDC config to an `HTTPRoute`
+5. Verifies authentication behavior
+
+---
+
+## Prerequisites
+
+- `datumctl` installed and authenticated
+- A valid **Project**
+- A **Google Cloud** account with a project
+- Existing:
+  - `Gateway`
+  - `HTTPRoute`
+- Permission to create:
+  - `Secret`
+  - `SecurityPolicy`
+
+Verify access:
+
+```bash
+datumctl get gateway
+datumctl get httproute
+```
+
+---
+
+## Critical Requirement: Secret Syncing
+
+Secrets and ConfigMaps referenced by gateway configurations are **not automatically synced** to edge clusters.
+
+To make a Secret available to edge gateways, it **must** include the following label:
+
+```yaml
+networking.datumapis.com/gateway-sync: "true"
+```
+
+### Why This Matters
+
+- Without this label, the gateway receives the policy but **not the Secret**
+- Envoy fails to load the OAuth client credentials
+- All requests return **HTTP 500** instead of redirecting to Google
+
+This requirement exists to prevent accidental replication of unrelated secrets.
+
+---
+
+## Configuration Steps
+
+### Step 1: Create Google OAuth 2.0 Credentials
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com) → **APIs & Services** → **Credentials**
+2. Click **Create Credentials** → **OAuth 2.0 Client ID**
+3. Set **Application type** to **Web application**
+4. Under **Authorized redirect URIs**, add:
+   ```
+   https://<your-app-hostname>/oauth2/callback
+   ```
+   Replace `<your-app-hostname>` with the public hostname of your `HTTPRoute`.
+5. Click **Create** and copy the **Client ID** and **Client Secret**
+
+> **Note:** The redirect URI must exactly match the value you will configure in the `SecurityPolicy`. Any mismatch causes Google to reject the OAuth flow.
+
+---
+
+### Step 2: Set Variables
+
+#### Windows (PowerShell)
+
+```powershell
+$project      = "your-project-id"
+$namespace    = "default"
+$route        = "your-route-name"
+$hostname     = "your-app.example.com"
+$clientID     = "your-client-id.apps.googleusercontent.com"
+$clientSecret = "your-client-secret"
+```
+
+#### macOS / Linux
+
+```bash
+project="your-project-id"
+namespace="default"
+route="your-route-name"
+hostname="your-app.example.com"
+clientID="your-client-id.apps.googleusercontent.com"
+clientSecret="your-client-secret"
+```
+
+---
+
+### Step 3: Create the Client Secret
+
+The Secret must:
+
+- Use the key `client-secret`
+- Exist in the same namespace as the `SecurityPolicy`
+- Include the **gateway-sync** label
+
+#### Windows (PowerShell)
+
+```powershell
+$b64Secret = [Convert]::ToBase64String(
+  [Text.Encoding]::UTF8.GetBytes($clientSecret)
+)
+
+@"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${route}-oidc-secret
+  labels:
+    networking.datumapis.com/gateway-sync: "true"
+type: Opaque
+data:
+  client-secret: $b64Secret
+"@ | datumctl apply --project $project --namespace $namespace -f -
+```
+
+#### macOS / Linux
+
+```bash
+b64Secret=$(printf "%s" "$clientSecret" | base64)
+
+cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ${route}-oidc-secret
+  labels:
+    networking.datumapis.com/gateway-sync: "true"
+type: Opaque
+data:
+  client-secret: $b64Secret
+EOF
+```
+
+---
+
+### Step 4: Attach OIDC Auth Using a SecurityPolicy
+
+Attach the policy to the **HTTPRoute**. This is the most reliable attachment point.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ${route}-oidc
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: $route
+  oidc:
+    provider:
+      issuer: "https://accounts.google.com"
+    clientID: "$clientID"
+    clientSecret:
+      name: ${route}-oidc-secret
+    redirectURL: "https://${hostname}/oauth2/callback"
+    scopes:
+      - openid
+      - email
+      - profile
+"@ | datumctl apply --project $project --namespace $namespace -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ${route}-oidc
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: $route
+  oidc:
+    provider:
+      issuer: "https://accounts.google.com"
+    clientID: "$clientID"
+    clientSecret:
+      name: ${route}-oidc-secret
+    redirectURL: "https://${hostname}/oauth2/callback"
+    scopes:
+      - openid
+      - email
+      - profile
+EOF
+```
+
+---
+
+## Verification
+
+### Unauthenticated Request
+
+```bash
+curl -I https://your-app.example.com
+```
+
+Expected response:
+
+```
+HTTP/1.1 302 Found
+Location: https://accounts.google.com/o/oauth2/v2/auth?...
+```
+
+Browsers will redirect automatically to the Google sign-in page.
+
+---
+
+### Authenticated Session
+
+After completing the Google sign-in flow, subsequent requests will be forwarded to your origin with a session cookie managed by Envoy.
+
+```bash
+curl -I https://your-app.example.com
+```
+
+Expected response after authentication:
+
+```
+HTTP/1.1 200 OK
+```
+
+---
+
+## Cleanup / Disable OIDC Auth
+
+### Windows (PowerShell)
+
+```powershell
+datumctl delete securitypolicy ${route}-oidc `
+  --project $project --namespace $namespace --ignore-not-found
+
+datumctl delete secret ${route}-oidc-secret `
+  --project $project --namespace $namespace --ignore-not-found
+```
+
+### macOS / Linux
+
+```bash
+datumctl delete securitypolicy ${route}-oidc \
+  --project $project --namespace $namespace --ignore-not-found
+
+datumctl delete secret ${route}-oidc-secret \
+  --project $project --namespace $namespace --ignore-not-found
+```
+
+---
+
+## Troubleshooting
+
+### Common Failure Modes
+
+| Symptom | Root Cause | Resolution |
+|---------|------------|------------|
+| HTTP 500 on all requests | Secret not synced to edge | Add `gateway-sync` label |
+| Redirect loop | Redirect URI mismatch | Ensure `redirectURL` matches Google Console exactly |
+| `redirect_uri_mismatch` from Google | URI not registered | Add URI to Google Cloud Credentials |
+| HTTP 401 after login | Scopes insufficient | Verify `openid` scope is included |
+| Works after deleting policy | Invalid Secret reference | Fix Secret name and `gateway-sync` label |
+
+---
+
+### Useful Debug Commands
+
+```bash
+datumctl get secret --project $project --namespace $namespace
+datumctl get securitypolicy --project $project --namespace $namespace
+datumctl get httproute --project $project --namespace $namespace
+```
+
+---
+
+## Best Practices
+
+- Register **separate OAuth clients** for each environment (dev, staging, prod)
+- Restrict **authorized redirect URIs** to known hostnames only
+- Limit **OAuth scopes** to the minimum required (`openid`, `email`)
+- Rotate the **client secret** periodically and re-apply the Secret
+- Use OIDC for production — Basic Auth is suited for development and demos
+
+---
+
+## Summary
+
+- Google OAuth is configured using **Envoy Gateway `SecurityPolicy`** with an `oidc` block
+- The client secret is stored as a Kubernetes Secret with key **`client-secret`**
+- Secrets **must be explicitly synced** to edge clusters using the `networking.datumapis.com/gateway-sync: "true"` label
+- The **`redirectURL`** in the policy must exactly match the URI registered in Google Cloud Console
+- Attaching policies to `HTTPRoute` is the most reliable approach
