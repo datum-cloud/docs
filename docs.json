@@ -80,7 +80,10 @@
           {
             "group": "AI Edge",
             "pages": [
-              "ai-edge/overview"
+              "ai-edge/overview",
+              "ai-edge/basic-auth",
+              "ai-edge/oidc-google",
+              "ai-edge/oidc-auth0"
             ]
           },
           {
@@ -100,14 +103,6 @@
             "pages": [
               "domain-dns/domains",
               "domain-dns/dns"
-            ]
-          },
-          {
-            "group": "How-To Guides",
-            "pages": [
-              "how-to-guides/basic-auth",
-              "how-to-guides/oidc-google",
-              "how-to-guides/oidc-auth0"
             ]
           },
           {
