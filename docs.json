@@ -80,7 +80,15 @@
           {
             "group": "AI Edge",
             "pages": [
-              "ai-edge/overview"
+              "ai-edge/overview",
+              {
+                "group": "Guides",
+                "pages": [
+                  "ai-edge/guides/basic-auth",
+                  "ai-edge/guides/oidc-google",
+                  "ai-edge/guides/oidc-auth0"
+                ]
+              }
             ]
           },
           {
