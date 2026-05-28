@@ -110,7 +110,7 @@ $b64 = [Convert]::ToBase64String(
 
 ```bash
 hash=$(printf "%s" "$password" | shasum | awk '{print $1}' | xxd -r -p | base64)
-htpasswd="${username}:{SHA}${hash}\n"
+htpasswd=$(printf "%s:{SHA}%s\n" "$username" "$hash")
 b64=$(printf "%s" "$htpasswd" | base64)
 ```
 
