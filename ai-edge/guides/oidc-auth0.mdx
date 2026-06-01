@@ -7,7 +7,7 @@ This guide describes how to configure **individual user authentication and autho
 
 ---
 
-## How It Works
+## How it works
 
 ```
 Browser          Envoy Gateway         Auth0                  Google          Your App
@@ -52,16 +52,16 @@ Browser          Envoy Gateway         Auth0                  Google          Yo
 
 ---
 
-## Part 1: Auth0 Setup
+## Part 1: Auth0 setup
 
-### Step 1: Create an Auth0 Tenant
+### Step 1: Create an Auth0 tenant
 
 1. Sign up at [auth0.com](https://auth0.com) and create a tenant
 2. Note your **tenant domain** — it looks like `dev-xxxxxxxx.us.auth0.com`
 
 ---
 
-### Step 2: Create an Application
+### Step 2: Create an application
 
 1. In the Auth0 dashboard go to **Applications** → **Applications** → **Create Application**
 2. Name it (e.g., `datum-gateway-app`)
@@ -80,7 +80,7 @@ Browser          Envoy Gateway         Auth0                  Google          Yo
 
 ---
 
-### Step 3: Enable Google Social Login
+### Step 3: Enable Google social login
 
 1. Go to **Authentication** → **Social** → **Create Connection**
 2. Select **Google / Gmail**
@@ -97,7 +97,7 @@ Browser          Envoy Gateway         Auth0                  Google          Yo
 
 ---
 
-### Step 4: Create an Access Control Action
+### Step 4: Create an access control action
 
 This is where individual user access is enforced. Auth0 runs this code during login — users not in the list are denied before a token is ever issued.
 
@@ -128,11 +128,11 @@ To add or remove a user: edit the `allowedEmails` array and click **Deploy**. No
 
 ---
 
-## Part 2: Datum Gateway Configuration
+## Part 2: Datum gateway configuration
 
 The Datum HTTPProxy already manages the Gateway and HTTPRoute. You only need to create a **Secret** (to store the Auth0 client secret) and a **SecurityPolicy** (to attach OIDC to the route).
 
-### Step 1: Set Variables
+### Step 1: Set variables
 
 #### Windows (PowerShell)
 
@@ -160,7 +160,7 @@ clientSecret="your-auth0-client-secret"
 
 ---
 
-### Step 2: Create the Auth0 Client Secret
+### Step 2: Create the Auth0 client secret
 
 The Secret must include the `gateway-sync` label or the edge proxy will not receive it and all requests will return HTTP 500.
 
@@ -270,7 +270,7 @@ Allow 60 seconds for the policy to propagate to the edge before testing.
 
 ## Verification
 
-### Unauthenticated Request — Redirects to Auth0
+### Unauthenticated request — redirects to Auth0
 
 ```bash
 curl -I https://your-app.example.com
@@ -283,14 +283,14 @@ HTTP/1.1 302 Found
 Location: https://dev-xxxxxxxx.us.auth0.com/authorize?...
 ```
 
-### Browser Flow — Allowed User
+### Browser flow — allowed user
 
 1. Open `https://your-app.example.com` in a browser
 2. You are redirected to Auth0 → Google login
 3. Sign in with an email in the allow-list
 4. You are redirected back and the app loads — `HTTP 200`
 
-### Browser Flow — Denied User
+### Browser flow — denied user
 
 1. Sign in with an email **not** in the allow-list
 2. Auth0 displays: `Access denied: you are not authorized to use this application.`
@@ -298,7 +298,7 @@ Location: https://dev-xxxxxxxx.us.auth0.com/authorize?...
 
 ---
 
-## Managing Access
+## Managing access
 
 All access control is managed in the Auth0 dashboard — no gateway config changes needed.
 
@@ -340,7 +340,7 @@ datumctl delete secret ${route}-oidc-secret \
 
 ## Troubleshooting
 
-| Symptom | Root Cause | Resolution |
+| Symptom | Root cause | Resolution |
 |---------|------------|------------|
 | HTTP 200 instead of redirect | SecurityPolicy not yet propagated | Wait 60 seconds; verify with `datumctl get securitypolicy` |
 | HTTP 500 on all requests (immediate) | `jwt` block present in SecurityPolicy | Remove `jwt` block — use `oidc` block only |
@@ -352,7 +352,7 @@ datumctl delete secret ${route}-oidc-secret \
 | User sees "Access denied" at Auth0 | Not in allow-list | Add email to the Action and redeploy |
 | User bypasses allow-list | Action not in Login flow | Verify action is added under **Actions** → **Triggers** → **post-login** |
 
-### Useful Debug Commands
+### Useful debug commands
 
 ```bash
 datumctl get securitypolicy --project $project --namespace $namespace

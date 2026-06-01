@@ -42,7 +42,7 @@ datumctl get httproute
 
 ---
 
-## Critical Requirement: Secret Syncing
+## Critical requirement: secret syncing
 
 Secrets and ConfigMaps referenced by gateway configurations are **not automatically synced** to edge clusters.
 
@@ -52,7 +52,7 @@ To make a Secret available to edge gateways, it **must** include the following l
 networking.datumapis.com/gateway-sync: "true"
 ```
 
-### Why This Matters
+### Why this matters
 
 - Without this label, the gateway receives the policy but **not the Secret**
 - Envoy fails to load the OAuth client credentials
@@ -62,9 +62,9 @@ This requirement exists to prevent accidental replication of unrelated secrets.
 
 ---
 
-## Configuration Steps
+## Configuration steps
 
-### Step 1: Create Google OAuth 2.0 Credentials
+### Step 1: Create Google OAuth 2.0 credentials
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com) → **APIs & Services** → **Credentials**
 2. Click **Create Credentials** → **OAuth 2.0 Client ID**
@@ -80,7 +80,7 @@ This requirement exists to prevent accidental replication of unrelated secrets.
 
 ---
 
-### Step 2: Set Variables
+### Step 2: Set variables
 
 #### Windows (PowerShell)
 
@@ -106,7 +106,7 @@ clientSecret="your-client-secret"
 
 ---
 
-### Step 3: Create the Client Secret
+### Step 3: Create the client secret
 
 The Secret must:
 
@@ -154,7 +154,7 @@ EOF
 
 ---
 
-### Step 4: Attach OIDC Auth Using a SecurityPolicy
+### Step 4: Attach OIDC auth using a SecurityPolicy
 
 Attach the policy to the **HTTPRoute**. This is the most reliable attachment point.
 
@@ -216,7 +216,7 @@ EOF
 
 ## Verification
 
-### Unauthenticated Request
+### Unauthenticated request
 
 ```bash
 curl -I https://your-app.example.com
@@ -233,7 +233,7 @@ Browsers will redirect automatically to the Google sign-in page.
 
 ---
 
-### Authenticated Session
+### Authenticated session
 
 After completing the Google sign-in flow, subsequent requests will be forwarded to your origin with a session cookie managed by Envoy.
 
@@ -249,7 +249,7 @@ HTTP/1.1 200 OK
 
 ---
 
-## Cleanup / Disable OIDC Auth
+## Cleanup / disable OIDC auth
 
 ### Windows (PowerShell)
 
@@ -275,9 +275,9 @@ datumctl delete secret ${route}-oidc-secret \
 
 ## Troubleshooting
 
-### Common Failure Modes
+### Common failure modes
 
-| Symptom | Root Cause | Resolution |
+| Symptom | Root cause | Resolution |
 |---------|------------|------------|
 | HTTP 500 on all requests | Secret not synced to edge | Add `gateway-sync` label |
 | Redirect loop | Redirect URI mismatch | Ensure `redirectURL` matches Google Console exactly |
@@ -287,7 +287,7 @@ datumctl delete secret ${route}-oidc-secret \
 
 ---
 
-### Useful Debug Commands
+### Useful debug commands
 
 ```bash
 datumctl get secret --project $project --namespace $namespace
@@ -297,7 +297,7 @@ datumctl get httproute --project $project --namespace $namespace
 
 ---
 
-## Best Practices
+## Best practices
 
 - Register **separate OAuth clients** for each environment (dev, staging, prod)
 - Restrict **authorized redirect URIs** to known hostnames only

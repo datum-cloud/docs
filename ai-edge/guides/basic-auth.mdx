@@ -41,7 +41,7 @@ datumctl get httproute
 
 ---
 
-## Critical Requirement: Secret Syncing
+## Critical requirement: secret syncing
 
 Secrets and ConfigMaps referenced by gateway configurations are **not automatically synced** to edge clusters.
 
@@ -51,7 +51,7 @@ To make a Secret available to edge gateways, it **must** include the following l
 networking.datumapis.com/gateway-sync: "true"
 ```
 
-### Why This Matters
+### Why this matters
 
 - Without this label, the gateway receives the policy but **not the Secret**
 - Envoy fails to load the Basic Auth credentials
@@ -61,9 +61,9 @@ This requirement exists to prevent accidental replication of unrelated secrets.
 
 ---
 
-## Configuration Steps
+## Configuration steps
 
-### Step 1: Set Variables
+### Step 1: Set variables
 
 #### Windows (PowerShell)
 
@@ -87,7 +87,7 @@ password="ChangeMe123!"
 
 ---
 
-### Step 2: Generate htpasswd Entry (SHA)
+### Step 2: Generate htpasswd entry (SHA)
 
 Envoy Gateway currently supports **SHA-based htpasswd entries only**.
 
@@ -116,7 +116,7 @@ b64=$(printf "%s" "$htpasswd" | base64)
 
 ---
 
-### Step 3: Create the Secret
+### Step 3: Create the secret
 
 The Secret must:
 
@@ -158,7 +158,7 @@ EOF
 
 ---
 
-### Step 4: Attach Basic Auth Using a SecurityPolicy
+### Step 4: Attach Basic Auth using a SecurityPolicy
 
 Attach the policy to the **HTTPRoute**. This is the most reliable attachment point.
 
@@ -206,7 +206,7 @@ EOF
 
 ## Verification
 
-### Unauthenticated Request
+### Unauthenticated request
 
 ```bash
 curl -I https://your-app.example.com
@@ -223,7 +223,7 @@ Browsers will display a login prompt.
 
 ---
 
-### Authenticated Request
+### Authenticated request
 
 ```bash
 curl -I -u demo:ChangeMe123! https://your-app.example.com
@@ -237,7 +237,7 @@ HTTP/1.1 200 OK
 
 ---
 
-## Cleanup / Disable Basic Auth
+## Cleanup / disable Basic Auth
 
 ### Windows (PowerShell)
 
@@ -263,16 +263,16 @@ datumctl delete secret ${route}-basic-auth \
 
 ## Troubleshooting
 
-### Common Failure Modes
+### Common failure modes
 
-| Symptom | Root Cause | Resolution |
+| Symptom | Root cause | Resolution |
 |---------|------------|------------|
 | HTTP 500 on all requests | Secret not synced to edge | Add `gateway-sync` label |
 | 500 even with credentials | Secret missing at edge | Re-apply Secret with label |
 | No login prompt | Policy not attached | Verify `targetRefs` |
 | Works after deleting policy | Invalid Secret reference | Fix Secret and label |
 
-### Useful Debug Commands
+### Useful debug commands
 
 ```bash
 datumctl get secret --project $project --namespace $namespace
@@ -282,7 +282,7 @@ datumctl get httproute --project $project --namespace $namespace
 
 ---
 
-## Best Practices
+## Best practices
 
 - Use Basic Auth for development, demos, and staging environments
 - Rotate credentials regularly
