@@ -1,0 +1,280 @@
+---
+title: "DNS Setup for AI Edge"
+description: "Create a DNS zone, apex ALIAS record, and subdomain CNAME to point a domain at a Datum AI Edge endpoint."
+---
+
+This guide prepares a domain for use with a Datum AI Edge by creating a DNS zone, an apex ALIAS record, and a subdomain CNAME — all pointing at the AI Edge endpoint.
+
+<Note>
+This guide assumes your domain is already delegated to Datum nameservers. See [DNS](/domain-dns/dns) for nameserver details and ALIAS record behavior.
+</Note>
+
+---
+
+## Prerequisites
+
+- `datumctl` installed and authenticated
+- A valid **Project**
+- Domain delegated to Datum nameservers
+
+---
+
+## Configuration Steps
+
+### Step 1: Set Variables
+
+The `TARGET` value is your AI Edge endpoint hostname. Find it in the Datum portal under your AI Edge's generated hostname, or via:
+
+```bash
+datumctl get httpproxy <name> --namespace default -o yaml
+```
+
+#### Windows (PowerShell)
+
+```powershell
+$PROJECT   = "your-project-id"
+$NAMESPACE = "default"
+$ZONE      = "your-zone-name"
+$DOMAIN    = "your-domain.example.com"
+$TARGET    = "your-endpoint.datumproxy.net."
+```
+
+#### macOS / Linux
+
+```bash
+PROJECT="your-project-id"
+NAMESPACE="default"
+ZONE="your-zone-name"
+DOMAIN="your-domain.example.com"
+TARGET="your-endpoint.datumproxy.net."
+```
+
+<Warning>
+`TARGET` must include a trailing dot. Without it, the value will be treated as a relative name and DNS resolution will fail.
+</Warning>
+
+---
+
+### Step 2: Create the DNS Zone
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSZone
+metadata:
+  name: $ZONE
+  namespace: $NAMESPACE
+spec:
+  dnsZoneClassName: datum-external-global-dns
+  domainName: $DOMAIN
+"@ | datumctl apply -f - --project $PROJECT --validate=false
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply -f - --project $PROJECT --validate=false
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSZone
+metadata:
+  name: $ZONE
+  namespace: $NAMESPACE
+spec:
+  dnsZoneClassName: datum-external-global-dns
+  domainName: $DOMAIN
+EOF
+```
+
+<Note>
+`--validate=false` disables client-side schema validation. It is required here because `datumctl` does not bundle schemas for DNS API types locally.
+</Note>
+
+Verify the zone is accepted and programmed:
+
+```bash
+datumctl get dnszones --project $PROJECT --namespace $NAMESPACE
+```
+
+Wait until both `ACCEPTED` and `PROGRAMMED` show `True` before proceeding.
+
+---
+
+### Step 3: Create the Apex ALIAS Record
+
+Points the root domain (`@`) at the AI Edge endpoint.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSRecordSet
+metadata:
+  name: ${ZONE}-apex
+  namespace: $NAMESPACE
+spec:
+  dnsZoneRef:
+    name: $ZONE
+  recordType: ALIAS
+  records:
+    - name: "@"
+      ttl: 300
+      alias:
+        content: $TARGET
+"@ | datumctl apply -f - --project $PROJECT --validate=false
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply -f - --project $PROJECT --validate=false
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSRecordSet
+metadata:
+  name: ${ZONE}-apex
+  namespace: $NAMESPACE
+spec:
+  dnsZoneRef:
+    name: $ZONE
+  recordType: ALIAS
+  records:
+    - name: "@"
+      ttl: 300
+      alias:
+        content: $TARGET
+EOF
+```
+
+---
+
+### Step 4: Create a Subdomain CNAME
+
+Points a subdomain (e.g., `app.your-domain.example.com`) at the same endpoint.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSRecordSet
+metadata:
+  name: ${ZONE}-app-cname
+  namespace: $NAMESPACE
+spec:
+  dnsZoneRef:
+    name: $ZONE
+  recordType: CNAME
+  records:
+    - name: "app"
+      ttl: 300
+      cname:
+        content: $TARGET
+"@ | datumctl apply -f - --project $PROJECT --validate=false
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply -f - --project $PROJECT --validate=false
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSRecordSet
+metadata:
+  name: ${ZONE}-app-cname
+  namespace: $NAMESPACE
+spec:
+  dnsZoneRef:
+    name: $ZONE
+  recordType: CNAME
+  records:
+    - name: "app"
+      ttl: 300
+      cname:
+        content: $TARGET
+EOF
+```
+
+---
+
+## Verification
+
+### Check Record Status
+
+```bash
+datumctl get dnsrecordsets --project $PROJECT --namespace $NAMESPACE
+```
+
+Both records should show `ACCEPTED=True` and `PROGRAMMED=True`.
+
+---
+
+### Check DNS Resolution
+
+#### Windows (PowerShell)
+
+```powershell
+Resolve-DnsName $DOMAIN
+Resolve-DnsName "app.$DOMAIN"
+```
+
+#### macOS / Linux
+
+```bash
+dig $DOMAIN
+dig app.$DOMAIN
+```
+
+Both names should resolve to the AI Edge endpoint.
+
+---
+
+## Cleanup
+
+### Windows (PowerShell)
+
+```powershell
+datumctl delete dnsrecordset ${ZONE}-app-cname `
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+
+datumctl delete dnsrecordset ${ZONE}-apex `
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+
+datumctl delete dnszone $ZONE `
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+### macOS / Linux
+
+```bash
+datumctl delete dnsrecordset ${ZONE}-app-cname \
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+
+datumctl delete dnsrecordset ${ZONE}-apex \
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+
+datumctl delete dnszone $ZONE \
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+---
+
+## Troubleshooting
+
+| Symptom | Root Cause | Resolution |
+|---------|------------|------------|
+| Zone stuck at `PROGRAMMED=False` | Domain not delegated to Datum nameservers | Update nameservers at your registrar |
+| `nslookup` / `dig` returns NXDOMAIN | Zone not yet propagated | Wait 1–2 minutes and retry |
+| ALIAS resolves to wrong address | `TARGET` missing trailing dot | Re-apply the record with a trailing dot on the target |
+| Record not appearing | `--validate=false` omitted | Re-apply with `--validate=false` |
+
+---
+
+## Summary
+
+- DNS zones use `kind: DNSZone` at `dns.networking.miloapis.com/v1alpha1`
+- The DNS zone class is always `datum-external-global-dns` — it is platform-provided and not user-configurable
+- Use `recordType: ALIAS` for the apex (`@`) and `recordType: CNAME` for subdomains
+- The `TARGET` value must include a trailing dot
+- All DNS apply commands require `--validate=false`
+- Delete record sets before deleting the zone

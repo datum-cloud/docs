@@ -1,0 +1,322 @@
+---
+title: "WAF Configuration with TrafficProtectionPolicy"
+description: "Enable and configure the Coraza OWASP WAF for a Datum AI Edge using TrafficProtectionPolicy."
+---
+
+This guide shows how to attach and configure a Web Application Firewall (WAF) to a Datum `HTTPProxy` using a `TrafficProtectionPolicy` resource.
+
+The WAF is powered by [Coraza](https://www.coraza.io/) and the OWASP Core Rule Set (CRS). It inspects HTTP requests and responses for common attack patterns including SQL injection, XSS, and other OWASP Top 10 threats.
+
+---
+
+## Overview
+
+At a high level, this setup:
+
+1. Creates a `TrafficProtectionPolicy` in `Observe` mode to baseline traffic without blocking
+2. Reviews detected violations
+3. Transitions to `Enforce` mode once the ruleset is tuned
+
+<Note>
+WAF policies default to `Observe` mode when `mode` is not specified. Always start in `Observe` mode before enforcing — this prevents unexpected blocking of legitimate traffic.
+</Note>
+
+---
+
+## Prerequisites
+
+- `datumctl` installed and authenticated
+- A valid **Project**
+- An existing `HTTPProxy` to attach the policy to
+
+Verify your proxy exists:
+
+```bash
+datumctl get httpproxy --project $PROJECT --namespace $NAMESPACE
+```
+
+---
+
+## Configuration Steps
+
+### Step 1: Set Variables
+
+#### Windows (PowerShell)
+
+```powershell
+$PROJECT    = "your-project-id"
+$NAMESPACE  = "default"
+$PROXY_NAME = "your-proxy-name"
+$WAF_NAME   = "${PROXY_NAME}-waf"
+```
+
+#### macOS / Linux
+
+```bash
+PROJECT="your-project-id"
+NAMESPACE="default"
+PROXY_NAME="your-proxy-name"
+WAF_NAME="${PROXY_NAME}-waf"
+```
+
+---
+
+### Step 2: Apply WAF in Observe Mode
+
+Start by attaching the WAF in `Observe` mode. Violations are logged but traffic is not blocked.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: networking.datumapis.com/v1alpha
+kind: TrafficProtectionPolicy
+metadata:
+  name: $WAF_NAME
+  namespace: $NAMESPACE
+spec:
+  mode: Observe
+  ruleSets:
+  - type: OWASPCoreRuleSet
+    owaspCoreRuleSet:
+      paranoiaLevels:
+        detection: 2
+        blocking: 1
+      scoreThresholds:
+        inbound: 5
+        outbound: 4
+  targetRefs:
+  - group: networking.datumapis.com
+    kind: HTTPProxy
+    name: $PROXY_NAME
+"@ | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+apiVersion: networking.datumapis.com/v1alpha
+kind: TrafficProtectionPolicy
+metadata:
+  name: $WAF_NAME
+  namespace: $NAMESPACE
+spec:
+  mode: Observe
+  ruleSets:
+  - type: OWASPCoreRuleSet
+    owaspCoreRuleSet:
+      paranoiaLevels:
+        detection: 2
+        blocking: 1
+      scoreThresholds:
+        inbound: 5
+        outbound: 4
+  targetRefs:
+  - group: networking.datumapis.com
+    kind: HTTPProxy
+    name: $PROXY_NAME
+EOF
+```
+
+---
+
+### Step 3: Verify Policy Attachment
+
+```bash
+datumctl get trafficprotectionpolicy $WAF_NAME \
+  --project $PROJECT --namespace $NAMESPACE -o yaml
+```
+
+Confirm the policy shows `Accepted=True` and is attached to the correct proxy.
+
+---
+
+### Step 4: Switch to Enforce Mode
+
+After observing traffic and confirming no false positives, switch the mode to `Enforce`.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: networking.datumapis.com/v1alpha
+kind: TrafficProtectionPolicy
+metadata:
+  name: $WAF_NAME
+  namespace: $NAMESPACE
+spec:
+  mode: Enforce
+  ruleSets:
+  - type: OWASPCoreRuleSet
+    owaspCoreRuleSet:
+      paranoiaLevels:
+        detection: 2
+        blocking: 1
+      scoreThresholds:
+        inbound: 5
+        outbound: 4
+  targetRefs:
+  - group: networking.datumapis.com
+    kind: HTTPProxy
+    name: $PROXY_NAME
+"@ | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+apiVersion: networking.datumapis.com/v1alpha
+kind: TrafficProtectionPolicy
+metadata:
+  name: $WAF_NAME
+  namespace: $NAMESPACE
+spec:
+  mode: Enforce
+  ruleSets:
+  - type: OWASPCoreRuleSet
+    owaspCoreRuleSet:
+      paranoiaLevels:
+        detection: 2
+        blocking: 1
+      scoreThresholds:
+        inbound: 5
+        outbound: 4
+  targetRefs:
+  - group: networking.datumapis.com
+    kind: HTTPProxy
+    name: $PROXY_NAME
+EOF
+```
+
+---
+
+## Configuration Reference
+
+### Paranoia Levels
+
+Paranoia level controls how aggressively the CRS applies rules. Higher levels catch more threats but increase false-positive risk.
+
+| Level | Behavior |
+|-------|----------|
+| 1 | Core rules only. Lowest false-positive risk. Recommended starting point. |
+| 2 | Adds more rules. Suitable for most production applications. |
+| 3 | Stricter rules. May require tuning for complex applications. |
+| 4 | Maximum coverage. High false-positive risk without tuning. |
+
+`detection` and `blocking` can be set independently. A common pattern is to detect at a higher level than you block, allowing you to see what stricter rules would catch before enforcing them.
+
+---
+
+### Score Thresholds
+
+The OWASP CRS uses anomaly scoring — each rule match adds to a running score. The request is blocked when the score exceeds the threshold.
+
+| Field | Default | Description |
+|-------|---------|-------------|
+| `inbound` | 5 | Score threshold to block an inbound request |
+| `outbound` | 4 | Score threshold to block an outbound response |
+
+Lower thresholds block more aggressively. The defaults (5 inbound, 4 outbound) are the OWASP CRS recommended starting values.
+
+---
+
+### Rule Exclusions
+
+Use rule exclusions to suppress specific rules causing false positives. Exclusions apply globally to the policy.
+
+```yaml
+owaspCoreRuleSet:
+  ruleExclusions:
+    ids:
+      - 920350    # Disable a specific rule by ID
+    idRanges:
+      - "941100-941200"   # Disable a range of rules
+    tags:
+      - "attack-sqli"     # Disable all rules with a tag
+```
+
+Use the minimum exclusion scope needed — prefer specific `ids` over broad `tags`.
+
+---
+
+### Targeting a Specific Rule (sectionName)
+
+By default, a `TrafficProtectionPolicy` applies to the entire `HTTPProxy`. To scope it to a single named rule, use `sectionName`:
+
+```yaml
+targetRefs:
+- group: networking.datumapis.com
+  kind: HTTPProxy
+  name: your-proxy-name
+  sectionName: your-rule-name
+```
+
+`sectionName` must match the `name` field of a rule in the target `HTTPProxy`.
+
+---
+
+## Verification
+
+### Test with a Known Attack Pattern
+
+Send a request containing a SQL injection pattern to confirm the WAF detects it:
+
+```bash
+curl -I "https://your-app.example.com/?id=1' OR '1'='1"
+```
+
+In `Observe` mode: request passes through, violation is logged.
+In `Enforce` mode: expected response is `403 Forbidden`.
+
+---
+
+## Cleanup
+
+### Windows (PowerShell)
+
+```powershell
+datumctl delete trafficprotectionpolicy $WAF_NAME `
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+### macOS / Linux
+
+```bash
+datumctl delete trafficprotectionpolicy $WAF_NAME \
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+---
+
+## Troubleshooting
+
+| Symptom | Root Cause | Resolution |
+|---------|------------|------------|
+| Policy not attaching | `targetRefs.group` incorrect | Use `networking.datumapis.com` |
+| Policy not attaching | `targetRefs.kind` incorrect | Use `HTTPProxy` (not `HTTPRoute`) |
+| Legitimate traffic blocked | Paranoia level too high | Lower `blocking` level or add rule exclusions |
+| Known attack not blocked | Mode is `Observe` | Switch `mode` to `Enforce` |
+| Known attack not blocked | Score threshold too high | Lower `inbound` threshold |
+| `sectionName` not found | Rule name mismatch | Verify rule `name` in the `HTTPProxy` spec |
+
+---
+
+## Best Practices
+
+- Always start in `Observe` mode and run for at least a few days of representative traffic before enforcing
+- Set `detection` one level higher than `blocking` to preview the impact of stricter rules before applying them
+- Use specific rule `ids` for exclusions rather than broad `tags` — this minimizes the attack surface opened by exclusions
+- Keep `scoreThresholds.inbound` at 5 or higher initially; tuning downward after false positives are addressed
+- Apply one policy per proxy, targeting with `sectionName` when you need different rules for different routes
+
+---
+
+## Summary
+
+- WAF policies use `kind: TrafficProtectionPolicy` at `networking.datumapis.com/v1alpha`
+- `mode` defaults to `Observe` — always confirm before assuming enforcement is active
+- `ruleSets[].type` must be `OWASPCoreRuleSet` — it is currently the only supported ruleset type
+- `targetRefs` requires `group`, `kind`, and `name` — use `sectionName` to scope to a single route rule
+- Start with paranoia level 1 blocking, level 2 detection, and OWASP default score thresholds (5/4)

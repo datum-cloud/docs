@@ -1,0 +1,148 @@
+---
+title: "HTTPProxy and WAF Capabilities"
+description: "Reference overview of the HTTPProxy and TrafficProtectionPolicy resources that make up Datum's AI Edge."
+---
+
+Datum's AI Edge consists of two resources that work together:
+
+- **`HTTPProxy`** — Layer 7 routing and traffic control
+- **`TrafficProtectionPolicy`** — OWASP Core Rule Set WAF protection
+
+The proxy determines where traffic goes and how requests are shaped before reaching your origin. The WAF determines whether traffic is observed or blocked based on security rules. The WAF attaches to a proxy using `targetRefs`.
+
+---
+
+## HTTPProxy
+
+The `HTTPProxy` resource handles Layer 7 routing and request processing. It supports hostname routing, path and header matching, redirects, rewrites, CORS, header manipulation, traffic mirroring, and TLS configuration to origin.
+
+### Inspect the Schema
+
+```bash
+datumctl explain httpproxy --recursive
+```
+
+### List and Inspect Proxies
+
+```bash
+# List all proxies
+datumctl get httpproxies --namespace default
+
+# View a specific proxy
+datumctl get httpproxy <name> --namespace default -o yaml
+```
+
+### Feature Reference
+
+```text
+HTTPProxy
+ ├── metadata
+ │    ├── name
+ │    ├── namespace
+ │    └── annotations
+ │
+ └── spec
+      ├── hostnames[]
+      │
+      └── rules[]
+           ├── name
+           │
+           ├── matches[]
+           │    ├── path
+           │    │    ├── type (Exact | PathPrefix | RegularExpression)
+           │    │    └── value
+           │    ├── headers[]
+           │    │    ├── name
+           │    │    ├── type (Exact | RegularExpression)
+           │    │    └── value
+           │    ├── queryParams[]
+           │    └── method (GET | POST | PUT | ...)
+           │
+           ├── filters[] (rule-level)
+           │    ├── RequestRedirect
+           │    ├── RequestHeaderModifier
+           │    ├── ResponseHeaderModifier
+           │    ├── RequestMirror
+           │    ├── URLRewrite
+           │    ├── CORS
+           │    └── ExtensionRef
+           │
+           └── backends[]
+                ├── endpoint
+                ├── connector
+                ├── tls
+                └── filters[] (backend-level)
+```
+
+<Note>
+Each rule currently supports a single backend. Multiple backends per rule are not yet supported.
+</Note>
+
+---
+
+## TrafficProtectionPolicy (WAF)
+
+The `TrafficProtectionPolicy` resource provides application-layer security using the OWASP Core Rule Set. It attaches to an `HTTPProxy` using `targetRefs` and can target the entire proxy or a specific named rule via `sectionName`.
+
+### Inspect the Schema
+
+```bash
+datumctl explain trafficprotectionpolicy --recursive
+```
+
+### List and Inspect WAF Policies
+
+```bash
+# List all WAF policies
+datumctl get trafficprotectionpolicies --namespace default
+
+# View a specific policy
+datumctl get trafficprotectionpolicy <name> --namespace default -o yaml
+```
+
+### Feature Reference
+
+```text
+TrafficProtectionPolicy
+ ├── metadata
+ │
+ └── spec
+      ├── mode (Observe | Enforce | Disabled)
+      ├── samplingPercentage
+      ├── ruleSets[]
+      │    └── OWASPCoreRuleSet
+      │         ├── paranoiaLevels
+      │         │    ├── detection
+      │         │    └── blocking
+      │         ├── scoreThresholds
+      │         │    ├── inbound
+      │         │    └── outbound
+      │         └── ruleExclusions
+      │              ├── ids
+      │              ├── idRanges
+      │              └── tags
+      │
+      └── targetRefs[]
+           ├── group
+           ├── kind
+           ├── name
+           └── sectionName (optional — target a specific rule)
+```
+
+**Mode values:**
+- `Observe` *(default)* — Logs rule matches without blocking traffic. Use this to evaluate impact before enforcing.
+- `Enforce` — Blocks requests that exceed the score threshold.
+- `Disabled` — WAF is inactive.
+
+**Paranoia levels** control how aggressively rules are applied. Higher levels catch more threats but increase false-positive risk. Separate levels can be set for detection (logging) and blocking.
+
+**`samplingPercentage`** controls what fraction of traffic is evaluated by the WAF. Useful for gradual rollout or high-throughput environments.
+
+---
+
+## Next Steps
+
+- [Path-Based Routing](/ai-edge/path-routing) — Route requests to different backends by URL path
+- [HTTP Basic Authentication](/ai-edge/basic-auth) — Add username/password protection to a route
+- [OIDC with Google](/ai-edge/oidc-google) — Protect a route with Google sign-in
+- [OIDC with Auth0](/ai-edge/oidc-auth0) — OIDC with email-based allow-lists via Auth0
