@@ -66,7 +66,7 @@ Browser          Envoy Gateway         Auth0                  Google          Yo
 1. In the Auth0 dashboard go to **Applications** → **Applications** → **Create Application**
 2. Name it (e.g., `datum-gateway-app`)
 3. Select **Regular Web Applications**
-4. Click **Create**
+4. Select **Create**
 5. On the **Settings** tab, note your **Client ID** and **Client Secret**
 6. Under **Allowed Callback URLs** add:
    ```
@@ -76,7 +76,7 @@ Browser          Envoy Gateway         Auth0                  Google          Yo
    ```
    https://<your-app-hostname>
    ```
-8. Click **Save Changes**
+8. Select **Save Changes**
 
 ---
 
@@ -119,12 +119,12 @@ exports.onExecutePostLogin = async (event, api) => {
 };
 ```
 
-5. Click **Deploy**
+5. Select **Deploy**
 6. Go to **Actions** → **Triggers** → **post-login**
 7. Drag your `enforce-email-allowlist` action from the right sidebar into the flow between **Start** and **Complete**
-8. Click **Apply**
+8. Select **Apply**
 
-To add or remove a user: edit the `allowedEmails` array and click **Deploy**. No gateway config changes required.
+To add or remove a user: edit the `allowedEmails` array and select **Deploy**. No gateway config changes required.
 
 ---
 
@@ -305,11 +305,11 @@ All access control is managed in the Auth0 dashboard — no gateway config chang
 **Add a user:**
 1. Go to **Actions** → **Library** → `enforce-email-allowlist`
 2. Add the email to `allowedEmails`
-3. Click **Deploy**
+3. Select **Deploy**
 
 **Remove a user:**
 1. Remove the email from `allowedEmails`
-2. Click **Deploy**
+2. Select **Deploy**
 3. Optionally revoke any active sessions: **User Management** → find user → **Invalidate Sessions**
 
 ---
