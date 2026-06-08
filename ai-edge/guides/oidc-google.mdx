@@ -67,14 +67,14 @@ This requirement exists to prevent accidental replication of unrelated secrets.
 ### Step 1: Create Google OAuth 2.0 credentials
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com) → **APIs & Services** → **Credentials**
-2. Click **Create Credentials** → **OAuth 2.0 Client ID**
+2. Select **Create Credentials** → **OAuth 2.0 Client ID**
 3. Set **Application type** to **Web application**
 4. Under **Authorized redirect URIs**, add:
    ```
    https://<your-app-hostname>/oauth2/callback
    ```
    Replace `<your-app-hostname>` with the public hostname of your `HTTPRoute`.
-5. Click **Create** and copy the **Client ID** and **Client Secret**
+5. Select **Create** and copy the **Client ID** and **Client Secret**
 
 > **Note:** The redirect URI must exactly match the value you will configure in the `SecurityPolicy`. Any mismatch causes Google to reject the OAuth flow.
 
