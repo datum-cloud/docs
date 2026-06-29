@@ -5,6 +5,8 @@ description: "Enable and configure the Coraza OWASP WAF for a Datum AI Edge usin
 
 This guide shows how to attach and configure a Web Application Firewall (WAF) to a Datum `HTTPProxy` using a `TrafficProtectionPolicy` resource.
 
+When NSO reconciles an `HTTPProxy`, it creates a `gateway.networking.k8s.io/v1 HTTPRoute` with the same name and namespace. The `TrafficProtectionPolicy` targets this `HTTPRoute` — targeting the `HTTPProxy` directly is not supported.
+
 The WAF is powered by [Coraza](https://www.coraza.io/) and the OWASP Core Rule Set (CRS). It inspects HTTP requests and responses for common attack patterns including SQL injection, XSS, and other OWASP Top 10 threats.
 
 ---
@@ -86,8 +88,8 @@ spec:
         inbound: 5
         outbound: 4
   targetRefs:
-  - group: networking.datumapis.com
-    kind: HTTPProxy
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
     name: $PROXY_NAME
 "@ | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
 ```
@@ -113,8 +115,8 @@ spec:
         inbound: 5
         outbound: 4
   targetRefs:
-  - group: networking.datumapis.com
-    kind: HTTPProxy
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
     name: $PROXY_NAME
 EOF
 ```
@@ -157,8 +159,8 @@ spec:
         inbound: 5
         outbound: 4
   targetRefs:
-  - group: networking.datumapis.com
-    kind: HTTPProxy
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
     name: $PROXY_NAME
 "@ | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
 ```
@@ -184,8 +186,8 @@ spec:
         inbound: 5
         outbound: 4
   targetRefs:
-  - group: networking.datumapis.com
-    kind: HTTPProxy
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
     name: $PROXY_NAME
 EOF
 ```
@@ -247,13 +249,13 @@ By default, a `TrafficProtectionPolicy` applies to the entire `HTTPProxy`. To sc
 
 ```yaml
 targetRefs:
-- group: networking.datumapis.com
-  kind: HTTPProxy
+- group: gateway.networking.k8s.io
+  kind: HTTPRoute
   name: your-proxy-name
   sectionName: your-rule-name
 ```
 
-`sectionName` must match the `name` field of a rule in the target `HTTPProxy`.
+`sectionName` must match the `name` field of a rule in the `HTTPProxy`. NSO creates the `HTTPRoute` with matching rule names.
 
 ---
 
@@ -294,8 +296,8 @@ datumctl delete trafficprotectionpolicy $WAF_NAME \
 
 | Symptom | Root Cause | Resolution |
 |---------|------------|------------|
-| Policy not attaching | `targetRefs.group` incorrect | Use `networking.datumapis.com` |
-| Policy not attaching | `targetRefs.kind` incorrect | Use `HTTPProxy` (not `HTTPRoute`) |
+| Policy not attaching | `targetRefs.group` incorrect | Use `gateway.networking.k8s.io` |
+| Policy not attaching | `targetRefs.kind` incorrect | Use `HTTPRoute` (not `HTTPProxy`) |
 | Legitimate traffic blocked | Paranoia level too high | Lower `blocking` level or add rule exclusions |
 | Known attack not blocked | Mode is `Observe` | Switch `mode` to `Enforce` |
 | Known attack not blocked | Score threshold too high | Lower `inbound` threshold |
@@ -318,5 +320,5 @@ datumctl delete trafficprotectionpolicy $WAF_NAME \
 - WAF policies use `kind: TrafficProtectionPolicy` at `networking.datumapis.com/v1alpha`
 - `mode` defaults to `Observe` — always confirm before assuming enforcement is active
 - `ruleSets[].type` must be `OWASPCoreRuleSet` — it is currently the only supported ruleset type
-- `targetRefs` requires `group`, `kind`, and `name` — use `sectionName` to scope to a single route rule
+- `targetRefs` must use `group: gateway.networking.k8s.io` and `kind: HTTPRoute` — NSO creates an `HTTPRoute` with the same name as the `HTTPProxy`; use `sectionName` to scope to a single route rule
 - Start with paranoia level 1 blocking, level 2 detection, and OWASP default score thresholds (5/4)
