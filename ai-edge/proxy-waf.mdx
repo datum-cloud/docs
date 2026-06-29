@@ -82,7 +82,7 @@ Each rule currently supports a single backend. Multiple backends per rule are no
 
 ## TrafficProtectionPolicy (WAF)
 
-The `TrafficProtectionPolicy` resource provides application-layer security using the OWASP Core Rule Set. It attaches to an `HTTPProxy` using `targetRefs` and can target the entire proxy or a specific named rule via `sectionName`.
+The `TrafficProtectionPolicy` resource provides application-layer security using the OWASP Core Rule Set. It attaches to the `gateway.networking.k8s.io/v1 HTTPRoute` that NSO creates from an `HTTPProxy` (using the same name), scoping the WAF to that proxy's traffic. Use `sectionName` to target a specific named rule.
 
 ### Inspect the Schema
 
