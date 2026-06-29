@@ -1,0 +1,77 @@
+---
+title: "Working with Resources"
+description: "Core patterns for creating, inspecting, and managing Datum resources using datumctl."
+---
+
+`datumctl` follows the same resource model as `kubectl`. If you are familiar with Kubernetes, these patterns will feel immediately familiar. If not, a small set of commands covers most day-to-day work.
+
+---
+
+## Core Commands
+
+| Command | Purpose |
+|---------|---------|
+| `datumctl get <resource>` | List resources |
+| `datumctl get <resource> <name> -o yaml` | View a full resource definition |
+| `datumctl explain <resource>` | Inspect the API schema for a resource type |
+| `datumctl explain <resource> --recursive` | View the full schema tree |
+| `datumctl apply -f <file>` | Create or update a resource from a file or stdin |
+| `datumctl delete <resource> <name>` | Delete a resource |
+
+---
+
+## What You Can Configure with `datumctl`
+
+`datumctl` is the primary interface for:
+
+- **AI Edge** — HTTP proxy routing, WAF policies, and authentication
+- **DNS** — Manage DNS records and domain verification
+- **Routing** — Inspect and debug routing configuration
+- **Secrets and ConfigMaps** — Store credentials and configuration referenced by gateway policies
+
+---
+
+## Declarative Configuration
+
+Datum resources are defined declaratively. This means you can:
+
+- Inspect the API structure directly from the platform using `datumctl explain`
+- Store resource definitions in version control
+- Automate deployments via CI/CD pipelines
+- Treat network configuration as code
+
+A typical workflow looks like this:
+
+```bash
+# Inspect the schema
+datumctl explain httpproxy --recursive
+
+# Apply a configuration
+datumctl apply --project my-project --namespace default -f proxy.yaml
+
+# Verify the result
+datumctl get httpproxy my-proxy --namespace default -o yaml
+```
+
+---
+
+## Namespaces
+
+All resources are created in a namespace. Current examples use the `default` namespace:
+
+```bash
+--namespace default
+```
+
+If your CLI defaults to `default`, you may omit it from commands. To check your current context:
+
+```bash
+datumctl config view
+```
+
+---
+
+## Next Steps
+
+- [Authentication](/datumctl/authentication) — Log in and manage credentials
+- [CLI Reference](/cli/options) — Full flag-level reference for every command

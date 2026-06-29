@@ -1,0 +1,195 @@
+---
+title: "Path-Based Routing with HTTPProxy"
+description: "Route requests to different backends based on URL paths using a Datum HTTPProxy."
+---
+
+This guide shows how to configure **path-based routing** on a Datum AI Edge using an `HTTPProxy` resource. The example routes one exact path to a dedicated backend and sends all remaining traffic to a default backend.
+
+---
+
+## Overview
+
+Path-based routing lets you split traffic across backends based on the URL path, without changing your application or DNS.
+
+At a high level, this setup:
+
+1. Defines an **exact** path match for a specific route (e.g., `/login`)
+2. Adds a **catch-all** prefix rule for all other traffic
+3. Applies both rules in a single `HTTPProxy` resource
+
+---
+
+## Prerequisites
+
+- `datumctl` installed and authenticated
+- A valid **Project**
+
+Verify access:
+
+```bash
+datumctl get httpproxy
+```
+
+---
+
+## Configuration Steps
+
+### Step 1: Set Variables
+
+#### Windows (PowerShell)
+
+```powershell
+$PROJECT    = "my-project"
+$NAMESPACE  = "default"
+$PROXY_NAME = "my-proxy"
+$HOSTNAME   = "app.example.com"
+```
+
+#### macOS / Linux
+
+```bash
+PROJECT="my-project"
+NAMESPACE="default"
+PROXY_NAME="my-proxy"
+HOSTNAME="app.example.com"
+```
+
+---
+
+### Step 2: Apply Path Routing Configuration
+
+The `/login` path is matched exactly. All other requests fall through to the catch-all `/` rule.
+
+Place the exact match rule **before** the catch-all. Rules are evaluated in order, and a prefix of `/` matches everything.
+
+<Note>
+Each rule currently supports only a single backend. Multiple backends per rule are not yet supported.
+</Note>
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: $PROXY_NAME
+spec:
+  hostnames:
+  - $HOSTNAME
+  rules:
+  - name: login-exact
+    matches:
+    - path:
+        type: Exact
+        value: /login
+    backends:
+    - endpoint: https://auth-origin.example
+
+  - name: catch-all
+    matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backends:
+    - endpoint: https://web-origin.example
+"@ | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: $PROXY_NAME
+spec:
+  hostnames:
+  - $HOSTNAME
+  rules:
+  - name: login-exact
+    matches:
+    - path:
+        type: Exact
+        value: /login
+    backends:
+    - endpoint: https://auth-origin.example
+
+  - name: catch-all
+    matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backends:
+    - endpoint: https://web-origin.example
+EOF
+```
+
+---
+
+## Verification
+
+### Exact Path Match
+
+```bash
+curl -v https://app.example.com/login
+```
+
+Expected: request reaches `auth-origin.example`.
+
+---
+
+### Negative Test — Exact Is Truly Exact
+
+```bash
+curl -v https://app.example.com/login/reset
+```
+
+Expected: `/login/reset` does **not** match the `Exact /login` rule and falls through to the catch-all backend. Verify this to confirm the exact match boundary is working correctly.
+
+---
+
+### Catch-All
+
+```bash
+curl -v https://app.example.com/
+```
+
+Expected: request reaches `web-origin.example`.
+
+---
+
+## Cleanup
+
+### Windows (PowerShell)
+
+```powershell
+datumctl delete httpproxy $PROXY_NAME `
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+### macOS / Linux
+
+```bash
+datumctl delete httpproxy $PROXY_NAME \
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+---
+
+## Best Practices
+
+- Always include a `PathPrefix /` catch-all so no requests are dropped unexpectedly
+- Place more-specific rules (e.g., `Exact`, longer prefixes) before less-specific ones
+- Use distinct, descriptive rule `name` values — they appear in logs and aid debugging
+- Test both the matching path and a near-miss (e.g., `/login/reset`) to confirm exact boundaries
+
+---
+
+## Summary
+
+- Path-based routing is configured using a **`HTTPProxy`** resource at `networking.datumapis.com/v1alpha`
+- Use `type: Exact` for single endpoints like `/login`
+- Use `type: PathPrefix` with value `/` as a catch-all for all remaining traffic
+- Rule order matters — place specific matches before the catch-all

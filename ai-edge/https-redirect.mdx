@@ -1,0 +1,174 @@
+---
+title: "HTTP to HTTPS Redirect with HTTPProxy"
+description: "Force HTTPS by redirecting all plain HTTP requests using a RequestRedirect filter on a Datum HTTPProxy."
+---
+
+This guide shows how to configure an explicit HTTP to HTTPS redirect on a Datum `HTTPProxy` using a `RequestRedirect` filter.
+
+<Note>
+AI Edge enforces HTTPS by default. This guide applies when you have disabled that enforcement, or when you need a custom redirect configuration — for example, redirecting from a specific path or returning a `302` instead of the default `301`.
+</Note>
+
+---
+
+## Overview
+
+A `RequestRedirect` filter responds to the client with a redirect response directly — no backend is reached. The AI Edge handles the redirect at the proxy layer.
+
+At a high level, this setup:
+
+1. Matches all incoming requests on a hostname
+2. Returns a `301 Moved Permanently` redirect to the same URL using `https`
+
+---
+
+## Prerequisites
+
+- `datumctl` installed and authenticated
+- A valid **Project**
+- An existing `HTTPProxy` hostname, or create a new one with this guide
+
+---
+
+## Configuration Steps
+
+### Step 1: Set Variables
+
+#### Windows (PowerShell)
+
+```powershell
+$PROJECT    = "your-project-id"
+$NAMESPACE  = "default"
+$PROXY_NAME = "https-redirect-demo"
+$HOSTNAME   = "your-app.example.com"
+```
+
+#### macOS / Linux
+
+```bash
+PROJECT="your-project-id"
+NAMESPACE="default"
+PROXY_NAME="https-redirect-demo"
+HOSTNAME="your-app.example.com"
+```
+
+---
+
+### Step 2: Apply the Redirect Configuration
+
+The `RequestRedirect` filter requires `type: RequestRedirect`. No backend is needed — the redirect is returned immediately by the proxy.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: $PROXY_NAME
+spec:
+  hostnames:
+  - $HOSTNAME
+  rules:
+  - name: https-redirect
+    matches:
+    - path:
+        type: PathPrefix
+        value: /
+    filters:
+    - type: RequestRedirect
+      requestRedirect:
+        scheme: https
+        statusCode: 301
+"@ | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: $PROXY_NAME
+spec:
+  hostnames:
+  - $HOSTNAME
+  rules:
+  - name: https-redirect
+    matches:
+    - path:
+        type: PathPrefix
+        value: /
+    filters:
+    - type: RequestRedirect
+      requestRedirect:
+        scheme: https
+        statusCode: 301
+EOF
+```
+
+---
+
+## Verification
+
+Test that a plain HTTP request receives a redirect:
+
+```bash
+curl -I http://$HOSTNAME/
+```
+
+Expected response:
+
+```
+HTTP/1.1 301 Moved Permanently
+Location: https://your-app.example.com/
+```
+
+Confirm that the `Location` header uses `https` and preserves the path.
+
+---
+
+## Cleanup
+
+### Windows (PowerShell)
+
+```powershell
+datumctl delete httpproxy $PROXY_NAME `
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+### macOS / Linux
+
+```bash
+datumctl delete httpproxy $PROXY_NAME \
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+---
+
+## Troubleshooting
+
+| Symptom | Root Cause | Resolution |
+|---------|------------|------------|
+| API rejects the resource | `type` field missing from filter | Add `type: RequestRedirect` to the filter |
+| Redirect loop | Both HTTP and HTTPS rules redirect | Ensure the redirect rule only targets HTTP traffic |
+| `Location` header has wrong hostname | Hostname not set | Add `hostname` to `requestRedirect` to override |
+| Client receives `302` instead of `301` | Default or explicit `statusCode: 302` | Set `statusCode: 301` for a permanent redirect |
+
+---
+
+## Best Practices
+
+- Use `statusCode: 301` for permanent redirects — browsers and crawlers cache these
+- Use `statusCode: 302` only when the redirect is temporary (e.g., maintenance)
+- If redirecting to a different hostname, set `requestRedirect.hostname` explicitly rather than relying on the `Host` header
+
+---
+
+## Summary
+
+- HTTP to HTTPS redirects use `type: RequestRedirect` with `scheme: https`
+- The `type` field is required on all filters
+- No backend is needed — `RequestRedirect` is a terminal filter that responds to the client directly
+- `statusCode` accepts `301` (permanent) or `302` (temporary)

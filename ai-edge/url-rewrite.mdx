@@ -1,0 +1,245 @@
+---
+title: "URL Rewrite with HTTPProxy"
+description: "Rewrite the path or hostname on upstream requests using a URLRewrite filter on a Datum HTTPProxy."
+---
+
+This guide shows how to rewrite the URL path before a request is forwarded to an upstream backend using a Datum `HTTPProxy`.
+
+URL rewriting is useful when:
+
+- Your public API path structure differs from your backend's internal paths
+- You want to strip a path prefix before forwarding (e.g., `/api/v1/users` → `/users`)
+- You need to replace the full path for a specific route
+- You need to rewrite the hostname the backend sees (separate from `Host` header modification)
+
+---
+
+## Overview
+
+The `URLRewrite` filter modifies the path and/or hostname of the forwarded request. Unlike `RequestHeaderModifier`, which sets arbitrary headers, `URLRewrite` is purpose-built for path and authority rewriting and is the recommended approach for path manipulation.
+
+At a high level, this setup:
+
+1. Matches requests on a path prefix
+2. Rewrites the path before forwarding to the backend
+3. The client sees no change to the URL
+
+---
+
+## Prerequisites
+
+- `datumctl` installed and authenticated
+- A valid **Project**
+
+---
+
+## Configuration Steps
+
+### Step 1: Set Variables
+
+#### Windows (PowerShell)
+
+```powershell
+$PROJECT    = "your-project-id"
+$NAMESPACE  = "default"
+$PROXY_NAME = "url-rewrite-demo"
+$HOSTNAME   = "your-app.example.com"
+```
+
+#### macOS / Linux
+
+```bash
+PROJECT="your-project-id"
+NAMESPACE="default"
+PROXY_NAME="url-rewrite-demo"
+HOSTNAME="your-app.example.com"
+```
+
+---
+
+### Step 2: Apply URL Rewrite Configuration
+
+This example strips the `/api` prefix. Requests to `/api/users` are forwarded to the backend as `/users`.
+
+`ReplacePrefixMatch` must be paired with a `PathPrefix` match on the same prefix — mixing match types will cause the route to be rejected.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: $PROXY_NAME
+spec:
+  hostnames:
+  - $HOSTNAME
+  rules:
+  - name: strip-api-prefix
+    matches:
+    - path:
+        type: PathPrefix
+        value: /api
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backends:
+    - endpoint: https://api-backend.example.com
+"@ | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: $PROXY_NAME
+spec:
+  hostnames:
+  - $HOSTNAME
+  rules:
+  - name: strip-api-prefix
+    matches:
+    - path:
+        type: PathPrefix
+        value: /api
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backends:
+    - endpoint: https://api-backend.example.com
+EOF
+```
+
+---
+
+## Path Rewrite Options
+
+### Replace Prefix
+
+Replaces the matched prefix and preserves the rest of the path.
+
+```yaml
+filters:
+- type: URLRewrite
+  urlRewrite:
+    path:
+      type: ReplacePrefixMatch
+      replacePrefixMatch: /new-prefix
+```
+
+| Incoming Path | Match Prefix | Replace With | Forwarded Path |
+|---------------|-------------|--------------|----------------|
+| `/api/users` | `/api` | `/` | `/users` |
+| `/api/orders/123` | `/api` | `/` | `/orders/123` |
+| `/api/v2/items` | `/api/v2` | `/v1` | `/v1/items` |
+
+The match rule's `path.value` and `replacePrefixMatch` must use the same prefix. Using `ReplacePrefixMatch` with an `Exact` or `RegularExpression` match will cause the route to be rejected.
+
+---
+
+### Replace Full Path
+
+Replaces the entire path, ignoring what was matched.
+
+```yaml
+filters:
+- type: URLRewrite
+  urlRewrite:
+    path:
+      type: ReplaceFullPath
+      replaceFullPath: /health
+```
+
+| Incoming Path | Forwarded Path |
+|---------------|----------------|
+| `/status` | `/health` |
+| `/ping` | `/health` |
+| `/anything` | `/health` |
+
+Useful for mapping multiple public paths to a single backend endpoint.
+
+---
+
+### Hostname Rewrite
+
+Rewrites the authority (hostname) the backend sees without changing request headers separately.
+
+```yaml
+filters:
+- type: URLRewrite
+  urlRewrite:
+    hostname: internal-api.example.com
+```
+
+`hostname` and `path` can be combined in a single `URLRewrite` filter.
+
+---
+
+## Verification
+
+`httpbin.org/anything` reflects the path received by the upstream. Use it to confirm the rewrite before pointing at a real backend.
+
+Update your rule's `backends[].endpoint` to `https://httpbin.org` temporarily, then:
+
+```bash
+curl https://$HOSTNAME/api/users
+```
+
+Look for the `url` field in the response — it should show `/users`, not `/api/users`.
+
+---
+
+## Cleanup
+
+### Windows (PowerShell)
+
+```powershell
+datumctl delete httpproxy $PROXY_NAME `
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+### macOS / Linux
+
+```bash
+datumctl delete httpproxy $PROXY_NAME \
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+---
+
+## Troubleshooting
+
+| Symptom | Root Cause | Resolution |
+|---------|------------|------------|
+| Route rejected (`Accepted=False`) | `ReplacePrefixMatch` used with non-prefix match | Change match `type` to `PathPrefix` |
+| Path not rewritten | `type` field missing from `urlRewrite.path` | Add `type: ReplacePrefixMatch` or `type: ReplaceFullPath` |
+| API rejects the resource | `type` field missing from filter | Add `type: URLRewrite` to the filter |
+| Prefix partially matched | Prefix match is not path-element-aware | `/api` matches `/api/`, `/api/foo` but not `/apiv2` — this is correct behavior |
+
+---
+
+## Best Practices
+
+- Use `ReplacePrefixMatch` for stripping versioned path prefixes (e.g., `/v1`, `/api`)
+- Use `ReplaceFullPath` when mapping multiple routes to a single backend endpoint
+- Test rewrites with `httpbin.org/anything` before switching to a production backend — it reflects the exact path the upstream receives
+- Keep match prefix and `replacePrefixMatch` prefix consistent to avoid rejected routes
+
+---
+
+## Summary
+
+- URL path rewriting uses `type: URLRewrite` with a `path` block
+- `path.type` is required: `ReplacePrefixMatch` or `ReplaceFullPath`
+- `ReplacePrefixMatch` must be paired with a `PathPrefix` match on the same prefix
+- `hostname` can be set alongside `path` in the same filter
+- The rewrite is transparent to the client — only the upstream sees the modified path

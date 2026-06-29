@@ -1,0 +1,184 @@
+---
+title: "Host Header Override with HTTPProxy"
+description: "Rewrite the Host header on upstream requests using an HTTPProxy RequestHeaderModifier filter."
+---
+
+This guide shows how to override the `Host` header when forwarding requests to an upstream backend using a Datum `HTTPProxy`.
+
+This is useful when:
+
+- The upstream expects a specific `Host` header
+- You are proxying to a shared or virtual-hosted service
+- The backend's DNS name does not match the public hostname
+
+---
+
+## Overview
+
+At a high level, this setup:
+
+1. Accepts public traffic at a configured hostname
+2. Forwards all requests to an upstream backend
+3. Rewrites the `Host` header **before** the request reaches the upstream
+
+---
+
+## Prerequisites
+
+- `datumctl` installed and authenticated
+- A valid **Project**
+
+---
+
+## Configuration Steps
+
+### Step 1: Set Variables
+
+#### Windows (PowerShell)
+
+```powershell
+$PROJECT    = "your-project-id"
+$NAMESPACE  = "default"
+$PROXY_NAME = "host-header-demo"
+$HOSTNAME   = "your-app.example.com"
+```
+
+#### macOS / Linux
+
+```bash
+PROJECT="your-project-id"
+NAMESPACE="default"
+PROXY_NAME="host-header-demo"
+HOSTNAME="your-app.example.com"
+```
+
+---
+
+### Step 2: Apply Host Header Configuration
+
+The `RequestHeaderModifier` filter overwrites the `Host` header before the request is forwarded upstream. The `type` field is required.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: $PROXY_NAME
+spec:
+  hostnames:
+  - $HOSTNAME
+  rules:
+  - name: host-header-override
+    matches:
+    - path:
+        type: PathPrefix
+        value: /
+    filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        set:
+        - name: Host
+          value: example.internal
+    backends:
+    - endpoint: https://httpbin.org
+"@ | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $PROJECT --namespace $NAMESPACE -f -
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: $PROXY_NAME
+spec:
+  hostnames:
+  - $HOSTNAME
+  rules:
+  - name: host-header-override
+    matches:
+    - path:
+        type: PathPrefix
+        value: /
+    filters:
+    - type: RequestHeaderModifier
+      requestHeaderModifier:
+        set:
+        - name: Host
+          value: example.internal
+    backends:
+    - endpoint: https://httpbin.org
+EOF
+```
+
+---
+
+## Verification
+
+`httpbin.org/headers` echoes the request headers received by the upstream, making it easy to confirm the rewrite.
+
+```bash
+curl https://$HOSTNAME/headers
+```
+
+Look for `Host` in the response:
+
+```json
+{
+  "headers": {
+    "Host": "example.internal",
+    ...
+  }
+}
+```
+
+If `Host` shows `example.internal`, the rewrite is working correctly.
+
+---
+
+## Cleanup
+
+### Windows (PowerShell)
+
+```powershell
+datumctl delete httpproxy $PROXY_NAME `
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+### macOS / Linux
+
+```bash
+datumctl delete httpproxy $PROXY_NAME \
+  --project $PROJECT --namespace $NAMESPACE --ignore-not-found
+```
+
+---
+
+## Troubleshooting
+
+| Symptom | Root Cause | Resolution |
+|---------|------------|------------|
+| API rejects the resource | `type` field missing from filter | Add `type: RequestHeaderModifier` to the filter |
+| `Host` header not rewritten | Filter applied at wrong level | Confirm `filters` is under `rules[].filters`, not `backends[].filters` |
+| Upstream returns 404 or 421 | Upstream rejects the rewritten `Host` value | Verify the upstream accepts the hostname you configured |
+| `Host` shows original value | `set` vs `add` confusion | Use `set` to overwrite; `add` appends to an existing value |
+
+---
+
+## Best Practices
+
+- Use `set` to overwrite the `Host` header — `add` appends to any existing value instead of replacing it
+- Keep the rewritten hostname consistent with what the upstream backend expects in its virtual host configuration
+- Test with `httpbin.org/headers` before pointing at a real upstream — it removes backend variables from the equation
+
+---
+
+## Summary
+
+- Host header rewriting uses a `RequestHeaderModifier` filter on the rule's `filters` list
+- The `type: RequestHeaderModifier` field is required — omitting it will cause the API to reject the resource
+- `set` overwrites the header; `add` appends
+- The rewrite happens at the proxy — the client sees no change to the URL or response
