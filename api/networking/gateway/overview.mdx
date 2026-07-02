@@ -1,7 +1,7 @@
 ---
 title: "Gateway API"
 sidebarTitle: "Overview"
-description: "API reference for the Gateway API resources on Datum Cloud — an open, portable standard for routing service traffic with GatewayClass, Gateway, HTTPRoute, and BackendTLSPolicy."
+description: "API reference for the Gateway API resources on Datum Cloud — an open, portable standard for routing service traffic with Gateway, HTTPRoute, and BackendTLSPolicy."
 ---
 
 Datum Cloud exposes the [**Gateway API**](https://gateway-api.sigs.k8s.io/) — an open, portable standard for routing service traffic. Rather than a single monolithic object, the Gateway API splits traffic handling into a small set of composable resources, so you can describe the infrastructure, the entry points, and the routing rules independently and let them reference one another.
@@ -14,15 +14,11 @@ Datum Cloud exposes the [**Gateway API**](https://gateway-api.sigs.k8s.io/) — 
 
 The Gateway API resources build on one another, from the underlying infrastructure up to the individual routing rules:
 
-- [GatewayClass](/api/networking/gateway/gatewayclass) selects the traffic-handling infrastructure. It defines a class of gateways backed by a particular implementation, and Gateways reference it by name.
 - [Gateway](/api/networking/gateway/gateway) binds listeners and addresses. It instantiates a GatewayClass, opening one or more listeners (protocol, port, and hostname) at network addresses where traffic arrives.
 - [HTTPRoute](/api/networking/gateway/httproute) routes HTTP requests to backends. It attaches to a Gateway and describes how matching requests are filtered and forwarded to backend services.
 - [BackendTLSPolicy](/api/networking/gateway/backendtlspolicy) configures TLS to backends. It describes how a Gateway establishes a TLS connection to the backends that an HTTPRoute forwards to.
 
 <CardGroup cols={2}>
-  <Card title="GatewayClass" icon="layer-group" href="/api/networking/gateway/gatewayclass">
-    Select the traffic-handling infrastructure that Gateways are built from.
-  </Card>
   <Card title="Gateway" icon="door-open" href="/api/networking/gateway/gateway">
     Bind listeners and addresses where traffic enters the platform.
   </Card>
@@ -33,6 +29,8 @@ The Gateway API resources build on one another, from the underlying infrastructu
     Configure the TLS connection a Gateway makes to its backends.
   </Card>
 </CardGroup>
+
+**Platform-provided:** the [GatewayClass](/api/networking/gateway/gatewayclass) referenced by a gateway lives under [Platform resources](/api/platform/overview).
 
 You create and update these resources declaratively with `datumctl apply -f`, and inspect them with `datumctl get` and `datumctl describe`.
 

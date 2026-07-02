@@ -332,7 +332,6 @@
                 "group": "Gateway API",
                 "pages": [
                   "api/networking/gateway/overview",
-                  "api/networking/gateway/gatewayclass",
                   "api/networking/gateway/gateway",
                   "api/networking/gateway/httproute",
                   "api/networking/gateway/backendtlspolicy"
@@ -355,15 +354,13 @@
             "pages": [
               "api/dns/overview",
               "api/dns/dnszone",
-              "api/dns/dnsrecordset",
-              "api/dns/dnszoneclass"
+              "api/dns/dnsrecordset"
             ]
           },
           {
             "group": "IPAM",
             "pages": [
               "api/ipam/overview",
-              "api/ipam/ippool",
               "api/ipam/ipclaim",
               "api/ipam/ipallocation"
             ]
@@ -387,15 +384,6 @@
             ]
           },
           {
-            "group": "Services",
-            "pages": [
-              "api/services/overview",
-              "api/services/service",
-              "api/services/serviceentitlement",
-              "api/services/serviceconsumer"
-            ]
-          },
-          {
             "group": "Telemetry",
             "pages": [
               "api/telemetry/overview",
@@ -410,7 +398,19 @@
               "api/notification/contactgroup",
               "api/notification/contactgroupmembership",
               "api/notification/email",
-              "api/notification/emailbroadcast",
+              "api/notification/emailbroadcast"
+            ]
+          },
+          {
+            "group": "Platform resources",
+            "pages": [
+              "api/platform/overview",
+              "api/services/service",
+              "api/services/serviceentitlement",
+              "api/services/serviceconsumer",
+              "api/dns/dnszoneclass",
+              "api/networking/gateway/gatewayclass",
+              "api/ipam/ippool",
               "api/notification/emailtemplate"
             ]
           }

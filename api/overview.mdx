@@ -43,7 +43,7 @@ Every Datum Cloud resource shares the same shape and workflow, so a handful of i
 
 ## Browse by service
 
-Resources are organized by the service that owns them. Services group into three layers: **Foundation** services model who you are and what you own, **Infrastructure** services run and connect your workloads, and **Platform** services govern consumption, billing, and communication.
+Resources are organized by the service that owns them. Services group into three layers: **Foundation** services model who you are and what you own, **Infrastructure** services run and connect your workloads, and **Operations** services govern consumption, billing, and communication.
 
 ### Foundation
 
@@ -77,7 +77,7 @@ Run workloads and connect them to the network.
   </Card>
 </CardGroup>
 
-### Platform
+### Operations
 
 Govern consumption, pay for what you use, and stay informed.
 
@@ -88,9 +88,6 @@ Govern consumption, pay for what you use, and stay informed.
   <Card title="Billing" icon="credit-card" href="/api/billing/overview">
     Billing accounts, account bindings, and payment methods.
   </Card>
-  <Card title="Services" icon="cubes" href="/api/services/overview">
-    Service definitions, entitlements, and consumers.
-  </Card>
   <Card title="Telemetry" icon="chart-line" href="/api/telemetry/overview">
     Export policies that ship metrics and logs to your own tooling.
   </Card>
@@ -98,6 +95,10 @@ Govern consumption, pay for what you use, and stay informed.
     Contacts, contact groups, and the emails and broadcasts sent to them.
   </Card>
 </CardGroup>
+
+<Note>
+  **[Platform resources](/api/platform/overview)** collects the platform-provided and reference resources you point at rather than compose — the service catalog (Services, entitlements, and consumers), classes like `DNSZoneClass` and `GatewayClass`, `IPPool`s that claims allocate from, and email templates.
+</Note>
 
 ## How to read these pages
 

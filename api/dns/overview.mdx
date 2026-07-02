@@ -1,7 +1,7 @@
 ---
 title: "DNS"
 sidebarTitle: "Overview"
-description: "Managed authoritative DNS on Datum Cloud — zones, record sets, and the classes that provision them."
+description: "Managed authoritative DNS on Datum Cloud — zones and the record sets that answer queries for them."
 ---
 
 Datum Cloud provides managed authoritative DNS through the `dns.networking.miloapis.com` API. You declare a zone for a domain you control, add the record sets that answer queries for it, and Datum handles provisioning the zone on a backend, assigning nameservers, and publishing your records. Zones and record sets are Project resources you create with `datumctl apply -f`; a Platform-level zone class selects the backend controller and supplies provisioning defaults.
@@ -19,16 +19,14 @@ Datum Cloud provides managed authoritative DNS through the `dns.networking.miloa
   <Card title="DNSRecordSet" icon="list" href="/api/dns/dnsrecordset">
     One or more records of a single type (A, AAAA, CNAME, and more) attached to a zone.
   </Card>
-  <Card title="DNSZoneClass" icon="layer-group" href="/api/dns/dnszoneclass">
-    A Platform resource identifying the backend controller and defaults used to provision zones.
-  </Card>
 </CardGroup>
+
+**Platform-provided:** the [DNSZoneClass](/api/dns/dnszoneclass) referenced by a zone lives under [Platform resources](/api/platform/overview).
 
 ## How the pieces fit together
 
 - A **DNSZone** references a **DNSZoneClass** by name (`spec.dnsZoneClassName`) and declares the fully qualified `spec.domainName`. Once accepted, its status reports the authoritative `nameservers` you delegate to and a `recordCount`.
 - A **DNSRecordSet** references its **DNSZone** (`spec.dnsZoneRef`), sets a `spec.recordType`, and carries one or more `spec.records`. Its status tracks per-owner readiness.
-- A **DNSZoneClass** identifies the downstream `spec.controllerName` (for example `powerdns`) and can supply `spec.defaults` and a `spec.nameServerPolicy` applied to zones that use it.
 
 <Tip>
   Inspect the exact fields for any resource with `datumctl explain`, for example `datumctl explain dnszones.spec` or `datumctl explain dnsrecordsets.spec`.
