@@ -1,0 +1,82 @@
+---
+title: "Subnet"
+sidebarTitle: "Subnet"
+description: "Subnet is the Schema for the subnets API."
+---
+
+<Note>
+  API resource reference for **Subnet**, part of the [Networking service](/api/networking/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to read or inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  This resource is part of an **alpha** API (`v1alpha`). Its fields and behavior are subject to change.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| **Group** | `networking.datumapis.com` |
+| **Version** | `v1alpha` |
+| **Kind** | `Subnet` |
+| **Scope** | Project |
+
+## Overview
+
+A `Subnet` defines a range of IP addresses within a network context at a specific location. You create one to allocate addressing for a network, specifying the IP family, subnet class, start address, and prefix length. Once created, Datum Cloud tracks the subnet's allocated address range in its status.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.ipFamily` | string | Yes | The IP family of a subnet. One of `IPv4`, `IPv6`. |
+| `spec.location` | Object | Yes | The location which a subnet is associated with. |
+| `spec.location.name` | string | Yes | Name of a datum location. |
+| `spec.location.namespace` | string | Yes | Namespace for the datum location. |
+| `spec.networkContext` | Object | Yes | A subnet's network context. |
+| `spec.networkContext.name` | string | Yes | The network context name. |
+| `spec.prefixLength` | integer | Yes | The prefix length of a subnet. |
+| `spec.startAddress` | string | Yes | The start address of a subnet. |
+| `spec.subnetClass` | string | Yes | The class of subnet. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.conditions` | []Object | Represents the observations of a subnet's current state. |
+| `status.prefixLength` | integer | The prefix length of a subnet. |
+| `status.startAddress` | string | The start address of a subnet. |
+
+## Usage
+
+```yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: Subnet
+metadata:
+  name: my-subnet
+spec:
+  ipFamily: IPv4
+  subnetClass: private
+  startAddress: "10.0.0.0"
+  prefixLength: 24
+  location:
+    name: my-location
+    namespace: my-project
+  networkContext:
+    name: my-network-context
+```
+
+```bash
+# Create or update the subnet
+datumctl apply -f subnet.yaml --project my-project
+
+# List subnets in the project
+datumctl get subnets --project my-project
+
+# Inspect a single subnet
+datumctl describe subnet my-subnet --project my-project
+```
+
+<Tip>
+  Run `datumctl explain subnets --recursive` to see the full, live field tree for this resource.
+</Tip>

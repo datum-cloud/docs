@@ -1,0 +1,87 @@
+---
+title: "HTTPRoute"
+sidebarTitle: "HTTPRoute"
+description: "HTTPRoute provides a way to route HTTP requests. This includes the capability to match requests by hostname, path, header, or query param. Filters can be used to specify additional processing steps. Backends specify where matching requests should be routed."
+---
+
+<Note>
+  API resource reference for **HTTPRoute**, one of the [Gateway API](/api/networking/gateway/overview) resources. To create or change one, see [Changing resources](/datumctl/resources/changing); to inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Info>
+  `HTTPRoute` is a stable (`v1`) resource that follows the [Gateway API HTTPRoute specification](https://gateway-api.sigs.k8s.io/reference/api-types/httproute/) for service traffic routing.
+</Info>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `gateway.networking.k8s.io` |
+| Version | `v1` |
+| Kind | `HTTPRoute` |
+| Scope | Project |
+
+## Overview
+
+An `HTTPRoute` defines how incoming HTTP requests are routed to backends. It attaches to one or more Gateways (via `parentRefs`) and describes, through a list of `rules`, how to match requests — by hostname, path, header, method, or query parameter — and where to forward the ones that match. Each rule can also apply filters to modify requests along the way.
+
+Use an `HTTPRoute` to expose an application through a Datum Cloud Gateway: for example, to send `api.example.com/v1` traffic to one backend and everything else to another, or to split traffic across backends by weight.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.hostnames` | []string | No | Hostnames matched against the HTTP `Host` header to select this route. Supports a leading wildcard label (e.g. `*.example.com`). IP addresses are not allowed. |
+| `spec.parentRefs` | []Object | No | References to the resources (usually Gateways) this route attaches to. The referenced parent must allow the attachment. |
+| `spec.parentRefs[].name` | string | Yes | Name of the referenced parent resource (e.g. the Gateway). |
+| `spec.parentRefs[].group` | string | No | API group of the parent resource. Defaults to the Gateway API group. |
+| `spec.parentRefs[].kind` | string | No | Kind of the parent resource (e.g. `Gateway`). |
+| `spec.parentRefs[].namespace` | string | No | Scope of the parent resource, when it lives outside this route's own scope. |
+| `spec.parentRefs[].sectionName` | string | No | Name of a specific section (e.g. a Gateway listener) within the parent to attach to. |
+| `spec.parentRefs[].port` | integer | No | Network port of the parent resource this route targets. |
+| `spec.rules` | []Object | No | A list of matchers, filters, and actions. Each rule matches requests and forwards them to backends. |
+| `spec.rules[].matches` | []Object | No | Conditions that select requests for this rule. A match can specify `path`, `headers`, `queryParams`, and `method`. |
+| `spec.rules[].backendRefs` | []Object | No | The backend(s) matching requests are sent to. Each entry sets a `name` (required) plus optional `group`, `kind`, `namespace`, `port`, and `weight`. |
+| `spec.rules[].filters` | []Object | No | Processing steps (e.g. header modification, redirects) applied to requests matching this rule. |
+| `spec.rules[].timeouts` | Object | No | Timeouts applied to requests matching this rule. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.parents` | []Object | The parent resources (usually Gateways) this route is associated with, and the route's status for each. Up to 32 parents are represented; an empty list means the route is not attached to any Gateway. |
+| `status.parents[].parentRef` | Object | Reference to the specific parent this status entry describes. |
+| `status.parents[].controllerName` | string | Name of the controller that wrote this status entry. |
+| `status.parents[].conditions` | []Object | Conditions such as `Accepted` and `ResolvedRefs` describing attachment readiness for this parent. |
+
+## Usage
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: example-route
+spec:
+  parentRefs:
+    - name: example-gateway
+  hostnames:
+    - api.example.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /v1
+      backendRefs:
+        - name: example-backend
+          port: 8080
+```
+
+```bash
+datumctl apply -f httproute.yaml --project my-project
+datumctl get httproutes --project my-project
+datumctl describe httproute example-route --project my-project
+```
+
+<Tip>
+  Run `datumctl explain httproutes --recursive` to see the full, live field tree for this resource.
+</Tip>

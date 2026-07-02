@@ -1,0 +1,70 @@
+---
+title: "Versioning & stability"
+sidebarTitle: "Versioning & stability"
+description: "How Datum Cloud versions its API resources, what alpha means for stability, and how to protect yourself against change."
+---
+
+<Note>
+  A resource-agnostic concept page. For working with resources through the CLI, see [Reading resources](/datumctl/resources/reading), [Changing resources](/datumctl/resources/changing), and [Discovering resources & schemas](/datumctl/discovering-resources).
+</Note>
+
+## The version scheme
+
+Every resource carries an `apiVersion`, written as `group/version`:
+
+```yaml
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSZone
+```
+
+- **Group** namespaces a family of related resources (for example, `dns.networking.miloapis.com`).
+- **Version** identifies which revision of that group's schema you are using (for example, `v1alpha1`).
+
+The same kind can be served at more than one version over its lifetime. The version you write in a manifest is the version the platform reads and validates against, so it always appears alongside the `kind` on every resource page's **Identity** table.
+
+## What "alpha" means
+
+An alpha version — spelled `v1alpha1` (or `v1alpha`) — is an early, evolving revision. Alpha resources are usable and real, but their shape is not yet frozen:
+
+| You can expect | During alpha |
+| --- | --- |
+| Fields added, renamed, or removed | Yes |
+| Defaults and validation rules changed | Yes |
+| Behavior refined between releases | Yes |
+| Backward-incompatible changes | Yes, without a version bump |
+
+In short, alpha is where the resource is still being designed in the open. It is a good place to build and give feedback, but not something to treat as a permanently stable contract.
+
+<Warning>
+  Most Datum Cloud resources are currently **alpha** (`v1alpha1` / `v1alpha`). Fields, defaults, and behavior may change in backward-incompatible ways between releases, and an alpha version can change without changing its name. Don't assume a manifest that applies cleanly today will apply unchanged in a later release.
+</Warning>
+
+## What's stable today
+
+The **Gateway API** resources — [Gateway](/api/networking/gateway/gateway), [HTTPRoute](/api/networking/gateway/httproute), and the rest of the `gateway.networking.k8s.io` group — are served at stable `v1`. They follow the open, portable [Gateway API](https://gateway-api.sigs.k8s.io) specification, so their schema is well established and changes conservatively.
+
+Everything else in this reference is alpha. Check the **Identity** table on any resource page for its group and version; if the version ends in `alpha`, treat it as evolving.
+
+## Practical advice
+
+<Tip>
+  **Pin the version you use.** Always write an explicit `apiVersion` in your manifests and keep it under version control. Don't rely on a "current" or default version resolving to what you expect later.
+</Tip>
+
+- **Expect fields to change.** For alpha resources, plan to revisit manifests when you upgrade, and re-read the resource page or run `datumctl explain` after an upgrade rather than assuming the schema held.
+- **Check the live schema.** The field types and required markers in this reference come from the live API. Confirm them for your environment with [Discovering resources & schemas](/datumctl/discovering-resources) — for example, `datumctl explain dnszones --recursive`.
+- **Make changes safely.** Use server-side dry runs and diffs before writing, especially against alpha resources whose validation may have shifted. See [Safe changes & declarative config](/datumctl/resources/safe-changes).
+- **Script defensively.** When you read resource fields in automation, don't over-fit to alpha field names or shapes. See [Output formats & scripting](/datumctl/output-and-scripting).
+
+<Info>
+  Version is independent of scope. A resource being alpha or stable says nothing about whether it lives in a **Project** or on the **Platform** — that's a separate axis covered under [Scopes](/api/concepts/scopes) and [Contexts & scoping](/datumctl/contexts-and-scoping).
+</Info>
+
+## Related
+
+- [API conventions](/api/concepts/conventions) — where `apiVersion` fits in the shared resource model.
+- [Scopes](/api/concepts/scopes) — the Project/Platform axis, independent of version.
+- [Field formats & types](/api/concepts/field-formats) — how field types and required markers are described (and why they can shift during alpha).
+- [Validation & safe changes](/api/concepts/validation) — dry-run and diff before applying against evolving alpha schemas.
+- [Discovering resources & schemas](/datumctl/discovering-resources) — confirm the live version and schema with `datumctl explain`.
+- [Safe changes & declarative config](/datumctl/resources/safe-changes) and [Output formats & scripting](/datumctl/output-and-scripting) — apply and script defensively.

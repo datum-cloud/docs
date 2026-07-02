@@ -1,0 +1,77 @@
+---
+title: "HTTPProxy"
+sidebarTitle: "HTTPProxy"
+description: "An HTTPProxy provides a convenient way to manage simple reverse proxy use cases."
+---
+
+<Note>
+  API resource reference for **HTTPProxy**, part of the [Networking service](/api/networking/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to read or inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  HTTPProxy is an **alpha** API (`v1alpha`) and is subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| **Group** | `networking.datumapis.com` |
+| **Version** | `v1alpha` |
+| **Kind** | `HTTPProxy` |
+| **Scope** | Project |
+
+## Overview
+
+An HTTPProxy builds on top of Gateway API resources to provide a more convenient way to manage simple reverse proxy use cases. You define a set of hostnames to match against the incoming HTTP `Host` header along with routing rules that match, filter, and forward requests to backends. Use it when you want to expose one or more backends behind a stable, platform-managed hostname without configuring the underlying gateway resources directly.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.hostnames` | []string | No | Hostnames that should match against the HTTP `Host` header to select this HTTPProxy. Values follow RFC 1123 (IPs and wildcards are not allowed). Hostnames must be verified via `Domain` resources and must be unique across the platform; unverified or conflicting hostnames are reported on the `HostnamesVerified` condition. |
+| `spec.rules` | []Object | Yes | A list of HTTP matchers, filters, and actions. Each rule matches an HTTP request based on conditions, processes it, and forwards it to backends. |
+| `spec.rules[].name` | string | No | Name of the route rule. Must be unique within the HTTPProxy if set. |
+| `spec.rules[].matches` | []Object | No | Conditions used for matching the rule against incoming HTTP requests. Each match is independent — the rule matches if **any** one of the matches is satisfied. |
+| `spec.rules[].filters` | []Object | No | Filters applied to requests that match this rule. |
+| `spec.rules[].backends` | []Object | No | Backend(s) where matching requests should be sent. Only a single element is permitted at this time. |
+| `spec.rules[].backends[].endpoint` | string | Yes | Endpoint for the backend. Must be a valid URL. Supports `http` and `https`, IP or DNS hosts, custom ports, and paths. |
+| `spec.rules[].backends[].connector` | Object | No | References the Connector that should be used for this backend. Only a name reference is supported for now. |
+| `spec.rules[].backends[].filters` | []Object | No | Filters executed if and only if the request is forwarded to this backend. |
+| `spec.rules[].backends[].tls` | Object | No | Backend TLS configuration. When the backend endpoint uses HTTPS with an IP address, the hostname must be specified for TLS certificate validation. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.addresses` | []Object | Network addresses that have been bound to the HTTPProxy. Does not contain custom hostnames — see the `hostnames` field. |
+| `status.canonicalHostname` | string | Platform-managed stable hostname assigned to this HTTPProxy (e.g. `<uid>.datumproxy.net`). Create external CNAME or ALIAS records pointing at this hostname to route traffic through the platform. |
+| `status.conditions` | []Object | Current conditions of the HTTPProxy. |
+| `status.hostnameStatuses` | []Object | Per-hostname status for each configured hostname, including verification and DNS record programming conditions. Use this instead of the deprecated `hostnames` field for detailed per-hostname lifecycle information. |
+| `status.hostnames` | []string | Hostnames that have been bound to the HTTPProxy. Deprecated: use `hostnameStatuses` for detailed per-hostname status; this field will be removed in a future API version. |
+
+## Usage
+
+```yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: example-proxy
+spec:
+  hostnames:
+    - app.example.com
+  rules:
+    - name: default
+      backends:
+        - endpoint: https://backend.example.com
+```
+
+```bash
+datumctl apply -f httpproxy.yaml --project my-project
+datumctl get httpproxies --project my-project
+datumctl describe httpproxy example-proxy --project my-project
+```
+
+<Tip>
+  Run `datumctl explain httpproxies --recursive` for the full, live field tree.
+</Tip>
