@@ -1,6 +1,6 @@
 ---
 title: "Using datumctl with kubectl"
-sidebarTitle: "kubectl interop"
+sidebarTitle: "Using kubectl"
 description: "Point kubectl at a Datum Cloud control plane using your active datumctl session — an opt-in escape hatch for existing kubectl users."
 ---
 
@@ -167,6 +167,10 @@ regenerating the entry keeps kubectl aligned with the account you intend to use.
 
 ## Related
 
+- [Kubernetes tools](/datumctl/kubernetes-tools) — point Helm, the Terraform
+  Kubernetes provider, k9s, and other kubeconfig-driven tools at Datum Cloud.
+- [GitOps with Flux & Argo CD](/datumctl/gitops) — run a git-driven deployment
+  loop onto a Datum Cloud control plane through the same exec-credential kubeconfig.
 - [Managing accounts & tokens](/datumctl/auth/managing-accounts) — the native,
   no-Kubernetes-required workflow for switching users, managing sessions, and
   the `auth get-token` credential helper kubectl relies on.

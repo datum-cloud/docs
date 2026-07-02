@@ -211,9 +211,11 @@
             ]
           },
           {
-            "group": "kubectl interop",
+            "group": "Kubernetes interop",
             "pages": [
-              "datumctl/kubectl-interop"
+              "datumctl/kubectl-interop",
+              "datumctl/kubernetes-tools",
+              "datumctl/gitops"
             ]
           }
         ]

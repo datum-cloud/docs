@@ -1,0 +1,153 @@
+---
+title: "Kubernetes tools"
+sidebarTitle: "Kubernetes tools"
+description: "Point Helm, the Terraform Kubernetes provider, k9s, and other kubeconfig-driven tools at a Datum Cloud control plane using your active datumctl session."
+---
+
+<Warning>
+  This guide is for teams that **already run Kubernetes tooling** and want to
+  reuse it against Datum Cloud. Datum Cloud itself requires no Kubernetes
+  knowledge — you manage organizations, projects, DNS zones, and other
+  resources directly with `datumctl get`, `datumctl apply`, `datumctl delete`,
+  and friends. If you don't already use these tools, you can skip this page.
+</Warning>
+
+Once you generate a kubeconfig entry with `datumctl` — see
+[Using kubectl](/datumctl/kubectl-interop) for the full walkthrough — you get a
+standard [kubeconfig](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/)
+whose user is a [client-go exec credential plugin](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#client-go-credential-plugins).
+That means **any** client-go-based tool that reads a kubeconfig authenticates
+to the Datum Cloud control plane the same way kubectl does: it runs `datumctl`
+to fetch a fresh, short-lived credential on each request. There are no static
+keys to embed and nothing to rotate by hand.
+
+## The one requirement
+
+<Info>
+  The machine running the tool must have the `datumctl` binary on its `PATH`
+  **and** an active session (an interactive login, or a
+  [service account](/datumctl/auth/service-accounts) for automation).
+</Info>
+
+Because authentication works by executing `datumctl` as an exec credential
+plugin, the credential handoff only happens where `datumctl` is installed and
+signed in. A tool can read the kubeconfig from anywhere, but the actual token
+exchange runs locally through `datumctl`. If `datumctl` isn't on `PATH` or has
+no session, the tool will fail to authenticate.
+
+The generated kubeconfig entry is portable across tools, but it references
+`datumctl` by name — so keep the binary available in the same environment where
+the tool runs. For non-interactive environments, generate the entry with
+`--exec-interactive-mode Never` so the exec plugin fails fast instead of
+waiting on a prompt that can never be answered (see
+[Using kubectl](/datumctl/kubectl-interop)).
+
+## Generate the kubeconfig first
+
+Every tool below assumes you have already written a kubeconfig entry and
+selected it as your current context:
+
+```bash
+# Log in so datumctl has an active session
+datumctl login
+
+# Write a context for the project (or organization) control plane
+datumctl auth update-kubeconfig --project my-project-id
+```
+
+The full flag reference — `--organization` vs `--project`, `--kubeconfig`,
+`--hostname`, and `--exec-interactive-mode` — lives on
+[Using kubectl](/datumctl/kubectl-interop). To keep Datum Cloud entries separate
+from your other clusters, write to a dedicated file with `--kubeconfig` and
+point each tool at it. See [Contexts & scoping](/datumctl/contexts-and-scoping)
+for how organization and project scope map to control planes.
+
+## Helm
+
+[Helm](https://helm.sh/) uses the current kubeconfig context by default, so
+once your Datum Cloud context is selected, Helm authenticates through
+`datumctl` with no extra configuration. As with kubectl, you can point Helm at a
+specific file or context:
+
+```bash
+# Use a dedicated Datum Cloud kubeconfig
+helm --kubeconfig ~/.kube/datum-config list
+
+# Or select the context explicitly
+helm --kube-context my-datum-context list
+```
+
+Refer to the [Helm](https://helm.sh/) documentation for chart and release
+management specifics.
+
+## Terraform Kubernetes provider
+
+Configure the
+[Terraform Kubernetes provider](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs)
+against your kubeconfig. The simplest form points the provider at the file and
+context:
+
+```hcl
+provider "kubernetes" {
+  config_path    = "~/.kube/datum-config"
+  config_context = "my-datum-context"
+}
+```
+
+The provider also supports an `exec` block, which mirrors what
+`datumctl auth update-kubeconfig` already writes into the kubeconfig — the
+provider invokes `datumctl` to obtain a credential on each apply. Either way,
+`datumctl` must be on `PATH` with an active session on the machine (or CI
+runner) that runs `terraform`. Consult the
+[Terraform Kubernetes provider](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs)
+docs for the full schema.
+
+## k9s and other kubeconfig-driven tools
+
+k9s and similar kubeconfig-driven tools read the same kubeconfig and honor the
+`KUBECONFIG` environment variable and current context. Point them at your Datum
+Cloud context — for example by exporting `KUBECONFIG` — and they authenticate
+through `datumctl` automatically:
+
+```bash
+export KUBECONFIG=~/.kube/datum-config
+k9s
+```
+
+The same pattern applies to any tool built on client-go: it reads the
+kubeconfig, runs the exec plugin, and talks to the Datum Cloud control plane.
+Check each tool's own documentation for how it selects a kubeconfig or context.
+
+## Automation and GitOps
+
+For CI/CD and GitOps, run the tool from a **CI runner or workstation that has
+`datumctl` installed and is authenticated with a
+[service account](/datumctl/auth/service-accounts)**. The
+[GitHub Actions](/datumctl/cicd/github-actions) setup action installs `datumctl`
+and authenticates a service account for you; see
+[Automating in CI/CD](/datumctl/cicd/automating) for the broader pattern.
+
+<Warning>
+  Because authentication runs the `datumctl` binary as an exec credential
+  plugin, an environment **without** `datumctl` cannot use this flow. A
+  controller running inside an unrelated cluster with no `datumctl` binary is
+  not covered. Frame [Flux](https://fluxcd.io/) or
+  [Argo CD](https://argo-cd.readthedocs.io/) usage as running from CI (or a
+  machine) that has `datumctl` plus a service account session — not as an
+  in-cluster controller reconciling the Datum Cloud control plane directly.
+</Warning>
+
+## Related
+
+- [Using kubectl](/datumctl/kubectl-interop) — how `datumctl auth update-kubeconfig`
+  writes the kubeconfig entry and how the credential handoff works.
+- [GitOps with Flux & Argo CD](/datumctl/gitops) — run a git-driven deployment
+  loop onto a Datum Cloud control plane using the same exec-credential kubeconfig.
+- [Service accounts](/datumctl/auth/service-accounts) — non-interactive
+  credentials for automated environments.
+- [GitHub Actions](/datumctl/cicd/github-actions) — install and authenticate
+  `datumctl` on a CI runner.
+- [Automating in CI/CD](/datumctl/cicd/automating) — the supported topology for
+  running these tools from automation.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how organization and
+  project scope map to control planes.
