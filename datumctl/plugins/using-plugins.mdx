@@ -12,10 +12,10 @@ Plugins extend `datumctl` with additional commands without changing the core CLI
 
 ## What a plugin is
 
-When you install a plugin named `dns`, you run it as:
+When you install the `compute` plugin from the official **datum** catalog, its commands become available under `datumctl compute`:
 
 ```bash
-datumctl dns zones list
+datumctl compute --help
 ```
 
 datumctl injects your current organization, project, and a fresh short-lived access token into the plugin automatically, so plugins work with your active context and credentials without a separate login.
@@ -31,10 +31,10 @@ Search every registered catalog for available plugins:
 datumctl plugin search
 
 # Filter by name or description
-datumctl plugin search dns
+datumctl plugin search compute
 
 # Scope the search to a single catalog
-datumctl plugin search dns --index acme
+datumctl plugin search deploy --index acme
 ```
 
 Results show the plugin name, the catalog it came from, its version, its trust badge, and a short description.
@@ -55,7 +55,7 @@ Install by name from a catalog:
 
 ```bash
 # Install from the official datum catalog (searched first)
-datumctl plugin install dns
+datumctl plugin install compute
 
 # Install from a specific catalog
 datumctl plugin install acme/deploy
@@ -65,10 +65,10 @@ You can also install directly from a GitHub release, without a catalog:
 
 ```bash
 # Latest release
-datumctl plugin install datum-cloud/datumctl-dns
+datumctl plugin install your-org/datumctl-dns
 
 # A specific release
-datumctl plugin install datum-cloud/datumctl-dns@v1.2.0
+datumctl plugin install your-org/datumctl-dns@v1.2.0
 ```
 
 <Info>
@@ -81,11 +81,11 @@ Pin a specific version at install time by appending `@version`:
 
 ```bash
 # Pin a catalog plugin
-datumctl plugin install dns@v1.2.0
+datumctl plugin install compute@v0.8.0-dev.7
 datumctl plugin install acme/deploy@v2.0.0
 
 # Pin a GitHub release
-datumctl plugin install datum-cloud/datumctl-dns@v1.2.0
+datumctl plugin install your-org/datumctl-dns@v1.2.0
 ```
 
 Without `@version`, datumctl installs the version the catalog recommends.
@@ -118,23 +118,23 @@ This shows each installed plugin with its catalog, version, trust badge, descrip
 An installed plugin behaves like a native command:
 
 ```bash
-datumctl dns zones list
+datumctl compute --help
 ```
 
 Tab completion works transparently — datumctl forwards completion requests to the plugin, so completing subcommands and flags just works:
 
 ```bash
-datumctl dns <TAB>
+datumctl compute <TAB>
 ```
 
 ## Upgrading and removing
 
 ```bash
 # Upgrade a plugin to the latest version
-datumctl plugin upgrade dns
+datumctl plugin upgrade compute
 
 # Remove a plugin
-datumctl plugin remove dns
+datumctl plugin remove compute
 ```
 
 `plugin upgrade` runs the same verified install flow as a fresh install.
