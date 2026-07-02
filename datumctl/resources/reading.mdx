@@ -1,0 +1,134 @@
+---
+title: "Reading resources"
+sidebarTitle: "Reading resources"
+description: "List, retrieve, and inspect Datum Cloud resources with datumctl get and datumctl describe."
+---
+
+Reading is the safe half of the resource model: `datumctl get` and `datumctl describe` never change anything on the platform, so they are the commands you reach for constantly — to see what exists, confirm a change landed, or troubleshoot a resource that isn't behaving. Both use the same verbs across every Datum Cloud resource type, so once you learn them you can read anything the platform exposes.
+
+<Info>
+  New to the CLI? Start with the [Quickstart](/datumctl/quickstart) to install, log in, and run your first command. Every read runs against your active scope — see [Contexts & scoping](/datumctl/contexts-and-scoping) to control which organization or project that is.
+</Info>
+
+---
+
+## `datumctl get` — list and retrieve
+
+`datumctl get` displays one or more resources. By default it prints a compact, human-readable table; add `-o` to switch to machine-readable output for scripting and inspection.
+
+### List a resource type
+
+Pass a resource type to list every resource of that type in your current scope:
+
+```bash
+# List all DNS zones in a project
+datumctl get dnszones --project <project-id>
+
+# List all projects in an organization
+datumctl get projects --organization <org-id>
+```
+
+<Tip>
+  `datumctl get organizations` lists your organization memberships and does not require an `--organization` or `--project` flag. Every other resource type needs one of those flags to identify the target context.
+</Tip>
+
+### Retrieve a single resource
+
+Add a name to fetch just one resource. Pairing this with `-o yaml` is the usual way to see a resource's full definition:
+
+```bash
+# Table row for one zone
+datumctl get dnszone my-zone --project <project-id>
+
+# The complete resource definition
+datumctl get dnszone my-zone --project <project-id> -o yaml
+```
+
+### Choose an output format
+
+The `-o` (`--output`) flag controls how results are rendered. The formats you'll use most:
+
+| Format | What you get |
+|--------|--------------|
+| *(default)* | A compact table of the most relevant columns |
+| `-o wide` | The default table plus extra columns |
+| `-o json` | Full resource JSON — ideal for `jq` and scripts |
+| `-o yaml` | Full resource YAML — matches the manifest form you'd `apply` |
+| `-o name` | Just `type/name`, one per line — handy for piping into other commands |
+
+```bash
+# Extra columns in the table
+datumctl get dnszones --project <project-id> -o wide
+
+# Full JSON for scripting
+datumctl get dnszones --project <project-id> -o json
+
+# Bare identifiers to feed another command
+datumctl get dnszones --project <project-id> -o name
+```
+
+<Note>
+  `-o json` and `-o yaml` return the complete server-side object, including `status`, while `-o wide` only adds columns to the table. For structured-output patterns, `jq`/`yq` pipelines, and error formatting, see [Output formats & scripting](/datumctl/output-and-scripting).
+</Note>
+
+### Narrow, sort, and watch
+
+A few flags make lists easier to work with:
+
+```bash
+# Filter by label selector
+datumctl get dnszones --project <project-id> -l app=my-app
+
+# List across every namespace in scope
+datumctl get dnszones --organization <org-id> --all-namespaces
+
+# Watch for changes and stream updates as they happen
+datumctl get projects --organization <org-id> --watch
+```
+
+---
+
+## `datumctl describe` — full detail and status
+
+Where `get` gives you a concise row, `datumctl describe` prints a detailed, human-readable report for one or more resources, including status conditions and related events where available. Reach for it when a resource isn't reaching a ready state and you need to understand why.
+
+```bash
+# Describe one resource
+datumctl describe dnszone my-zone --project <project-id>
+
+# Describe every resource of a type in a namespace
+datumctl describe dnszones --project <project-id>
+
+# Describe by label selector
+datumctl describe dnszones -l app=my-app --project <project-id>
+
+# Describe resources named in a manifest file
+datumctl describe -f ./zone.yaml --project <project-id>
+```
+
+You can select resources by name, by label selector (`-l`), or from a manifest file (`-f`). Passing a name prefix shows details for every resource whose name starts with that prefix.
+
+<Tip>
+  Use `datumctl get` for a quick inventory and `datumctl describe` when you need the full status picture — conditions, messages, and events that explain what the platform is doing with a resource.
+</Tip>
+
+---
+
+## `get` vs. `describe` at a glance
+
+| Question | Reach for |
+|----------|-----------|
+| What resources exist right now? | `datumctl get <type>` |
+| I want the raw definition to inspect or script against | `datumctl get <type> <name> -o yaml` / `-o json` |
+| Why isn't this resource ready? | `datumctl describe <type> <name>` |
+| I want to feed identifiers into another command | `datumctl get <type> -o name` |
+
+---
+
+## Related
+
+- [Changing resources](/datumctl/resources/changing) — create, update, and delete the resources you have been reading, with declarative `apply` as the primary workflow
+- [Discovering resources & schemas](/datumctl/discovering-resources) — find which resource types exist and inspect their fields before you read or write them
+- [Output formats & scripting](/datumctl/output-and-scripting) — get the most out of `-o json`/`-o yaml`, structured errors, and automation
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — control which organization or project your reads target
+- [Interactive console](/datumctl/console) — browse and inspect these same resources in a full-screen, keyboard-driven UI

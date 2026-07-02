@@ -1,0 +1,116 @@
+---
+title: "MCP server"
+sidebarTitle: "MCP server"
+description: "Connect Claude Desktop, Cursor, and other MCP-aware AI clients to your Datum Cloud resources with the Datum MCP server."
+---
+
+The [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) lets AI
+clients like Claude Desktop and Cursor talk to your Datum Cloud resources
+directly, outside the terminal. Datum publishes an official **Datum MCP
+server** for this — a standalone binary you point your MCP-aware client at.
+
+Where the [AI assistant](/datumctl/ai/assistant) is the interactive,
+terminal-first experience built into `datumctl`, the Datum MCP server is the
+bridge that gives a desktop AI assistant secure, standards-based access to your
+organizations, projects, domains, proxies, DNS, and more.
+
+<Info>
+  The Datum MCP server is distributed as a separate `datum-mcp` binary, not as a
+  `datumctl` subcommand. Installation, the full tool catalog, and one-click setup
+  for clients such as Cursor live on the dedicated [Datum MCP](/datum-mcp) page
+  and upstream in the [Datum MCP repository](https://github.com/datum-cloud/datum-mcp).
+</Info>
+
+## When to use the MCP server
+
+Reach for the MCP server when you want an AI client that lives outside your
+terminal to work with Datum Cloud:
+
+- **Claude Desktop** — chat with an assistant that can read and change your
+  Datum resources.
+- **Cursor** and other IDE-embedded assistants — bring Datum context into your
+  editor while you build.
+- Any other MCP-aware client that speaks the standard stdio transport.
+
+If you would rather stay in the terminal, `datumctl` has a built-in assistant
+that answers questions in natural language without a separate MCP client — see
+the [AI assistant](/datumctl/ai/assistant) guide.
+
+## What it exposes
+
+The Datum MCP server gives connected clients tools to inspect and manage your
+Datum Cloud resources. Clients can understand the current state of your
+resources, suggest and implement changes, and help diagnose common
+configuration issues. The catalog currently covers:
+
+- Organizations and organization memberships
+- Users
+- Projects
+- Domains
+- HTTP proxies, HTTP routes, and gateways
+- Traffic protection policies
+- DNS zones, DNS record sets, and DNS zone classes
+- APIs (list and describe available resource types)
+
+<Note>
+  The tool catalog evolves with the server. See the [Datum MCP](/datum-mcp)
+  page for the authoritative, up-to-date list and the exact operations each tool
+  supports.
+</Note>
+
+## Connecting a client
+
+Most MCP clients launch the server over stdio. Add an entry like this to your
+client's MCP configuration:
+
+```json
+{
+  "datum-mcp": {
+    "command": "datum-mcp",
+    "args": []
+  }
+}
+```
+
+<Steps>
+  <Step title="Install the Datum MCP server">
+    Follow the install instructions on the [Datum MCP](/datum-mcp) page. Binaries
+    are available for Linux, macOS, and Windows on x86 and arm64.
+  </Step>
+  <Step title="Add the server to your client">
+    Point your MCP client at the `datum-mcp` binary using a stdio configuration
+    like the one above. Cursor users can use the one-click install link on the
+    [Datum MCP](/datum-mcp) page.
+  </Step>
+  <Step title="Sign in on first use">
+    The first tool call triggers a browser-based sign-in (see below). Approve it,
+    and your client is connected.
+  </Step>
+</Steps>
+
+## Authentication
+
+On first use, the server runs a browser-based OAuth (PKCE) sign-in, then stores
+credentials — including a refresh token — securely in the system keychain.
+Subsequent calls reuse and refresh the token automatically, so you sign in once.
+This is the same security model `datumctl` uses when you
+[log in](/datumctl/auth/logging-in): no static API keys.
+
+The server implements the latest
+[MCP Authorization](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization)
+specification and supports OAuth 2.1 (PKCE).
+
+<Warning>
+  The MCP server acts on real Datum Cloud resources with your credentials.
+  Connect it only to AI clients you trust, and review any changes an assistant
+  proposes before approving them.
+</Warning>
+
+## Next steps
+
+- [Datum MCP](/datum-mcp) — set up the Datum MCP server: install, one-click client setup,
+  and the full tool catalog.
+- [AI assistant](/datumctl/ai/assistant) — prefer the terminal? Use the built-in `datumctl ai`
+  assistant instead.
+- [Logging in](/datumctl/auth/logging-in) — review how Datum Cloud handles credentials before
+  your first connection.

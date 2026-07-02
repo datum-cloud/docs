@@ -1,0 +1,123 @@
+---
+title: "Changing resources"
+sidebarTitle: "Changing resources"
+description: "Create, update, and delete Datum Cloud resources — with declarative apply as the primary workflow."
+---
+
+`datumctl` treats your Datum Cloud infrastructure as declarative configuration: you describe the state you want in a manifest, store it in source control, and let the CLI reconcile the platform to match. The same handful of write verbs — `apply`, `create`, `edit`, and `delete` — work across every resource type, so once you learn them you can change anything the platform exposes.
+
+<Info>
+  Every write runs against your active scope. Use `--organization` or `--project` to target a context, and see [Contexts & scoping](/datumctl/contexts-and-scoping) for how a command decides where it acts. Run `datumctl ctx` to check your active context before making changes.
+</Info>
+
+## Apply is the primary workflow
+
+`datumctl apply` is the recommended way to manage resources. You give it a manifest describing the state you want; if the resource does not exist it is created, and if it already exists it is updated to match. Because apply is idempotent, you can run the same command as many times as you like and converge on the same result.
+
+```bash
+# Apply a single manifest
+datumctl apply -f ./proxy.yaml --project my-project --namespace default
+
+# Apply every manifest in a directory
+datumctl apply -f ./infra/ --organization <org-id>
+
+# Apply from stdin
+cat dnszone.yaml | datumctl apply -f - --project my-project
+```
+
+Manifests are YAML or JSON. Multiple resources can live in a single file separated by YAML document markers (`---`), and each manifest must set the correct `apiVersion` and `kind` for its resource type.
+
+<Tip>
+  Keep your manifests in version control and apply them from CI/CD. Treating network and platform configuration as code gives you review, history, and repeatable deployments — and lets you rebuild state from the same source at any time.
+</Tip>
+
+A typical declarative loop looks like this:
+
+<Steps>
+  <Step title="Author or edit a manifest">
+    Describe the resource you want in a `.yaml` file. Not sure which fields a type takes? Inspect the schema first with `datumctl explain <type>`.
+  </Step>
+  <Step title="Preview the change">
+    Run `datumctl diff -f ./proxy.yaml` to see exactly what the platform would change before you write anything. See [Safe changes](/datumctl/resources/safe-changes).
+  </Step>
+  <Step title="Apply it">
+    `datumctl apply -f ./proxy.yaml` creates or updates the resource to match your manifest.
+  </Step>
+  <Step title="Verify the result">
+    `datumctl get <type> <name> -o yaml` confirms the live state matches what you intended.
+  </Step>
+</Steps>
+
+<Warning>
+  Preview before you write. Run `datumctl diff -f` to see the server-computed changes, and add `--dry-run=server` to `apply` to validate a manifest against the API without persisting anything. [Safe changes](/datumctl/resources/safe-changes) covers both.
+</Warning>
+
+## Create from a manifest
+
+`datumctl create` provisions a new resource from a manifest. Unlike `apply`, it does not update an existing resource — if a resource of the same name already exists, the create fails. Reach for `create` when you specifically want to fail loudly on a name collision; reach for `apply` for idempotent create-or-update.
+
+```bash
+# Create a project from a manifest
+datumctl create -f ./project.yaml --organization <org-id>
+
+# Create from stdin
+cat dnszone.yaml | datumctl create -f - --project my-project
+
+# Validate without creating
+datumctl create -f ./project.yaml --organization <org-id> --dry-run=server
+```
+
+## Edit a resource in place
+
+`datumctl edit` fetches a resource, opens it in your local text editor, and applies whatever you save back to the platform. It is convenient for quick, one-off changes when you do not have a manifest on disk.
+
+```bash
+# Edit a project
+datumctl edit project my-project-id --organization <org-id>
+
+# Edit a DNS zone in a chosen editor
+EDITOR="code --wait" datumctl edit dnszone my-zone --project my-project --namespace default
+
+# Edit in JSON instead of the default YAML
+datumctl edit project my-project-id --organization <org-id> -o json
+```
+
+The editor is chosen from the `EDITOR` environment variable (the CLI also honors `KUBE_EDITOR`), falling back to `vi` on Linux/macOS or `notepad` on Windows. Changes are applied when you save and close the file. If the resource was modified server-side while your editor was open, `datumctl` detects the conflict and saves your edits to a temporary file so you can reconcile them.
+
+<Note>
+  For changes you want to keep and repeat, prefer editing a manifest and running `datumctl apply` — that keeps your source of truth in version control. Use `edit` for exploratory or one-time tweaks.
+</Note>
+
+## Delete a resource
+
+`datumctl delete` removes one or more resources, selected by type and name, by label selector, or from a manifest file.
+
+```bash
+# Delete by name
+datumctl delete project my-project-id --organization <org-id>
+
+# Delete from a manifest
+datumctl delete -f ./my-resource.yaml --organization <org-id>
+
+# Delete everything matching a label selector
+datumctl delete dnszones -l app=my-app --project my-project
+```
+
+<Warning>
+  `datumctl delete` has **no confirmation prompt** — it deletes immediately. It also does not perform a version check first, so a delete proceeds even if the resource changed after you last fetched it. Preview what would be removed with `--dry-run=client` before you commit:
+
+  ```bash
+  datumctl delete project my-project-id --organization <org-id> --dry-run=client
+  ```
+</Warning>
+
+## Namespaces
+
+Many project-scoped resources live in a namespace. The examples above target the `default` namespace with `--namespace default`; if a command targets `default`, you can omit the flag. Currently only `default` is supported. Which organization or project a write acts on is covered in [Contexts & scoping](/datumctl/contexts-and-scoping).
+
+## Next steps
+
+- [Safe changes & declarative config](/datumctl/resources/safe-changes) — preview every change with `datumctl diff -f` and `--dry-run=server` before it touches live infrastructure.
+- [Discovering resources & schemas](/datumctl/discovering-resources) — find resource types and inspect their fields with `explain` and `api-resources` before authoring a manifest.
+- [Reading resources](/datumctl/resources/reading) — verify the result with `datumctl get` and `datumctl describe` after a write.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — control which organization or project a change targets.

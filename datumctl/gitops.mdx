@@ -1,0 +1,144 @@
+---
+title: "GitOps with Flux & Argo CD"
+sidebarTitle: "GitOps (Flux & Argo CD)"
+description: "Run a git-driven deployment flow onto Datum Cloud by pointing your GitOps tooling at a control plane through datumctl's exec-credential kubeconfig."
+---
+
+<Warning>
+  This guide is for teams **bringing existing Kubernetes tooling** — Flux, Argo
+  CD, and their CLIs. Datum Cloud itself requires no Kubernetes knowledge: you
+  manage organizations, projects, DNS zones, and other resources directly with
+  `datumctl get`, `datumctl apply`, `datumctl delete`, and friends. If you are
+  not already running a GitOps controller, see the simpler
+  [datumctl-native loop](#a-simpler-loop-datumctl-in-ci) below.
+</Warning>
+
+[Flux](https://fluxcd.io/) and [Argo CD](https://argo-cd.readthedocs.io/) let
+you keep your desired state in git and continuously reconcile it against a
+control plane. Because `datumctl auth update-kubeconfig` produces a standard
+[kubeconfig](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/)
+whose credential comes from `datumctl` itself, these tools can reconcile
+git-defined resources onto a Datum Cloud control plane without you managing any
+static keys.
+
+## The supported topology
+
+The key detail is *how* authentication works. `datumctl auth update-kubeconfig`
+writes a kubeconfig whose user is a
+[client-go exec credential plugin](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#client-go-credential-plugins):
+on each request the tooling invokes the `datumctl` binary to fetch a fresh,
+short-lived token. Any tool that reads a kubeconfig and uses client-go
+authentication can therefore talk to the Datum Cloud control plane — **as long
+as the environment running that tool has the `datumctl` binary available and an
+active session.** See [Using kubectl](/datumctl/kubectl-interop) for the full
+mechanics; this page does not repeat them.
+
+That constraint defines the supported shape for GitOps:
+
+- Run your GitOps tooling (Flux, Argo CD, and their CLIs) from a **CI runner or
+  machine that has `datumctl` installed** and is authenticated.
+- In CI, authenticate with a
+  [service account](/datumctl/auth/service-accounts) so there is no interactive
+  login step and no long-lived keys checked into your repo.
+- Point the tooling at the control plane through the exec-credential kubeconfig
+  that `datumctl` generates, then let it reconcile the resources defined in
+  your git repository.
+
+<Warning>
+  Authentication runs the `datumctl` binary as an exec plugin, so the
+  environment executing the GitOps tool must have `datumctl` installed **and** an
+  active session (a service-account session in CI). A controller running
+  somewhere else — for example, inside an unrelated Kubernetes cluster with no
+  `datumctl` binary and no Datum Cloud session — is **not** covered by this
+  flow. Frame Flux and Argo CD usage as "run from CI (or a machine) that has
+  `datumctl` plus a service-account session."
+</Warning>
+
+## The shape of the flow
+
+1. **Set up `datumctl`** on the runner or machine and authenticate. In CI, this
+   is a service account; see [Automating in CI/CD](/datumctl/cicd/automating).
+2. **Generate a kubeconfig** for the target control plane with
+   `datumctl auth update-kubeconfig` — see [Using kubectl](/datumctl/kubectl-interop).
+   Use `--exec-interactive-mode Never` so the exec plugin fails fast instead of
+   waiting on a prompt no one can answer.
+3. **Run the GitOps step.** Flux, Argo CD, and their CLIs read that kubeconfig
+   and authenticate to the Datum Cloud control plane through the exec plugin,
+   reconciling the resources your git repository declares.
+
+Which control plane you target is set by the `--project` or `--organization`
+flag on `update-kubeconfig`; see [Contexts & scoping](/datumctl/contexts-and-scoping)
+for how scope resolution works.
+
+## A concrete CI example
+
+The `datum-cloud/setup-datumctl-action` installs `datumctl` and authenticates a
+service account on a GitHub Actions runner. From there you generate a kubeconfig
+and hand off to your GitOps tool. See [GitHub Actions](/datumctl/cicd/github-actions)
+for the full action reference.
+
+```yaml
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      # Installs datumctl and signs in a service account
+      - uses: datum-cloud/setup-datumctl-action@v1
+        with:
+          service-account-key: ${{ secrets.DATUM_SERVICE_ACCOUNT_KEY }}
+
+      # Write a kubeconfig for the target project's control plane.
+      # --exec-interactive-mode Never keeps the exec plugin non-interactive.
+      - name: Configure control plane access
+        run: |
+          datumctl auth update-kubeconfig \
+            --project my-project-id \
+            --exec-interactive-mode Never
+
+      # Run your GitOps step. The tool reads the kubeconfig above and
+      # authenticates through the datumctl exec plugin.
+      - name: Reconcile from git
+        run: |
+          # e.g. invoke your Flux or Argo CD CLI here — see their docs
+          # for the exact commands for your setup.
+          ...
+```
+
+<Note>
+  The exact `flux` / `argocd` CLI commands depend on how you have structured
+  your repository and your reconciliation model. Consult the
+  [Flux](https://fluxcd.io/) and [Argo CD](https://argo-cd.readthedocs.io/)
+  documentation for those specifics. What matters here is the connection
+  pattern: both read a kubeconfig, and the kubeconfig `datumctl` writes carries
+  the credential automatically. Nothing above pins static keys.
+</Note>
+
+## A simpler loop: datumctl in CI
+
+You do not need a GitOps controller to get a git-driven deployment flow. If your
+resources live in git, a CI job can treat the repository as the source of truth
+and reconcile on every change using `datumctl` directly:
+
+- Preview what would change with `datumctl diff -f <path>`.
+- Apply the desired state with `datumctl apply -f <path>`.
+
+This keeps the whole loop inside `datumctl` — no exec-credential kubeconfig and
+no second tool to install — and it runs on the same CI runner with the same
+service-account session. See [Safe changes & declarative config](/datumctl/resources/safe-changes)
+for the diff-then-apply workflow and [Automating in CI/CD](/datumctl/cicd/automating)
+for wiring it into a pipeline.
+
+## Related
+
+- [Using kubectl](/datumctl/kubectl-interop) — how the exec-credential kubeconfig
+  is generated and how the credential handoff works.
+- [Kubernetes tools](/datumctl/kubernetes-tools) — point Helm, the Terraform
+  Kubernetes provider, k9s, and other kubeconfig-driven tools at Datum Cloud.
+- [Service accounts](/datumctl/auth/service-accounts) — non-interactive
+  identities for CI and automation.
+- [GitHub Actions](/datumctl/cicd/github-actions) — the `setup-datumctl-action`
+  reference.
+- [Automating in CI/CD](/datumctl/cicd/automating) — general patterns for running
+  `datumctl` in pipelines.
+- [Safe changes & declarative config](/datumctl/resources/safe-changes) — the
+  `diff`-then-`apply` workflow for the datumctl-native loop.
