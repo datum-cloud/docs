@@ -25,7 +25,8 @@ logs to understand what's happening within your organization and projects.
 ### Project and organization audit logs
 
 Use the `--project` and `--organization` flag to control which context audit
-logs are retrieved from.
+logs are retrieved from. These flags follow the same scope rules as the rest of
+the CLI — see [Contexts & scoping](/datumctl/contexts-and-scoping).
 
 ```bash
 $ datumctl activity query --project datum-cloud
@@ -126,3 +127,9 @@ items:
 kind: EventList
 metadata: {}
 ```
+
+## Related
+
+- [Interactive console](/datumctl/console) — browse the same audit activity in the console's activity dashboard.
+- [Output formats & scripting](/datumctl/output-and-scripting) — reshape `-o json`/`-o yaml` activity output and wire it into automation.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how `--project` and `--organization` select which control plane the query runs against.

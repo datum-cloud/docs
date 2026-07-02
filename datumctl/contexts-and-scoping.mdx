@@ -1,0 +1,181 @@
+---
+title: "Contexts & scoping"
+sidebarTitle: "Contexts & scoping"
+description: "How datumctl decides which organization or project a command acts on, and how to switch between them."
+---
+
+Almost every `datumctl` command runs against a single **scope** — either one organization or one project inside that organization. Understanding how `datumctl` chooses that scope is the key to getting the results you expect. If a command returns nothing or the wrong resources, the cause is almost always the active scope.
+
+<Info>
+  In short: `datumctl` remembers an **active context** (an org or a project). Any command uses that context unless you override it for a single command with `--organization` or `--project`.
+</Info>
+
+## The scope model
+
+Datum Cloud is organized as a two-level hierarchy:
+
+- **Organizations** are the top level. You belong to one or more organizations.
+- **Projects** live inside an organization. Most day-to-day resources (DNS zones, networking, and so on) belong to a project.
+
+A **context** captures one point in that hierarchy:
+
+- An **org context** points at an organization (for example, resources that live at the organization level).
+- A **project context** points at a specific project inside an organization.
+
+`datumctl` discovers the organizations and projects you can access from the API and stores them locally as a list of contexts. One of them is the **active context** — the scope commands use by default.
+
+## Listing your contexts
+
+Run `datumctl ctx` (alias: `datumctl context`) to see every context available to your active user:
+
+```bash
+datumctl ctx
+```
+
+This prints a table with the display name, the reference you use to select the context, the type (`org` or `project`), and a `*` marking the current active context. Projects are nested under their organization:
+
+```text
+Display Name                    Name                  Type     Current
+Datum Technology, Inc           datum                 org
+  Datum Cloud                   datum/datum-cloud     project  *
+  Staging                       datum/staging         project
+```
+
+The **Name** column is the reference you pass to `datumctl ctx use`: a bare organization ID for an org context (`datum`), or `org/project` for a project context (`datum/datum-cloud`).
+
+<Note>
+  `datumctl ctx list` (alias `datumctl ctx ls`) prints the same table. Running `datumctl ctx` with no subcommand is the shortcut most people use.
+</Note>
+
+### Keeping the list current
+
+The context list is cached locally so listing is instant. When you run `datumctl ctx` and the cache is more than an hour old, `datumctl` refreshes it from the API automatically before printing. To force a refresh at any time — for example, right after you have been granted access to a new project — use the `--refresh` flag:
+
+```bash
+datumctl ctx --refresh
+```
+
+<Note>
+  `--refresh` re-runs discovery using your existing session; it does not require you to log in again. There is no separate `refresh` subcommand — refreshing is a flag on `datumctl ctx`.
+</Note>
+
+## Switching the active context
+
+Use `datumctl ctx use` to change which context is active. You can name the context directly, or run it with no argument to pick from an interactive list:
+
+<Tabs>
+  <Tab title="Interactive picker">
+    ```bash
+    datumctl ctx use
+    ```
+    Choose an organization or project from the list. This is the easiest way when you do not remember the exact name.
+  </Tab>
+  <Tab title="By name">
+    ```bash
+    # Switch to a project context
+    datumctl ctx use datum/datum-cloud
+
+    # Switch to an org context
+    datumctl ctx use datum
+    ```
+  </Tab>
+</Tabs>
+
+You can identify a context by its resource ID (`datum/datum-cloud`) or by its display name (for example, the human-friendly project name shown in the table). Resource IDs always take precedence, and a display name is only accepted when it matches exactly one context. If a name is ambiguous or not found, `datumctl` tells you and suggests running `datumctl ctx` to see the available choices.
+
+On success you'll see a confirmation of the new scope:
+
+```text
+✓ Switched to project Datum Cloud in Datum Technology, Inc (datum/datum-cloud)
+```
+
+The active context persists across commands and terminal sessions until you switch again.
+
+## How scope is resolved for each command
+
+When you run a command, `datumctl` determines its scope by checking these sources **in order** and using the first one that applies:
+
+<Steps>
+  <Step title="Per-command flags">
+    `--organization <org>` or `--project <project>` on the command line. These override everything else, but only for that single command.
+  </Step>
+  <Step title="Environment variables">
+    `DATUM_PROJECT` or `DATUM_ORGANIZATION`, if set. Useful in CI or scripts. You cannot set both at once.
+  </Step>
+  <Step title="The active context">
+    Whatever `datumctl ctx use` last selected. If the active context is a project, commands run at project scope; if it is an org context, they run at organization scope.
+  </Step>
+</Steps>
+
+If none of these provide a scope, `datumctl` falls back to your personal user scope.
+
+<Warning>
+  `--project`, `--organization`, and `--platform-wide` are mutually exclusive — you can supply at most one. Likewise, `DATUM_PROJECT` and `DATUM_ORGANIZATION` cannot both be set. `datumctl` returns an error rather than guessing when the inputs conflict.
+</Warning>
+
+### Overriding scope for a single command
+
+The flags let you target a different org or project without changing your active context:
+
+```bash
+# Run this one command against a different project
+datumctl get dnszones --project other-project
+
+# Run against an organization
+datumctl get projects --organization datum
+```
+
+The next command with no flag goes back to using your active context.
+
+<Note>
+  For advanced access to the platform root rather than a specific project or organization, an opt-in `--platform-wide` flag is also available. Most users never need it.
+</Note>
+
+## When a command returns nothing
+
+An empty result is almost always a scope mismatch, not an error. The resource you're looking for probably lives in a different project or organization than the one your command targeted.
+
+Work through this checklist:
+
+<Steps>
+  <Step title="Confirm the active context">
+    Run `datumctl ctx` and look for the `*`. Make sure it points at the org or project that actually contains your resource.
+  </Step>
+  <Step title="Check for an override you forgot about">
+    An exported `DATUM_PROJECT` or `DATUM_ORGANIZATION` environment variable silently redirects every command. Unset it if it isn't what you want:
+
+    ```bash
+    unset DATUM_PROJECT DATUM_ORGANIZATION
+    ```
+  </Step>
+  <Step title="Target the right scope explicitly">
+    Re-run the command with an explicit flag to rule out the active context:
+
+    ```bash
+    datumctl get dnszones --project my-project
+    ```
+  </Step>
+  <Step title="Refresh if the context is missing">
+    If the project or organization you expect isn't listed by `datumctl ctx`, refresh the cache — you may have just been granted access:
+
+    ```bash
+    datumctl ctx --refresh
+    ```
+  </Step>
+</Steps>
+
+<Info>
+  Remember that a project's resources aren't visible from its parent org context (and vice versa). Switching to the correct project scope with `datumctl ctx use org/project` resolves most "nothing found" surprises.
+</Info>
+
+## Contexts and users
+
+Contexts are tied to the user you're authenticated as. Each stored user session has its own set of discovered contexts. When you switch users, your active context follows that user's most recently used context. For how to log in and switch between accounts, see [Authentication](/datumctl/authentication).
+
+## Related
+
+- [Authentication](/datumctl/authentication) — logging in, switching users, and how sessions map to contexts.
+- [Working with resources](/datumctl/working-with-resources) — the `get`, `apply`, and `delete` commands that run against the scope you set here.
+- [Output formats & scripting](/datumctl/output-and-scripting) — pinning `--organization` and `--project` explicitly and reading `DATUM_PROJECT`/`DATUM_ORGANIZATION` in CI.
+- [Overview](/datumctl/overview) — how `datumctl` is structured and talks to the Datum API.
+- The [CLI Commands reference](/cli/options) for `datumctl ctx` and the `--organization`/`--project` flags.

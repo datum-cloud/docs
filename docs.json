@@ -141,10 +141,30 @@
       {
         "tab": "datumctl (CLI)",
         "icon": "terminal",
-        "pages": [
-          "datumctl/overview",
-          "datumctl/authentication",
-          "datumctl/activity",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": [
+              "datumctl/overview",
+              "datumctl/quickstart"
+            ]
+          },
+          {
+            "group": "Core concepts",
+            "pages": [
+              "datumctl/contexts-and-scoping",
+              "datumctl/working-with-resources",
+              "datumctl/discovering-resources",
+              "datumctl/output-and-scripting"
+            ]
+          },
+          {
+            "group": "Interactive & AI",
+            "pages": [
+              "datumctl/console",
+              "datumctl/ai-and-mcp"
+            ]
+          },
           {
             "group": "Plugins",
             "pages": [
@@ -152,6 +172,14 @@
               "datumctl/plugins/adding-catalogs",
               "datumctl/plugins/publishing-catalogs",
               "datumctl/plugins/building-plugins"
+            ]
+          },
+          {
+            "group": "Reference & interop",
+            "pages": [
+              "datumctl/authentication",
+              "datumctl/kubectl-interop",
+              "datumctl/activity"
             ]
           }
         ]

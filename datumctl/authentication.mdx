@@ -26,7 +26,7 @@ This outputs a table showing the Name, Email, and Status (Active or blank) for e
 - `datumctl auth list`
 - `datumctl auth logout`
 - `datumctl auth get-token`
-- `datumctl auth update-kubeconfig`
+- `datumctl auth update-kubeconfig` — for existing kubectl users only; see [using datumctl with kubectl (kubectl interop)](/datumctl/kubectl-interop)
 - `datumctl auth switch`
 
 ## Switching active user
@@ -39,7 +39,7 @@ datumctl auth switch <user-email>
 
 Replace `<user-email>` with the email address of the user you want to make active. This user must already be logged in.
 
-After switching, subsequent commands that require authentication (like `datumctl organizations list` or `kubectl` operations configured via `update-kubeconfig`) will use the credentials of the newly activated user.
+After switching, subsequent commands that require authentication (like `datumctl get organizations`) use the credentials of the newly activated user. Each user has its own set of discovered contexts, so your active organization or project follows the account you switch to — see [Contexts & scoping](/datumctl/contexts-and-scoping).
 
 ## Logging out
 
@@ -56,3 +56,10 @@ To remove all Datum Cloud credentials stored by `datumctl` in your keyring, use 
 ```text
 datumctl auth logout --all
 ```
+
+## Related
+
+- [Quickstart](/datumctl/quickstart) — install `datumctl` and log in for the first time.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how the account you're signed in as maps to the organizations and projects your commands target.
+- [Output formats & scripting](/datumctl/output-and-scripting) — non-interactive login (`--no-browser`) and service accounts for CI and agents.
+- [Using datumctl with kubectl (kubectl interop)](/datumctl/kubectl-interop) — hand your active session to kubectl with `datumctl auth update-kubeconfig` (existing kubectl users only).

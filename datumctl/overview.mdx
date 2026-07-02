@@ -4,10 +4,10 @@ sidebarTitle: "Overview"
 description: "High level overview of the Datum Cloud CLI."
 ---
 
-`datumctl` is the command-line tool for working with Datum Cloud. If you’ve used kubectl, you'll find a similar model with resources, commands, and a predictable structure. For both developers and AI agents, `datumctl` is the fastest way to interact with Datum.
+`datumctl` is the command-line tool for working with Datum Cloud. It exposes a consistent resource model — the same `get`, `apply`, `describe`, and `delete` verbs across every resource type — so both developers and AI agents get a fast, predictable way to interact with Datum.
 
 <Info>
-  Ready to play? Download and install via [our downloads page](https://www.datum.net/download/datumctl/).
+  Ready to play? Download and install via [our downloads page](https://www.datum.net/download/datumctl/), or follow the [Quickstart](/datumctl/quickstart) to go from install to your first command in a few minutes.
 </Info>
 
 ## How these docs are organized
@@ -16,6 +16,14 @@ description: "High level overview of the Datum Cloud CLI."
 
 - **datumctl** (this section) covers concepts, authentication, and workflows — start here to learn how the CLI works.
 - **[CLI Commands](/cli/options)** contains the full flag-level reference for each command (`datumctl apply`, `datumctl get`, and so on).
+
+Within this section, the guides build on each other:
+
+- **Getting started** — new to the CLI? The [Quickstart](/datumctl/quickstart) walks you through installing, logging in, picking a context, and running your first command.
+- **Core concepts** — [Contexts & scoping](/datumctl/contexts-and-scoping) explains how a command decides which organization or project it acts on; [Working with resources](/datumctl/working-with-resources) covers the create/read/update/delete workflow; [Discovering resources & schemas](/datumctl/discovering-resources) shows how to find resource types and inspect their fields; and [Output formats & scripting](/datumctl/output-and-scripting) covers machine-readable output, structured errors, and wrapping the CLI in automation.
+- **Interactive & AI** — the [Interactive console](/datumctl/console) is a full-screen terminal UI for browsing resources, and the AI assistant lets you [ask datumctl in natural language and connect MCP clients](/datumctl/ai-and-mcp).
+- **Plugins** — extend the CLI with additional commands. Start with [Using plugins](/datumctl/plugins/using-plugins).
+- **Reference & interop** — [Authentication](/datumctl/authentication), [using datumctl with kubectl (kubectl interop)](/datumctl/kubectl-interop), and the [Activity](/datumctl/activity) audit-log commands.
 
 ## Design goals
 

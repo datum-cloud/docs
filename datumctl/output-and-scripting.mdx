@@ -1,0 +1,217 @@
+---
+title: "Output formats & scripting"
+sidebarTitle: "Output & scripting"
+description: "Machine-readable output, structured errors, exit codes, and patterns for wrapping datumctl in CI pipelines and AI agents."
+---
+
+`datumctl` prints human-friendly tables by default, but it is built to be scripted. Every read command can emit JSON or YAML, errors can be serialized into a structured envelope, and exit codes are predictable. This page shows you how to drive `datumctl` from shell scripts, CI pipelines, and AI agents.
+
+<Info>
+  `datumctl` writes command results to **stdout** and errors to **stderr**. These are two independent channels controlled by two independent flags: `-o`/`--output` shapes the data on stdout, and `--error-format` shapes errors on stderr. You can set them independently.
+</Info>
+
+## Choosing an output format
+
+Read and inspection commands accept the `-o` (or `--output`) flag. When you omit it, `datumctl` prints a formatted table designed for humans. Pass a machine format to get output you can parse.
+
+The `-o` flag is **per-command** — it is not a global flag. It is available on commands that render resources, including `datumctl get`, `datumctl edit`, `datumctl create`, `datumctl apply`, `datumctl version`, and `datumctl api-resources`.
+
+For `datumctl get`, the supported values are:
+
+| Value | Description |
+| --- | --- |
+| _(none)_ | Formatted table (the default), for reading in a terminal. |
+| `wide` | The default table plus extra columns. |
+| `json` | A single JSON document. Best for piping into `jq`. |
+| `yaml` | A YAML document. |
+| `name` | Just the resource identifiers, one per line — ideal for shell loops. |
+| `jsonpath`, `jsonpath-as-json`, `jsonpath-file` | Extract specific fields with a JSONPath expression. |
+| `custom-columns`, `custom-columns-file` | Build your own column layout. |
+| `go-template`, `go-template-file`, `template`, `templatefile` | Render output through a Go template. |
+
+<Note>
+  A few commands take `-o` but with their own value set. `datumctl explain` accepts `-o plaintext` or `-o plaintext-openapiv2` to choose a schema-rendering style, and `datumctl diff` always emits YAML (it has no `-o` flag). When in doubt, run `datumctl <command> --help`.
+</Note>
+
+```bash
+# Default table — human reading
+datumctl get projects --organization <org-id>
+
+# Full resource as JSON
+datumctl get project my-project-id --organization <org-id> -o json
+
+# Full resource as YAML
+datumctl get project my-project-id --organization <org-id> -o yaml
+
+# Just the names, one per line
+datumctl get projects --organization <org-id> -o name
+```
+
+## Piping and jq patterns
+
+Because `-o json` produces standard JSON, you can pipe it straight into [`jq`](https://jqlang.github.io/jq/) or any JSON tooling.
+
+```bash
+# Pull a single field out of one resource
+datumctl get project my-project-id --organization <org-id> -o json \
+  | jq -r '.metadata.name'
+
+# List returns a JSON object with an "items" array — iterate it
+datumctl get projects --organization <org-id> -o json \
+  | jq -r '.items[].metadata.name'
+
+# Filter by a status condition
+datumctl get projects --organization <org-id> -o json \
+  | jq -r '.items[] | select(.status.conditions[]?.type == "Ready") | .metadata.name'
+```
+
+The `name` format is the simplest way to feed identifiers into a loop:
+
+```bash
+# Describe every project in an organization
+datumctl get projects --organization <org-id> -o name \
+  | while read -r ref; do
+      datumctl describe "$ref" --organization <org-id>
+    done
+```
+
+<Tip>
+  For extracting one or two fields you often do not need `jq` at all — a `jsonpath` expression keeps the whole thing in one process:
+
+  ```bash
+  datumctl get projects --organization <org-id> \
+    -o jsonpath='{.items[*].metadata.name}'
+  ```
+</Tip>
+
+## Structured errors
+
+By default `datumctl` prints errors as plain text on stderr, prefixed with `error:`. For automation you can switch to a structured envelope with the global `--error-format` flag.
+
+`--error-format` is a **persistent (global) flag** — it works on every command. It accepts one of three values:
+
+| Value | Behavior |
+| --- | --- |
+| `human` | The default. Human-readable `error: <message>` text on stderr. |
+| `json` | A single-line JSON error envelope. |
+| `yaml` | The same envelope rendered as YAML. |
+
+Passing any other value fails fast before the command runs:
+
+```text
+$ datumctl get organizations --error-format foo
+error: invalid value "foo" for --error-format
+Allowed values: human, json, yaml.
+```
+
+In `json` or `yaml` mode, a failed command emits an envelope under a top-level `error` key:
+
+```bash
+datumctl get projects --organization does-not-exist --error-format json
+```
+
+```json
+{
+  "error": {
+    "message": "the organization \"does-not-exist\" was not found",
+    "hint": "Run 'datumctl get organizations' to see organizations you can access.",
+    "retryable": false
+  }
+}
+```
+
+The `code`, `hint`, and `details` fields are omitted when they are empty, so the exact set of keys varies by error. The envelope fields are:
+
+| Field | Meaning |
+| --- | --- |
+| `message` | The user-facing error message. Always present. |
+| `code` | An optional machine-readable identifier (for example `AUTH_EXPIRED`) that agents can branch on. Omitted when empty. |
+| `hint` | Actionable guidance for resolving the error, when available. Omitted when empty. |
+| `retryable` | `true` when the operation can be safely retried without further action. Always present. |
+| `details` | The underlying technical error, when one is attached. Omitted when empty. |
+
+<Note>
+  `--error-format` only changes how **errors** are serialized on stderr. It does not affect successful command output on stdout — that is controlled entirely by `-o`. A script can safely combine, for example, `-o json` for results and `--error-format json` for failures.
+</Note>
+
+## Treating warnings as errors
+
+`--warnings-as-errors` is a global boolean flag (hidden from `--help` output) that causes server-side warnings returned by resource commands to be treated as failures, producing a non-zero exit. Use it in pipelines when you want deprecation notices or other API warnings to break the build rather than pass silently.
+
+```bash
+datumctl apply -f ./project.yaml --organization <org-id> --warnings-as-errors
+```
+
+## Exit codes
+
+`datumctl` follows conventional exit-code semantics, so scripts can branch on `$?`:
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | Success. |
+| `1` | A general error — for example an unknown command, an invalid flag value, an authentication failure, or an API request that failed. |
+| `>1` | A lower-level fatal error surfaced by the underlying request machinery. |
+
+`datumctl diff` is a special case, mirroring the `diff` convention:
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | No differences were found. |
+| `1` | Differences were found. |
+| `>1` | An error occurred. |
+
+This makes `diff` useful as a gate before writing:
+
+```bash
+datumctl diff -f ./project.yaml --organization <org-id> \
+  && datumctl apply -f ./project.yaml --organization <org-id>
+```
+
+## Wrapping datumctl in scripts and agents
+
+<Steps>
+  <Step title="Authenticate non-interactively">
+    Interactive browser login is the default. For CI and headless environments, pass `--no-browser` to `datumctl login`, or use a service account. Never rely on a prompt that a pipeline cannot answer. See [Authentication](/datumctl/authentication) for the login and session details.
+  </Step>
+  <Step title="Always pass a machine format">
+    Add `-o json` (or `-o yaml`) to read commands and `--error-format json` globally. Do not parse the human table — its columns are meant to change over time.
+  </Step>
+  <Step title="Pin the context explicitly">
+    Pass `--organization` and `--project` on every invocation instead of relying on the active context. Scripts and agents should be self-describing and not depend on ambient state that another process might change. See [Contexts & scoping](/datumctl/contexts-and-scoping) for how scope is resolved and which flags and environment variables win.
+  </Step>
+  <Step title="Branch on exit codes and the error envelope">
+    Check `$?` first. When it is non-zero and you asked for `--error-format json`, parse the `error` envelope: read `retryable` to decide whether to back off and retry, and `code`/`hint` to decide what to do next.
+  </Step>
+  <Step title="Prefer safe, idempotent operations">
+    Use `datumctl apply` for declarative create-or-update, validate with `--dry-run=server`, and preview writes with `datumctl diff -f`. Remember that `datumctl delete` proceeds without a confirmation prompt.
+  </Step>
+</Steps>
+
+<Warning>
+  `datumctl delete` has no confirmation prompt. In automation, gate destructive operations behind an explicit review step or a `--dry-run=client` preview before running the real delete.
+</Warning>
+
+A minimal, robust wrapper looks like this:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+ORG="my-org-id"
+
+if ! output=$(datumctl get projects --organization "$ORG" -o json --error-format json 2>err.json); then
+  code=$(jq -r '.error.code // empty' err.json)
+  retryable=$(jq -r '.error.retryable' err.json)
+  echo "datumctl failed (code=${code:-none}, retryable=$retryable)" >&2
+  exit 1
+fi
+
+echo "$output" | jq -r '.items[].metadata.name'
+```
+
+## Related
+
+- [Authentication](/datumctl/authentication) — how to log in interactively and non-interactively, including `--no-browser` for CI and headless flows.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how the active organization and project are resolved, and how to set them explicitly.
+- [Working with resources](/datumctl/working-with-resources) — the `get`, `apply`, `diff`, and `delete` commands these output and error controls apply to.
+- [Discovering resources & schemas](/datumctl/discovering-resources) — the `api-resources`, `api-versions`, and `explain` commands that also honor `-o` for machine-readable output.

@@ -1,0 +1,165 @@
+---
+title: "Interactive console"
+sidebarTitle: "Interactive console"
+description: "Browse, inspect, and monitor Datum Cloud resources in a full-screen, keyboard-driven terminal interface."
+---
+
+The interactive console is a full-screen terminal UI for browsing and inspecting your Datum Cloud resources. Instead of running one command at a time, you navigate resource types in a sidebar, scroll through resources in a table, and drill into details, quota, activity, and change history — all without leaving the keyboard.
+
+<Info>
+  Reach for the console when you want to *explore* — to see what exists, check quota headroom, or review recent activity at a glance. Reach for plain commands (`datumctl get`, `datumctl apply`, and friends) when you want to *script*, pipe output to JSON or YAML, or make precise, repeatable changes.
+</Info>
+
+## Launching the console
+
+```bash
+datumctl console
+```
+
+The console opens against your active context (the organization and project resolved from your saved configuration). Use `datumctl ctx` beforehand if you want to start somewhere specific — you can also switch context from inside the console at any time. See [Contexts & scoping](/datumctl/contexts-and-scoping) for how that scope is chosen.
+
+If you are not logged in, the console opens on a welcome screen and walks you through authentication in place (see [Logging in from the console](#logging-in-from-the-console)).
+
+### Read-only mode
+
+```bash
+datumctl console --read-only
+```
+
+The `--read-only` flag disables mutation operations, which makes it safe for demos, screen-sharing, or automated testing where you want to browse without any risk of changing resources.
+
+## The layout
+
+The console is organized into a set of panes. You move between them with a few keys and drill deeper as you go.
+
+<CardGroup cols={2}>
+  <Card title="Navigation sidebar" icon="list">
+    The left column lists the resource types available in your context. Move the cursor with `j`/`k` (or the arrow keys) and press `Enter` to load a type.
+  </Card>
+  <Card title="Resource list" icon="table">
+    The main table shows the resources of the selected type, with a live count in the sidebar. It refreshes automatically in the background.
+  </Card>
+  <Card title="Detail view" icon="magnifying-glass">
+    A full description of a single resource, with toggles for raw YAML, status conditions, and events.
+  </Card>
+  <Card title="Dashboards" icon="gauge">
+    Dedicated quota and activity dashboards summarize allowance usage and recent changes across the project.
+  </Card>
+</CardGroup>
+
+### The welcome panel
+
+When a project context is active, the console opens on a welcome panel that greets you with quick-jump shortcuts, a teaser of recent project activity, and a summary of quota health. From here you can jump straight to a common resource type by pressing a single letter — for example `p` for projects, `w` for workloads, `g` for gateways, `b` for backends, `z` for DNS zones and record sets, or `n` for namespaces. A quick-jump key only fires when a matching resource type exists in your current context.
+
+Press `Esc` from a quick-jumped list to return to the welcome panel in a single step.
+
+## Navigating
+
+Most navigation is the same everywhere: move with `j`/`k` or the arrow keys, go deeper with `Enter`, and step back with `Esc`.
+
+| Key | Action |
+| --- | --- |
+| `j` / `k` (or `↓` / `↑`) | Move the cursor down / up |
+| `Tab` / `Shift+Tab` | Switch focus between the sidebar and the resource list |
+| `Enter` | Select — load a resource type, or open the detail view for the highlighted resource |
+| `Esc` | Step back one level (detail → list → welcome panel) |
+| `/` | Filter the current resource list |
+| `r` | Refresh the current view |
+| `c` | Switch organization / project context |
+| `?` | Toggle the full keybind reference |
+| `q` | Quit (`Ctrl+C` force-quits) |
+
+<Note>
+  Press `?` at any time for the built-in keybind reference. The overlay adapts to where you are, so it shows the actions available in the current pane.
+</Note>
+
+## Inspecting a resource
+
+Select a resource type in the sidebar, press `Enter` to load its list, highlight a row, and press `Enter` (or `d`) to open the detail view. The detail view describes the resource and offers several ways to look at it:
+
+| Key | View |
+| --- | --- |
+| `y` | Toggle raw YAML |
+| `C` | Toggle the status conditions table |
+| `E` | Toggle the events table |
+| `A` | Open the per-resource activity log |
+| `H` | Open the resource's change history |
+
+These views are mutually exclusive toggles — pressing the same key again returns you to the standard description. `Esc` closes the detail view and returns you to the list.
+
+### Change history and diffs
+
+From the detail view, press `H` to open the change history for a resource — a list of past revisions. Highlight a revision and press `Enter` to open a diff. In the diff view, use `[` and `]` to step to the previous or next revision. `Esc` walks back out through the history to the detail view.
+
+## Quota dashboard
+
+The quota dashboard turns allowance buckets into a readable summary of how much of each quota you are consuming.
+
+| Key | Action |
+| --- | --- |
+| `3` | Open the quota dashboard from anywhere (press again to return) |
+| `s` | Toggle grouping of buckets |
+| `t` | Toggle between the dashboard and the raw allowance-bucket table |
+| `r` | Refresh quota data |
+
+The console also surfaces a compact quota banner above the resource list when the type you are viewing has associated allowances, so you see pressure without opening the dashboard. If quota is still loading when you press `3`, the console queues the request and opens the dashboard as soon as the data is ready.
+
+## Activity dashboard
+
+Press `4` to open the activity dashboard — a rollup of recent human activity across the current project. Press `4` again (or `Esc`) to return to where you were, and `r` to refresh the rollup. For querying the same audit logs from the command line, see [Activity](/datumctl/activity).
+
+<Note>
+  The activity dashboard is project-scoped. When your context is an organization without a selected project, the dashboard tells you to select a project first.
+</Note>
+
+## AI assistant
+
+Press `a` from any view to open the built-in AI chat pane, where you can ask questions about your resources in natural language. Type your message and press `Enter` to send; `Tab` switches focus to the conversation history sidebar, and `Ctrl+E` exports the current conversation to a Markdown file. `Esc` returns to the view you came from.
+
+<Note>
+  The assistant needs a model API key configured before it can respond. Configure one with `datumctl ai config` before opening the chat pane — see [Ask datumctl in natural language and connect MCP clients](/datumctl/ai-and-mcp).
+</Note>
+
+## Logging in from the console
+
+If you launch the console without an active session, it opens on a welcome screen. Press `l` to start authentication without leaving the terminal:
+
+<Steps>
+  <Step title="Start the device flow">
+    Press `l`. The console contacts your auth endpoint and displays a verification URL and a one-time code.
+  </Step>
+  <Step title="Authorize in your browser">
+    Open the URL and enter the code, or press `b` to open the URL in your default browser automatically.
+  </Step>
+  <Step title="Pick your context">
+    Once authentication succeeds, the console opens the context picker so you can choose the organization and project to work in, then loads your resources.
+  </Step>
+</Steps>
+
+The console logs in against the same auth endpoint your active session last used, so if you previously authenticated against staging (`auth.staging.env.datum.net`), the in-console flow uses that endpoint too. If a login fails, press `l` to try again or `Esc` to dismiss.
+
+## Console vs. plain commands
+
+<Tabs>
+  <Tab title="Use the console when">
+    - You want to browse what exists and how resources relate.
+    - You are checking quota headroom or reviewing recent activity.
+    - You want to inspect a resource's description, conditions, events, or change history interactively.
+    - You are exploring a new project and prefer a navigable view over remembering exact resource names.
+  </Tab>
+  <Tab title="Use plain commands when">
+    - You are scripting or running in CI, where a non-interactive command is required.
+    - You need machine-readable output to pipe elsewhere (`-o json`, `-o yaml`).
+    - You are making precise, repeatable changes with `datumctl apply`, `create`, or `delete`.
+    - You want to diff a local manifest against the server before writing.
+  </Tab>
+</Tabs>
+
+## Next steps
+
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — set your working organization and project before launching the console.
+- [Authentication](/datumctl/authentication) — learn how authentication and stored credentials work.
+- [Working with resources](/datumctl/working-with-resources) — the read/write commands behind the console's views.
+- [Output formats & scripting](/datumctl/output-and-scripting) — machine-readable output and automation for everything you browse here.
+- [Ask datumctl in natural language and connect MCP clients](/datumctl/ai-and-mcp) — the assistant behind the console's chat pane.
+

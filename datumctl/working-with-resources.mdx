@@ -3,7 +3,11 @@ title: "Working with Resources"
 description: "Core patterns for creating, inspecting, and managing Datum resources using datumctl."
 ---
 
-`datumctl` follows the same resource model as `kubectl`. If you are familiar with Kubernetes, these patterns will feel immediately familiar. If not, a small set of commands covers most day-to-day work.
+`datumctl` uses a single, consistent resource model: the same handful of verbs — `get`, `apply`, `describe`, `delete` — work across every Datum Cloud resource type. Learn them once and you can manage anything the platform exposes, with no Kubernetes knowledge required.
+
+<Info>
+  New to the CLI? Start with the [Quickstart](/datumctl/quickstart) to install, log in, and run your first command. Every command here runs against your active scope — see [Contexts & scoping](/datumctl/contexts-and-scoping) to control which organization or project that is.
+</Info>
 
 ---
 
@@ -14,9 +18,12 @@ description: "Core patterns for creating, inspecting, and managing Datum resourc
 | `datumctl get <resource>` | List resources |
 | `datumctl get <resource> <name> -o yaml` | View a full resource definition |
 | `datumctl explain <resource>` | Inspect the API schema for a resource type |
-| `datumctl explain <resource> --recursive` | View the full schema tree |
 | `datumctl apply -f <file>` | Create or update a resource from a file or stdin |
 | `datumctl delete <resource> <name>` | Delete a resource |
+
+<Note>
+  Not sure which resource types exist or what fields they take? [Discovering resources & schemas](/datumctl/discovering-resources) covers `api-resources`, `api-versions`, and `explain` in depth.
+</Note>
 
 ---
 
@@ -35,9 +42,9 @@ description: "Core patterns for creating, inspecting, and managing Datum resourc
 
 Datum resources are defined declaratively. This means you can:
 
-- Inspect the API structure directly from the platform using `datumctl explain`
+- Inspect the API structure directly from the platform using `datumctl explain` (see [Discovering resources & schemas](/datumctl/discovering-resources))
 - Store resource definitions in version control
-- Automate deployments via CI/CD pipelines
+- Automate deployments via CI/CD pipelines (see [Output formats & scripting](/datumctl/output-and-scripting))
 - Treat network configuration as code
 
 A typical workflow looks like this:
@@ -46,6 +53,9 @@ A typical workflow looks like this:
 # Inspect the schema
 datumctl explain httpproxy --recursive
 
+# Preview the change before writing
+datumctl diff --project my-project --namespace default -f proxy.yaml
+
 # Apply a configuration
 datumctl apply --project my-project --namespace default -f proxy.yaml
 
@@ -53,25 +63,29 @@ datumctl apply --project my-project --namespace default -f proxy.yaml
 datumctl get httpproxy my-proxy --namespace default -o yaml
 ```
 
+<Tip>
+  Prefer `datumctl diff -f` and `--dry-run=server` before writes, and remember that `datumctl delete` has no confirmation prompt. [Output formats & scripting](/datumctl/output-and-scripting) covers safe patterns for automation.
+</Tip>
+
 ---
 
 ## Namespaces
 
-All resources are created in a namespace. Current examples use the `default` namespace:
+Many project-scoped resources live in a namespace. The examples above use the `default` namespace:
 
 ```bash
 --namespace default
 ```
 
-If your CLI defaults to `default`, you may omit it from commands. To check your current context:
-
-```bash
-datumctl config view
-```
+If a command targets the `default` namespace, you may omit the flag. Which organization or project a command runs against — and how to switch — is covered in [Contexts & scoping](/datumctl/contexts-and-scoping); run `datumctl ctx` to see your active context.
 
 ---
 
 ## Next Steps
 
-- [Authentication](/datumctl/authentication) — Log in and manage credentials
-- [CLI Reference](/cli/options) — Full flag-level reference for every command
+- [Discovering resources & schemas](/datumctl/discovering-resources) — find resource types and inspect their fields before authoring manifests
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — control which organization or project commands act on
+- [Output formats & scripting](/datumctl/output-and-scripting) — machine-readable output, structured errors, and CI patterns
+- [Interactive console](/datumctl/console) — browse and inspect the same resources in a full-screen UI
+- [Authentication](/datumctl/authentication) — log in and manage credentials
+- [CLI Commands](/cli/options) — full flag-level reference for every command

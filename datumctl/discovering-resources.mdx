@@ -1,0 +1,170 @@
+---
+title: "Discovering resources & schemas"
+sidebarTitle: "Discovering resources"
+description: "Find which Datum Cloud resource types exist and inspect their fields before you author manifests."
+---
+
+Before you can create or update a resource, you need to know two things: which
+resource types Datum Cloud offers, and what fields each type accepts. `datumctl`
+answers both questions directly from the API server, so what you see always
+reflects the exact version of the platform you are connected to.
+
+Three commands cover discovery:
+
+| Command | Answers |
+|---------|---------|
+| `datumctl api-resources` | Which resource types can I manage? |
+| `datumctl api-versions` | Which API group/version pairs are available? |
+| `datumctl explain <type>` | What fields does this type have, and what do they mean? |
+
+<Info>
+  These commands read from the control plane for your **currently configured
+  context**. Make sure you are logged in (see [Authentication](/datumctl/authentication))
+  and have an organization or project selected first — pass `--organization <org-id>`
+  or `--project <project-id>`, or set a default context. See
+  [Contexts & scoping](/datumctl/contexts-and-scoping) for how that scope is chosen.
+</Info>
+
+## List available resource types
+
+`datumctl api-resources` prints a table of every resource type the current
+control plane supports. It is the starting point for discovering what you can
+manage with `datumctl get`, `datumctl apply`, and `datumctl explain`. The table
+includes each type's short names, API group, whether it is namespaced, and its
+kind.
+
+```bash
+# List all available resource types
+datumctl api-resources
+```
+
+The list is fetched fresh from the server on each run. To reuse a locally
+cached copy, pass `--cached`.
+
+### Narrow and sort the list
+
+For a busy control plane, filter and reshape the output to find what you need:
+
+```bash
+# Show extra detail, including verbs and short names
+datumctl api-resources -o wide
+
+# Sort by name
+datumctl api-resources --sort-by=name
+
+# Only namespaced resource types
+datumctl api-resources --namespaced=true
+
+# Only resource types in a specific API group
+datumctl api-resources --api-group=networking.datumapis.com
+```
+
+<Note>
+  The short names shown here are the same aliases you can use anywhere a
+  resource type is expected — for example in `datumctl get`, `datumctl explain`,
+  or `datumctl describe`.
+</Note>
+
+## List API versions
+
+`datumctl api-versions` prints every API group/version combination the current
+control plane exposes, one per line in the form `group/version` (for example,
+`networking.datumapis.com/v1alpha`).
+
+```bash
+# List all API group/version pairs
+datumctl api-versions
+```
+
+This is the value you place in the `apiVersion` field of a manifest. Use
+`api-versions` when you need the group/version string, and `api-resources` when
+you also want to see the individual resource types within each group.
+
+## Inspect a type's schema
+
+Once you know a type exists, `datumctl explain` shows its schema and field-level
+documentation. Information is retrieved from the API server in OpenAPI format,
+so it always matches the platform version you are connected to.
+
+```bash
+# Show the schema for the Project resource type
+datumctl explain projects
+```
+
+Fields are referenced with dot notation — `TYPE.fieldName.subFieldName` — so you
+can drill into any part of the tree:
+
+```bash
+# Show documentation for just the spec field
+datumctl explain projects.spec
+```
+
+To see the whole schema tree at once instead of one level at a time, use
+`--recursive`:
+
+```bash
+# Expand every field recursively
+datumctl explain projects --recursive
+```
+
+If you prefer the OpenAPI v2 rendering, request it explicitly:
+
+```bash
+# Use the OpenAPI v2 output format
+datumctl explain projects --output=plaintext-openapiv2
+```
+
+## From discovery to a manifest
+
+Discovery feeds directly into authoring manifests for `datumctl apply` and
+`datumctl create`. A typical flow:
+
+<Steps>
+  <Step title="Find the type">
+    Run `datumctl api-resources` to confirm the resource type exists and note
+    its kind and API group.
+
+    ```bash
+    datumctl api-resources --api-group=networking.datumapis.com
+    ```
+  </Step>
+  <Step title="Get the apiVersion">
+    Run `datumctl api-versions` to find the exact `group/version` string for
+    that group.
+
+    ```bash
+    datumctl api-versions
+    ```
+  </Step>
+  <Step title="Learn the fields">
+    Run `datumctl explain <type>` (add `--recursive` for the full tree) to see
+    which fields are required and what they do.
+
+    ```bash
+    datumctl explain projects --recursive
+    ```
+  </Step>
+  <Step title="Write and validate the manifest">
+    Author your YAML with the `apiVersion`, `kind`, and `spec` fields you
+    discovered, then validate it against the server before persisting.
+
+    ```bash
+    datumctl apply -f ./project.yaml --organization <org-id> --dry-run=server
+    ```
+  </Step>
+</Steps>
+
+<Tip>
+  `datumctl explain <type>.spec` is the fastest way to see exactly which fields
+  belong under `spec` when you are filling out a new manifest.
+</Tip>
+
+## Related
+
+- [Working with resources](/datumctl/working-with-resources) — author, apply, and edit
+  resources once you know which types exist and what fields they take.
+- [Output formats & scripting](/datumctl/output-and-scripting) — render this discovery
+  output as JSON or YAML and pipe it into other tooling.
+- [Authentication](/datumctl/authentication) — sign in before querying the control plane.
+- The [CLI Commands reference](/cli/options) for `api-resources`, `api-versions`, and
+  `explain`.
