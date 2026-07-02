@@ -54,7 +54,7 @@ Because the setup step authenticates for you, later steps run `datumctl` without
 | --- | --- | --- | --- |
 | `credentials` | Yes | — | Service account credentials JSON used to authenticate `datumctl`. Accepts either raw JSON or a base64-encoded blob. Always supply this from a secret — never inline it. |
 | `version` | No | `v0.15.0` | The `datumctl` release tag to install. Pin this to a known release for reproducible builds. |
-| `auth-hostname` | No | `auth.datum.net` | Datum Cloud authentication hostname. Set to `auth.staging.env.datum.net` to target the staging environment. |
+| `auth-hostname` | No | `auth.datum.net` | Datum Cloud authentication hostname. Override it (for example `auth.example.com`) to target a self-hosted or otherwise custom environment. |
 
 ## Outputs
 
@@ -130,15 +130,15 @@ The `credentials` input expects a service account credentials JSON document. Cre
   Treat the downloaded credentials file as sensitive. Store it only in GitHub's encrypted secrets (or your CI's secret store), rotate it periodically, and remove the local copy after uploading it.
 </Warning>
 
-## Targeting staging
+## Targeting a custom environment
 
-To run against the Datum Cloud staging environment, set the `auth-hostname` input:
+To run against a self-hosted or otherwise custom Datum Cloud environment, set the `auth-hostname` input:
 
 ```yaml
       - uses: datum-cloud/setup-datumctl-action@v1
         with:
           credentials: ${{ secrets.DATUM_SA_CREDENTIALS }}
-          auth-hostname: auth.staging.env.datum.net
+          auth-hostname: auth.example.com
 ```
 
 <Note>
