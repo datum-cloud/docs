@@ -1,0 +1,162 @@
+---
+title: "Change history & feed"
+sidebarTitle: "Change history & feed"
+description: "Trace what changed on a single resource with datumctl activity history, and watch a merged, human-readable timeline across resource types with datumctl activity feed."
+---
+
+Two `datumctl activity` subcommands answer the "what just happened?" questions that come up when you own a resource or operate a whole project:
+
+- **`datumctl activity history`** — zoom in on one resource. What changed, by whom, and what did the spec look like before?
+- **`datumctl activity feed`** — zoom out to a merged, human-readable timeline across every resource type, so you can spot what moved across the project and separate human changes from automated ones.
+
+Both honor the active context and the `--project` / `--organization` flags like every other command — see [Contexts & scoping](/datumctl/contexts-and-scoping) for how scope is resolved.
+
+<Info>
+  `history` and `feed` are two of the four `datumctl activity` subcommands. When you need the raw record of *who did what* for compliance, or lifecycle events with warnings, reach for [audit and resource events](/datumctl/activity/audit-and-events) instead.
+</Info>
+
+## History: what changed on this resource?
+
+> _"Something on my project looks different. What changed, who changed it, and what did the spec look like before?"_
+
+If you own a resource — an app developer or resource owner watching your own project, or an on-call responder pinning down the exact change behind an incident — `datumctl activity history` gives you a chronological log of modifications to a single resource's spec.
+
+You pass the resource type and name positionally:
+
+```bash
+# The change history for one project, oldest to newest
+datumctl activity history projects my-project-id
+```
+
+### See what changed with --diff
+
+The table tells you *when* a resource changed and *who* changed it. To see *what* changed, add `--diff` — it renders a unified diff of the spec between each consecutive version, so you read the change the way you'd read a code review.
+
+```bash
+# Show the spec diff between each version of the project
+datumctl activity history projects my-project-id --diff
+```
+
+<Note>
+  `--diff` compares consecutive versions and strips noisy bookkeeping fields so you see the meaningful spec changes, not churn in server-managed metadata.
+</Note>
+
+By default `history` looks back **30 days** (`now-30d`) and returns up to 100 versions per page. Widen or narrow the window with `--start-time` / `--end-time`, which accept both relative expressions and absolute RFC3339 timestamps:
+
+```bash
+# Only changes in the last 24 hours — narrowing to an incident window
+datumctl activity history projects my-project-id --diff --start-time now-24h
+
+# An explicit calendar range
+datumctl activity history projects my-project-id \
+  --start-time 2026-06-01T00:00:00Z --end-time 2026-06-30T23:59:59Z
+```
+
+You can also render history in a machine format for tooling with `-o json` or `-o yaml`.
+
+<Tip>
+  **Incident investigation.** When a resource starts misbehaving, `datumctl activity history <type> <name> --diff --start-time now-1h` shows you the exact spec change that landed just before the symptoms — often the fastest path from "it broke" to "here's the line that changed."
+</Tip>
+
+## Feed: what's happening across the project?
+
+> _"What is going on across this project right now, and which changes came from a person versus an automated system?"_
+
+If you run the platform — a platform administrator or an SRE on call — `datumctl activity feed` merges audit events, resource events, and change history into one human-readable timeline across every resource type. Each row shows a timestamp, the actor, the change source, and a plain-language summary.
+
+```bash
+# The combined activity feed for the active project
+datumctl activity feed
+```
+
+By default the feed covers the last **24 hours** (`now-24h`). Adjust the window the same way as history:
+
+```bash
+# Everything in the last hour — a fast timeline during an incident
+datumctl activity feed --start-time now-1h
+```
+
+### Separate human changes from system changes
+
+The single most useful triage filter is `--change-source`. It accepts exactly two values, `human` and `system`, letting you answer "did a person do this, or did an automated controller?" at a glance.
+
+```bash
+# Only changes a person initiated
+datumctl activity feed --change-source human
+
+# Only changes made by automated systems / controllers
+datumctl activity feed --change-source system
+```
+
+### Narrow the feed
+
+Layer these filters to focus the timeline:
+
+| Flag | Narrows the feed to |
+| --- | --- |
+| `--actor` | A specific actor (for example a user email or service account) |
+| `--kind` | A single resource kind |
+| `--api-group` | A single API group |
+| `--resource-uid` | The history of one specific resource, by UID |
+| `--search` | A full-text match against the human-readable summaries |
+
+```bash
+# What has one person been doing?
+datumctl activity feed --actor alice@example.com
+
+# Everything related to a specific resource kind
+datumctl activity feed --kind Workload
+
+# Full-text search across summaries
+datumctl activity feed --search "created HTTPProxy"
+```
+
+For advanced cases, `--filter` takes a server-side CEL expression (for example `spec.resource.kind in ['Workload', 'HTTPProxy']`).
+
+### Watch live during an incident
+
+Add `--watch` (`-w`) to stream new activity as it happens instead of printing a snapshot and exiting — invaluable when you're actively working an incident and want to see changes land in real time.
+
+```bash
+# Stream human-initiated changes live
+datumctl activity feed --change-source human --watch
+```
+
+<Warning>
+  In `--watch` mode, use the field-selector filters (`--actor`, `--kind`, `--change-source`, `--namespace`) to narrow the live stream. The CEL `--filter` expression is **not** supported while watching — combining `--filter` with `--watch` is rejected.
+</Warning>
+
+<Steps>
+  <Step title="Establish the timeline">
+    Start with `datumctl activity feed --start-time now-1h` to see everything that moved around the time of the incident.
+  </Step>
+  <Step title="Split human vs system">
+    Add `--change-source human` or `--change-source system` to decide whether a person or a controller triggered the change.
+  </Step>
+  <Step title="Pin the exact change">
+    Once you've identified the affected resource, switch to `datumctl activity history <type> <name> --diff` to read the precise spec change.
+  </Step>
+  <Step title="Watch for the next move">
+    Leave `datumctl activity feed --watch` running to catch follow-on changes live as you remediate.
+  </Step>
+</Steps>
+
+## Output and pagination
+
+Both subcommands share the standard activity query model. The default is a table; pass `-o json`, `-o yaml`, or a `jsonpath` expression for machine-readable output, and add `--no-headers` to drop the table header. Use `--limit` (default 25 on `feed`, 100 on `history`; max 1000), `--all-pages`, and `--continue-after` to page through large result sets.
+
+```bash
+# Extract just the summaries from the feed as newline-friendly output
+datumctl activity feed --start-time now-7d \
+  -o jsonpath='{.items[*].spec.summary}'
+```
+
+See [Output formats & scripting](/datumctl/output-and-scripting) for the full set of formats, structured errors, and patterns for wrapping `datumctl` in automation.
+
+## Related
+
+- [Querying activity](/datumctl/activity/overview) — the hub for the whole `activity` command family, including the persona routing table and the shared query model.
+- [Audit logs & events](/datumctl/activity/audit-and-events) — the `audit` and `events` subcommands, for the immutable record of who did what and lifecycle events with warnings.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how the active organization and project are resolved before a history or feed query runs.
+- [Discovering resources & schemas](/datumctl/discovering-resources) — find the `RESOURCE_TYPE` name that `activity history` expects as its first positional argument.
+- [Output formats & scripting](/datumctl/output-and-scripting) — machine-readable output, JSONPath, and pagination for piping activity into tooling.

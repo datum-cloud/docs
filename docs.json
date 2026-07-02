@@ -156,8 +156,15 @@
               "datumctl/contexts-and-scoping",
               "datumctl/working-with-resources",
               "datumctl/discovering-resources",
-              "datumctl/output-and-scripting",
-              "datumctl/activity"
+              "datumctl/output-and-scripting"
+            ]
+          },
+          {
+            "group": "Activity & audit",
+            "pages": [
+              "datumctl/activity/overview",
+              "datumctl/activity/audit-and-events",
+              "datumctl/activity/change-history-and-feed"
             ]
           },
           {
