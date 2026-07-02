@@ -264,6 +264,37 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "API resources",
+        "icon": "boxes-stacked",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview"
+            ]
+          },
+          {
+            "group": "DNS",
+            "pages": [
+              "api/dns/overview",
+              "api/dns/dnszone",
+              "api/dns/dnsrecordset",
+              "api/dns/dnszoneclass"
+            ]
+          },
+          {
+            "group": "Networking",
+            "pages": [
+              "api/networking/overview",
+              "api/networking/network",
+              "api/networking/subnet",
+              "api/networking/httpproxy",
+              "api/networking/domain"
+            ]
+          }
+        ]
       }
     ]
   },

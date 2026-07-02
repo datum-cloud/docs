@@ -1,0 +1,53 @@
+---
+title: "API resources"
+sidebarTitle: "Overview"
+description: "The resource and field reference for Datum Cloud services."
+---
+
+This section is the **resource and field reference** for Datum Cloud. It documents the resources each service exposes and the fields you set and read on them — what a resource *is*, not how to accomplish a task with it.
+
+<Info>
+  Looking for how-to guides or the CLI command list instead? Here's how the three references fit together:
+
+  - **API resources** (you are here) — the resource/field reference: what fields a resource has, their types, and what they mean.
+  - **[datumctl](/datumctl/overview)** — task-oriented how-to guides for using the CLI.
+  - **[CLI Commands](/cli/options)** — the command and flag reference for `datumctl`.
+</Info>
+
+<Warning>
+  The Datum Cloud API is currently **alpha** (`v1alpha`/`v1alpha1`). Resources, fields, and defaults may change in backward-incompatible ways between releases.
+</Warning>
+
+## Browse by service
+
+Resources are organized by the service that owns them.
+
+<CardGroup cols={2}>
+  <Card title="DNS" icon="globe" href="/api/dns/overview">
+    Managed DNS zones and records for your domains.
+  </Card>
+  <Card title="Networking" icon="network-wired" href="/api/networking/overview">
+    Networks, gateways, and connectivity resources.
+  </Card>
+</CardGroup>
+
+## How to read these pages
+
+Each resource page follows the same structure:
+
+- **Identity** — the resource's kind, API group and version, and scope. Scope is either **Project** (the resource lives inside a project) or **Platform** (the resource is shared across the platform).
+- **Spec fields** — the fields you set to declare the resource's desired state. Fields marked *Required* must be supplied; everything else is optional.
+- **Status** — the fields the platform populates to report observed state. These are read-only.
+- **Usage** — how to create, read, and inspect the resource with `datumctl`.
+
+Manifests are applied with `datumctl apply -f`, and you can read or inspect resources with `datumctl get` and `datumctl describe`.
+
+```bash
+datumctl apply -f my-resource.yaml
+datumctl get <resource>
+datumctl describe <resource> <name>
+```
+
+<Tip>
+  Field types and required markers throughout this reference come straight from the live API schema, which you can also explore from the CLI with `datumctl explain`.
+</Tip>

@@ -1,0 +1,39 @@
+---
+title: "Networking"
+sidebarTitle: "Overview"
+description: "API reference for the networking.datumapis.com service — networks, subnets, HTTP proxies, and domains on Datum Cloud."
+---
+
+Datum Cloud networking lets you define and connect the infrastructure your applications run on. The `networking.datumapis.com` service groups the resources that describe your network topology and how traffic reaches your services: private [Networks](/api/networking/network) with their addressing, the [Subnets](/api/networking/subnet) carved out of them, [HTTPProxies](/api/networking/httpproxy) that expose services over HTTP, and the [Domains](/api/networking/domain) that name them. You create and update these resources declaratively with `datumctl apply -f`, and inspect them with `datumctl get` and `datumctl describe`.
+
+<Warning>
+  These resources are **alpha** (`v1alpha`). The API surface — fields, defaults, and behavior — may change in backward-incompatible ways between releases.
+</Warning>
+
+## Piloted resources
+
+This reference documents a pilot subset of the networking service. More resources exist in `networking.datumapis.com`; the pages below cover the ones available in the pilot.
+
+<CardGroup cols={2}>
+  <Card title="Network" icon="network-wired" href="/api/networking/network">
+    Define a private network with its IP families, address management, and MTU.
+  </Card>
+  <Card title="Subnet" icon="sitemap" href="/api/networking/subnet">
+    Carve an addressable range out of a network.
+  </Card>
+  <Card title="HTTPProxy" icon="globe" href="/api/networking/httpproxy">
+    Expose a service over HTTP with a convenient reverse-proxy configuration.
+  </Card>
+  <Card title="Domain" icon="tag" href="/api/networking/domain">
+    Register a domain name in Datum for use by other networking resources.
+  </Card>
+</CardGroup>
+
+<Tip>
+  New to editing Datum resources? See [Changing resources](/datumctl/resources/changing) for how to apply, edit, and safely preview changes with `datumctl`.
+</Tip>
+
+## Learn more
+
+- [API resources overview](/api/overview) — the resource reference landing page across all Datum Cloud services.
+- [Reading resources](/datumctl/resources/reading) — how to list, get, and inspect these resources with `datumctl`.

@@ -1,0 +1,74 @@
+---
+title: "DNSZoneClass"
+sidebarTitle: "DNSZoneClass"
+description: "DNSZoneClass is the Schema for the dnszoneclasses API."
+---
+
+<Note>
+  API resource reference for **DNSZoneClass**, part of the [DNS service](/api/dns/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to read or inspect, see [Reading resources](/datumctl/resources/reading). For the underlying concept, see [Domains & DNS](/domain-dns/dns).
+</Note>
+
+<Warning>
+  This resource is part of the `v1alpha1` API and is subject to change. Fields and behavior may evolve in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| **Group** | `dns.networking.miloapis.com` |
+| **Version** | `v1alpha1` |
+| **Kind** | `DNSZoneClass` |
+| **Scope** | Platform |
+
+## Overview
+
+A `DNSZoneClass` describes a class of DNS zone: which downstream controller or backend implementation serves the zones that reference it, and the default behavior applied to those zones. You define a `DNSZoneClass` once, at the Platform level, so that individual DNS zones can select a backend (for example, `powerdns` or `hickory`) along with default TTLs and a nameserver-assignment policy.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.controllerName` | string | Yes | Identifies the downstream controller/backend implementation (e.g., `powerdns`, `hickory`). |
+| `spec.defaults` | Object | No | Provides optional default values applied to managed zones. |
+| `spec.defaults.defaultTTL` | integer | No | Default TTL applied to records when not otherwise specified. |
+| `spec.nameServerPolicy` | Object | No | Defines how nameservers are assigned for zones using this class. |
+| `spec.nameServerPolicy.mode` | string | Yes | Which policy to use. Enum: `Static`. |
+| `spec.nameServerPolicy.static` | Object | No | A static list of authoritative nameservers when `mode == "Static"`. |
+| `spec.nameServerPolicy.static.servers` | []string | Yes | The authoritative nameservers. |
+
+<Info>
+  `spec.nameServerPolicy.mode` and `spec.nameServerPolicy.static.servers` are only required when their parent object is present. The single top-level required field is `spec.controllerName`.
+</Info>
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.conditions` | []Object | Represent the current state of the resource. Common types include `Accepted` and `Programmed` to standardize readiness reporting across controllers. |
+
+## Usage
+
+```yaml
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSZoneClass
+metadata:
+  name: powerdns
+spec:
+  controllerName: powerdns
+```
+
+```bash
+# Create or update the DNSZoneClass
+datumctl apply -f dnszoneclass.yaml
+
+# List all DNSZoneClasses
+datumctl get dnszoneclasses
+
+# Inspect a single DNSZoneClass
+datumctl describe dnszoneclass powerdns
+```
+
+<Tip>
+  Run `datumctl explain dnszoneclasses --recursive` to see the full, live field tree for this resource.
+</Tip>

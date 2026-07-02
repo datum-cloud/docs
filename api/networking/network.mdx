@@ -1,0 +1,70 @@
+---
+title: "Network"
+sidebarTitle: "Network"
+description: "Network is the Schema for the networks API."
+---
+
+<Note>
+  API resource reference for **Network**, part of the [Networking service](/api/networking/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to read or inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  The `networking.datumapis.com/v1alpha` API is **alpha** and subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| **Group** | `networking.datumapis.com` |
+| **Version** | `v1alpha` |
+| **Kind** | `Network` |
+| **Scope** | Project |
+
+## Overview
+
+A Network defines a connectivity fabric within a Datum Cloud project. You use it to establish the IP addressing plan for your workloads — choosing which IP families are permitted, how addresses are allocated (IPAM), and the network MTU. Create a Network when you need a dedicated addressable space for the resources in a project.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.ipFamilies` | `[]string` | No | IP families to permit on a network. Defaults to IPv4. |
+| `spec.ipam` | `Object` | Yes | IPAM settings for the network. |
+| `spec.ipam.ipv4Range` | `string` | No | IPv4 range to use in auto mode networks. Defaults to `10.128.0.0/9`. |
+| `spec.ipam.ipv6Range` | `string` | No | IPv6 range to use in auto mode networks. Defaults to a `/48` allocated from `fd20::/20`. |
+| `spec.ipam.mode` | `string` | Yes | IPAM mode. One of `Auto`, `Policy`. |
+| `spec.mtu` | `integer` | No | Network MTU. May be between 1300 and 8856. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.conditions` | `[]Object` | Represents the observations of a network's current state. |
+
+## Usage
+
+```yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: Network
+metadata:
+  name: my-network
+spec:
+  ipam:
+    mode: Auto
+```
+
+```bash
+# Apply the manifest
+datumctl apply -f network.yaml --project my-project
+
+# List networks in the project
+datumctl get networks --project my-project
+
+# Inspect a single network
+datumctl describe network my-network --project my-project
+```
+
+<Tip>
+  Run `datumctl explain networks --recursive` to see the full, live field tree for this resource.
+</Tip>
