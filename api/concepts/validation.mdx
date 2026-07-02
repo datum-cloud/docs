@@ -1,0 +1,50 @@
+---
+title: "Validation & safe changes"
+sidebarTitle: "Validation & safe changes"
+description: "How the Datum Cloud API validates resources on write, and how to preview changes before they take effect."
+---
+
+Every write to the Datum Cloud API is validated before it is accepted. If a resource does not meet the schema, the API rejects the whole request and changes nothing — a rejected write never partially applies.
+
+## What the API checks
+
+When you create or update a resource, the API validates the submitted fields against the live schema for that resource's kind. Common checks include:
+
+- **Required fields** — fields marked *Required* on a resource page must be present. For a [`DNSZone`](/api/dns/dnszone), for example, both `spec.dnsZoneClassName` and `spec.domainName` are required.
+- **Enums** — fields that accept a fixed set of values reject anything outside that set.
+- **Formats and types** — strings, integers, durations, and formatted values (such as hostnames) must match the expected shape.
+- **Cross-field and reference rules** — some resources enforce relationships between fields or that referenced resources exist.
+
+<Note>
+  The full field list, types, and required markers for each resource come from the live schema. Browse them on the resource pages in this reference, or explore them from the CLI — see [Discovering resources & schemas](/datumctl/discovering-resources).
+</Note>
+
+## Preview before you apply
+
+You don't have to submit a write to find out whether it's valid. The API can run the same validation against a proposed change and report the result without persisting anything.
+
+- **`datumctl diff -f`** shows what a manifest would change against the current live state.
+- **`--dry-run=server`** sends the resource through full server-side validation and admission, then discards it — so you see the exact errors a real write would produce, with nothing committed.
+
+See [Safe changes & declarative config](/datumctl/resources/safe-changes) for how to combine these into a review-before-apply workflow.
+
+<Tip>
+  Previewing is especially worthwhile for cross-resource changes such as a [`HTTPRoute`](/api/networking/gateway/httproute) that references a gateway — validation surfaces broken references before they reach production.
+</Tip>
+
+## Machine-readable failures
+
+For scripts and automation, validation errors can be emitted in a structured form instead of human-readable text. Use `--error-format` to get machine-readable failures you can parse in CI. See [Output formats & scripting](/datumctl/output-and-scripting).
+
+<Warning>
+  The Datum Cloud API is currently **alpha** (`v1alpha1`; the Gateway API resources are served at `v1`). Validation rules, required fields, and defaults may change in backward-incompatible ways between releases.
+</Warning>
+
+## Related
+
+- [Safe changes & declarative config](/datumctl/resources/safe-changes) — the review-before-apply workflow with `datumctl diff` and `--dry-run=server`.
+- [Output formats & scripting](/datumctl/output-and-scripting) — machine-readable validation failures for CI with `--error-format`.
+- [Field formats & types](/api/concepts/field-formats) — the types, formats, enums, and required markers the API enforces here.
+- [API conventions](/api/concepts/conventions) — the declarative model behind every write.
+- [Resource references](/api/concepts/references) — how cross-resource reference checks behave.
+- [Discovering resources & schemas](/datumctl/discovering-resources) — inspect the live schema a write is validated against.

@@ -1,0 +1,115 @@
+---
+title: "Resource references"
+sidebarTitle: "Resource references"
+description: "How one Datum Cloud resource points at another through a reference object, and how to follow those links."
+---
+
+Resources in Datum Cloud rarely stand alone. A route attaches to a gateway, a zone belongs to a domain, an access policy binds a role — and each of those relationships is expressed the same way: with a **reference object**. This page explains that common pattern so you can recognize it on any resource page, regardless of the service.
+
+<Info>
+  This is a resource-agnostic concept page. For the resources cited as examples, see [DNSZone](/api/dns/dnszone), [HTTPRoute](/api/networking/gateway/httproute), and [SecurityPolicy](/api/networking/envoy/securitypolicy). For how to read and change resources with the CLI, see [Reading resources](/datumctl/resources/reading) and [Changing resources](/datumctl/resources/changing).
+</Info>
+
+## The pattern
+
+A reference is a small object embedded in one resource that identifies another resource. By convention its field name ends in **`Ref`** (a single reference) or **`Refs`** (a list of references). Instead of copying the target's data inline, the referencing resource just names the target and lets the platform resolve the link.
+
+A reference object typically carries some subset of these keys:
+
+| Key | Meaning |
+| --- | --- |
+| `name` | The name of the target resource. Almost always present, and usually required. |
+| `kind` | The target's resource type (e.g. `Gateway`, `Role`). Present when a field can point at more than one type. |
+| `group` (or `apiGroup`) | The API group the target's kind belongs to. Distinguishes types that share a name across services. |
+| `namespace` | The scope the target lives in, when it may differ from the referencing resource's own scope. |
+
+Simpler references carry only a `name` because the target's type is fixed by the field itself. Broader references — ones that can point at several kinds of resource — add `kind` and `group` so the target is unambiguous.
+
+<Note>
+  A reference's `namespace` key is the raw metadata field on the target. In Datum Cloud terms, resources are scoped to a **Project** or to the **Platform**; a reference within a Project usually omits `namespace` and resolves to that same Project unless it explicitly points elsewhere.
+</Note>
+
+## Where references appear
+
+References show up in both halves of a resource:
+
+- In **`spec`**, a reference is part of the desired state *you* declare — you are telling the platform which other resource to relate to.
+- In **`status`**, a reference is populated by the platform to report a relationship it *discovered or established* on your behalf. Status references are read-only.
+
+## Real examples
+
+The examples below are all confirmed on their resource pages.
+
+### A fixed-type reference: `DNSZone.status.domainRef`
+
+A [`DNSZone`](/api/dns/dnszone) reports the [`Domain`](/api/networking/domain) it belongs to through `status.domainRef`. This is a platform-populated (read-only) reference: you create the zone with a domain name, and the platform links it to the managing `Domain` and records that link in status. Because the target is always a `Domain`, the reference needs little more than a name.
+
+### A multi-target list of references: `HTTPRoute.spec.parentRefs`
+
+An [`HTTPRoute`](/api/networking/gateway/httproute) attaches to the gateways that serve it through `spec.parentRefs`, a list of reference objects you declare:
+
+```yaml
+spec:
+  parentRefs:
+    - name: example-gateway   # required
+      # kind, group, namespace, sectionName, port are optional
+```
+
+Each entry requires `name` and accepts optional `group`, `kind`, `namespace`, `sectionName`, and `port`. The extra keys exist because a parent is usually — but not always — a `Gateway`; supplying `kind` and `group` disambiguates when it isn't, and `sectionName` narrows the attachment to a specific listener within the parent. The referenced parent must also allow the attachment, so a reference expresses *intent*, not a guarantee.
+
+### A policy target reference: `SecurityPolicy.spec.targetRefs`
+
+A [`SecurityPolicy`](/api/networking/envoy/securitypolicy) is not embedded in the gateway it protects — it attaches to one through `spec.targetRefs`:
+
+```yaml
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: my-gateway
+```
+
+Here `group`, `kind`, and `name` are all required. This is the typical shape for **policy attachment**: a standalone policy resource points at the resource it governs, so you can add, change, or remove the policy without editing the target. (A [`PolicyBinding`](/api/iam/policybinding) uses the same idea for access control, binding a `Role` to subjects through a `roleRef`.)
+
+## Following a reference
+
+A reference is a lookup key, not the target's data. To inspect what a reference points at, read the target resource by the name (and, where present, kind and scope) the reference gives you.
+
+For example, once you have a route's `parentRefs`, you can look up the gateway it names:
+
+```bash
+# See the references on the route
+datumctl get httproute example-route -o yaml --project my-project
+
+# Follow one: read the parent it names
+datumctl get gateway example-gateway --project my-project
+```
+
+The same approach works in reverse: from a `DNSZone` you can follow `status.domainRef` to the `Domain`, and from there see the domain's own status.
+
+<Tip>
+  `datumctl describe` often surfaces related resources and the conditions that report whether a reference resolved successfully — a good first stop when a relationship isn't behaving as expected.
+</Tip>
+
+## When a reference doesn't resolve
+
+Because a reference only names a target, the target may be missing, may not permit the relationship, or may live in a scope the referencing resource can't reach. Resources that resolve references generally report the outcome in [`status.conditions`](/api/concepts/status-and-conditions) — for instance, an `HTTPRoute` records a `ResolvedRefs` condition per parent describing whether its backend and parent references resolved.
+
+<Warning>
+  Creating a reference does not create the target. If you point at a resource that doesn't exist yet, the reference stays unresolved until the target appears. Check the referencing resource's conditions to confirm the link was established.
+</Warning>
+
+## Related
+
+- [Status & conditions](/api/concepts/status-and-conditions) — how resources report whether a reference resolved (for example a `ResolvedRefs` condition).
+- [API conventions](/api/concepts/conventions) — the shared `spec`/`status` model these reference fields live in.
+- [Field formats & types](/api/concepts/field-formats) — how `Ref`/`Refs` object fields are described in the field tables.
+- [Reading resources](/datumctl/resources/reading) — fetch a resource and the targets its references name.
+- [Discovering resources & schemas](/datumctl/discovering-resources) — find which fields on a resource are references, and their types.
+- [Changing resources](/datumctl/resources/changing) and [Safe changes & declarative config](/datumctl/resources/safe-changes) — declare and update references safely.
+- [Output formats & scripting](/datumctl/output-and-scripting) — extract reference fields for automation.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how Project and Platform scope affect where a reference resolves.
+
+<Tip>
+  On any resource page, scan the field tables for names ending in `Ref` or `Refs` to see what that resource relates to. You can also explore them live with `datumctl explain <resource> --recursive`.
+</Tip>

@@ -276,6 +276,19 @@
             ]
           },
           {
+            "group": "Concepts",
+            "pages": [
+              "api/concepts/conventions",
+              "api/concepts/metadata",
+              "api/concepts/status-and-conditions",
+              "api/concepts/scopes",
+              "api/concepts/versioning",
+              "api/concepts/references",
+              "api/concepts/field-formats",
+              "api/concepts/validation"
+            ]
+          },
+          {
             "group": "Resource Manager",
             "pages": [
               "api/resource-manager/overview",
