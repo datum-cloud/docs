@@ -1,0 +1,128 @@
+---
+title: "Safe changes & declarative config"
+sidebarTitle: "Safe changes"
+description: "Preview changes before you write them, manage Datum Cloud resources declaratively, and keep your infrastructure in sync from source control."
+---
+
+Datum Cloud resources are defined declaratively: you describe the state you want in a manifest, and the platform reconciles reality to match. That model makes changes reviewable and repeatable — but it also means a single `apply` can update live infrastructure. This guide shows how to preview every change before it lands and how to run a safe, GitOps-style loop.
+
+<Warning>
+  `datumctl delete` has **no confirmation prompt**, and neither `apply` nor `edit` asks you to confirm before writing. Preview first — the habits below exist to catch mistakes before they reach live resources.
+</Warning>
+
+---
+
+## Preview before you write
+
+Two mechanisms let you see exactly what a change will do before committing it.
+
+### Diff a manifest against live state
+
+`datumctl diff -f <file>` shows the difference between what is currently deployed and what your manifest would apply — the same server-side comparison the platform uses, rendered as a unified diff.
+
+```bash
+# Preview changes from a manifest before applying
+datumctl diff -f ./proxy.yaml --project my-project
+
+# Diff from stdin
+cat dnszone.yaml | datumctl diff -f - --project my-project
+```
+
+The diff exits `0` when there are no differences, `1` when there are, and greater than `1` on error — handy for gating an apply in a script:
+
+```bash
+datumctl diff -f ./proxy.yaml --project my-project && \
+  datumctl apply -f ./proxy.yaml --project my-project
+```
+
+<Tip>
+  Set `DATUMCTL_EXTERNAL_DIFF` to use a different diff tool, for example `DATUMCTL_EXTERNAL_DIFF="colordiff -N -u"`.
+</Tip>
+
+### Validate a write with `--dry-run=server`
+
+Every write command accepts `--dry-run=server`, which sends the request to the API server for full validation — including admission checks — without persisting anything.
+
+```bash
+# Validate a manifest against the server without saving
+datumctl apply -f ./proxy.yaml --project my-project --dry-run=server
+
+# Same for create
+datumctl create -f ./project.yaml --organization <org-id> --dry-run=server
+```
+
+<Note>
+  `diff` answers *"what will change?"* and `--dry-run=server` answers *"is this change valid?"*. Use both: diff to review the delta, dry-run to confirm the server accepts it.
+</Note>
+
+---
+
+## The declarative loop
+
+A repeatable workflow for changing any Datum Cloud resource follows four steps: inspect the schema, preview the change, apply it, then verify the result.
+
+<Steps>
+  <Step title="Inspect the schema">
+    Confirm the fields a resource type accepts before you author or edit a manifest.
+
+    ```bash
+    datumctl explain httpproxy --recursive
+    ```
+
+    See [Discovering resources & schemas](/datumctl/discovering-resources) for finding resource types and reading their fields in depth.
+  </Step>
+  <Step title="Preview the change">
+    Review the delta and validate it against the server.
+
+    ```bash
+    datumctl diff -f ./proxy.yaml --project my-project
+    datumctl apply -f ./proxy.yaml --project my-project --dry-run=server
+    ```
+  </Step>
+  <Step title="Apply">
+    Once the preview looks right, apply the manifest. `apply` creates the resource if it does not exist and updates it to match your manifest if it does.
+
+    ```bash
+    datumctl apply -f ./proxy.yaml --project my-project
+    ```
+  </Step>
+  <Step title="Verify">
+    Read the result back to confirm the applied state.
+
+    ```bash
+    datumctl get httpproxy my-proxy --project my-project -o yaml
+    ```
+  </Step>
+</Steps>
+
+Because the desired state lives entirely in your manifest, you can commit it to version control and treat network configuration as code:
+
+- Store resource definitions alongside the rest of your infrastructure.
+- Review changes as diffs in pull requests.
+- Apply manifests from CI/CD so deployments are automated and auditable.
+
+<Tip>
+  Multiple resources can live in a single file separated by YAML document markers (`---`), and `datumctl apply -f ./dir/` applies every manifest in a directory — so an entire environment can be applied in one command.
+</Tip>
+
+---
+
+## Namespaces
+
+Some project-scoped resource types live in a namespace. Where a namespace applies, target it with `--namespace`:
+
+```bash
+datumctl apply -f ./proxy.yaml --project my-project --namespace default
+```
+
+Currently only the `default` namespace is supported, and it is assumed when you omit the flag — so most of the time you can leave `--namespace` off entirely. Which organization or project a command runs against is a separate concern, covered under contexts and scoping; run `datumctl ctx` to see your active context.
+
+---
+
+## Related
+
+- [Changing resources](/datumctl/resources/changing) — the `apply`, `create`, `edit`, and `delete` write verbs these previews wrap
+- [Reading resources](/datumctl/resources/reading) — verify applied state with `datumctl get` and `datumctl describe`
+- [Discovering resources & schemas](/datumctl/discovering-resources) — find resource types and inspect their fields before authoring manifests
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — control which organization or project a change targets
+- [Output formats & scripting](/datumctl/output-and-scripting) — machine-readable output, exit codes, and CI patterns

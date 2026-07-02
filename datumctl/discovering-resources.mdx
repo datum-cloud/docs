@@ -19,7 +19,7 @@ Three commands cover discovery:
 
 <Info>
   These commands read from the control plane for your **currently configured
-  context**. Make sure you are logged in (see [Authentication](/datumctl/authentication))
+  context**. Make sure you are logged in (see [Logging in](/datumctl/auth/logging-in))
   and have an organization or project selected first — pass `--organization <org-id>`
   or `--project <project-id>`, or set a default context. See
   [Contexts & scoping](/datumctl/contexts-and-scoping) for how that scope is chosen.
@@ -161,10 +161,12 @@ Discovery feeds directly into authoring manifests for `datumctl apply` and
 
 ## Related
 
-- [Working with resources](/datumctl/working-with-resources) — author, apply, and edit
+- [Changing resources](/datumctl/resources/changing) — author, apply, and edit
   resources once you know which types exist and what fields they take.
+- [Reading resources](/datumctl/resources/reading) — list, retrieve, and inspect
+  resources of the types you discover here.
 - [Output formats & scripting](/datumctl/output-and-scripting) — render this discovery
   output as JSON or YAML and pipe it into other tooling.
-- [Authentication](/datumctl/authentication) — sign in before querying the control plane.
+- [Logging in](/datumctl/auth/logging-in) — sign in before querying the control plane.
 - The [CLI Commands reference](/cli/options) for `api-resources`, `api-versions`, and
   `explain`.

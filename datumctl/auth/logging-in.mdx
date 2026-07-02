@@ -1,0 +1,128 @@
+---
+title: "Logging in"
+sidebarTitle: "Logging in"
+description: "Sign in to Datum Cloud from your terminal with datumctl login, verify who you are, and sign out."
+---
+
+`datumctl` signs you in through your browser using OAuth 2.0 and OpenID Connect (OIDC) with PKCE, then stores the resulting credentials securely in your operating system keyring. There are no API keys to create, copy, or rotate — you log in as yourself and `datumctl` refreshes your tokens automatically.
+
+This page covers interactive sign-in: the browser flow, the device-code flow for headless shells, and how to check or drop your session.
+
+<Info>
+  Running in CI, a build pipeline, or any unattended process? Use a service account instead of an interactive login — see [Service accounts](/datumctl/auth/service-accounts).
+</Info>
+
+## Log in
+
+Run:
+
+```bash
+datumctl login
+```
+
+`datumctl` opens your browser to complete sign-in. Once you approve, it stores your credentials in your keyring and confirms who you are:
+
+```text
+✓ Authenticated as Ada Lovelace (ada@example.com)
+```
+
+You only need to log in once per machine. `datumctl` keeps your session refreshed, so day-to-day commands just work until you sign out.
+
+## Login, then pick a context
+
+`login` does two things in one step: it authenticates you, and it helps you choose a default **context** — the organization or project your commands target so you do not have to pass `--organization` or `--project` every time.
+
+Immediately after sign-in, `datumctl` discovers what you can access and shows a summary:
+
+```text
+Discovering organizations and projects...
+
+You have access to 2 organization(s):
+
+  Acme Corp (4 project(s))
+  Personal (1 project(s))
+```
+
+It then opens an interactive picker so you can select the organization or project to work in. When you choose, `datumctl` confirms it:
+
+```text
+✓ Context set to acme-corp/production
+```
+
+From then on, commands like `datumctl get projects` act inside that context. To view or change your context later, use `datumctl ctx` and `datumctl ctx use`.
+
+<Note>
+  If context discovery fails (for example, on a restricted network), `datumctl` still saves your credentials and tells you to set a context manually with `datumctl ctx use`. Your login is not lost.
+</Note>
+
+For the full picture of how scope is resolved and how to move between contexts, see [Contexts & scoping](/datumctl/contexts-and-scoping).
+
+## Headless and remote shells
+
+On a machine with no browser — an SSH session, a container, or a remote development box — add `--no-browser` to authenticate with the device authorization flow:
+
+```bash
+datumctl login --no-browser
+```
+
+Instead of launching a browser, `datumctl` prints a URL and a short code. Open the URL on any device where you are signed in, enter the code, and approve. `datumctl` completes sign-in on the remote machine once you confirm.
+
+<Note>
+  On headless runners, `datumctl` may fall back to a file-based credential store when no system keyring is available. When it does, it prints a one-line warning so you know where your credentials are kept.
+</Note>
+
+## Sign in to a non-production environment
+
+By default `datumctl` authenticates against the production Datum Cloud environment. To sign in against staging, point at its authentication server with `--hostname`:
+
+```bash
+datumctl login --hostname auth.staging.env.datum.net
+```
+
+The `--hostname` flag works with the browser flow, `--no-browser`, and service-account logins alike. A staging session is stored separately from your production session, so you can hold both at once and move between them.
+
+## Check who you are
+
+To see the account and context a command would use right now:
+
+```bash
+datumctl whoami
+```
+
+This prints your user, your active context, and the organization (and project, if set) it resolves to:
+
+```text
+User:         Ada Lovelace (ada@example.com)
+Context:      acme-corp/production
+Organization: Acme Corp (acme-corp)
+Project:      Production (production)
+```
+
+If you have set the `DATUM_ORGANIZATION` or `DATUM_PROJECT` environment variables, `whoami` also flags them, since those override the active context for the current shell.
+
+## Log out
+
+To remove a stored session, pass the email address you signed in with:
+
+```bash
+datumctl logout ada@example.com
+```
+
+To remove every Datum Cloud session `datumctl` has stored on this machine:
+
+```bash
+datumctl logout --all
+```
+
+Logging out deletes the credentials from your keyring. Sign back in at any time with `datumctl login`.
+
+<Info>
+  Signed in with more than one account, or need long-lived tokens for scripts and the credential helper? See [Managing accounts & tokens](/datumctl/auth/managing-accounts) for listing accounts, switching the active user, and printing access tokens.
+</Info>
+
+## Related
+
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how the account you are signed in as maps to the organizations and projects your commands target.
+- [Managing accounts & tokens](/datumctl/auth/managing-accounts) — list local sessions, switch the active user, and retrieve access tokens.
+- [Service accounts](/datumctl/auth/service-accounts) — non-interactive credentials for CI, pipelines, and automation.
+- [Quickstart](/datumctl/quickstart) — install `datumctl` and run your first command.

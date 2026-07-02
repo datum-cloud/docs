@@ -1,16 +1,13 @@
 ---
-title: "AI assistant & MCP"
-sidebarTitle: "AI & MCP"
-description: "Ask datumctl questions in natural language, and connect Datum Cloud to MCP-aware AI clients."
+title: "AI assistant"
+sidebarTitle: "AI assistant"
+description: "Ask datumctl about your Datum Cloud resources in natural language, from a one-shot question or an interactive session."
 ---
 
-`datumctl` can translate natural language into Datum Cloud operations. Ask it a
+`datumctl ai` translates natural language into Datum Cloud operations. Ask it a
 question — "list all DNS zones", "which projects am I in?" — and the assistant
 figures out which resources to read and shows you the answer. When it wants to
 make a change, it always pauses and asks you to confirm first.
-
-This guide covers the `datumctl ai` command for terminal use, and how to connect
-Datum Cloud to MCP-aware AI clients such as Claude Desktop and Cursor.
 
 <Info>
   The assistant reasons over your resources through a large language model, so
@@ -119,7 +116,7 @@ Scope is resolved in this order: **command-line flags → environment variables 
 active `datumctl` context → saved `ai` config defaults.** Because the active
 context wins over saved `ai` defaults, switching with `datumctl ctx use` is
 respected without having to clear your `ai config` values. This mirrors how every
-other command resolves scope — see [Contexts & scoping](/datumctl/contexts-and-scoping).
+other command resolves scope.
 
 A few rules:
 
@@ -154,7 +151,7 @@ Details:
   ...
 }
 -----------------------
-Apply changes? [y/N]: 
+Apply changes? [y/N]:
 ```
 
 Only an explicit `y` proceeds; anything else declines.
@@ -165,10 +162,35 @@ Only an explicit `y` proceeds; anything else declines.
   skipped. Perform mutations only from an interactive terminal session.
 </Warning>
 
+## Built-in tools
+
+Behind the scenes the assistant works through a fixed set of tools scoped to the
+current organization or project. Read tools run on their own; the two write tools
+are gated by the confirmation prompt above.
+
+| Tool | What it does | Gated? |
+| --- | --- | --- |
+| `list_resource_types` | Lists the Datum Cloud resource types available in the current context | No |
+| `get_resource_schema` | Returns the schema for a resource type so the assistant knows its fields | No |
+| `list_resources` | Lists resources of a given type | No |
+| `get_resource` | Retrieves a single resource by kind and name | No |
+| `validate_manifest` | Validates a manifest with a server-side dry run, without persisting changes | No |
+| `apply_manifest` | Creates or updates a resource by applying a manifest (upsert) | Yes |
+| `delete_resource` | Deletes a resource by kind and name | Yes |
+| `change_context` | Switches the active organization, project, or namespace for the session | No |
+
+<Note>
+  Before proposing a write, the assistant can run `validate_manifest` to check
+  your change with a server-side dry run — the same safety net as
+  `datumctl apply --dry-run=server` — so you see problems before you approve
+  anything.
+</Note>
+
 ## Configuration
 
 Saved settings provide defaults for every `datumctl ai` invocation, so you don't
-have to repeat flags or export environment variables.
+have to repeat flags or export environment variables. Manage them with
+`datumctl ai config`:
 
 ```bash
 # Set a value
@@ -195,15 +217,8 @@ datumctl ai config unset organization
 | `openai_api_key` | OpenAI API key |
 | `gemini_api_key` | Gemini API key |
 
-### Where settings are stored
-
-Configuration lives in a YAML file:
-
-- **macOS / Linux:** `~/.config/datumctl/ai.yaml`
-- **Windows:** `%AppData%\datumctl\ai.yaml`
-
-Run `datumctl ai config show` to print the resolved path along with your current
-values.
+Run `datumctl ai config show` to print the resolved config path along with your
+current values; API keys are shown redacted.
 
 ### Precedence and environment variables
 
@@ -222,7 +237,7 @@ temporarily override it per shell when needed.
 
 ## Choosing a provider and model
 
-You don't have to set a provider explicitly — the assistant selects one using
+You don't have to set a `provider` explicitly — the assistant selects one using
 this order:
 
 1. **Model name prefix.** `claude-*` → Anthropic, `gpt-*` / `o1*` / `o3*` →
@@ -242,41 +257,14 @@ Each provider has a sensible default model if you don't pick one:
 `claude-sonnet-4-6` for Anthropic, `gpt-4o` for OpenAI, and `gemini-2.0-flash`
 for Gemini.
 
-## Connecting MCP clients
+## Next steps
 
-The [Model Context Protocol](https://modelcontextprotocol.io) (MCP) lets AI
-clients like Claude Desktop and Cursor talk to your Datum Cloud resources
-directly, outside the terminal. Datum publishes an official **Datum MCP server**
-for this — a standalone binary you point your MCP-aware client at.
-
-Where `datumctl ai` is the interactive, terminal-first experience, the Datum MCP
-server is the bridge that gives a desktop AI assistant secure, standards-based
-access to organizations, projects, domains, proxies, DNS, and more.
-
-A minimal stdio client configuration looks like this:
-
-```json
-{
-  "datum-mcp": {
-    "command": "datum-mcp",
-    "args": []
-  }
-}
-```
-
-On first use, the server runs a browser-based OAuth (PKCE) sign-in and caches
-credentials securely, refreshing them automatically on later calls — the same
-security model `datumctl` uses for [authentication](/datumctl/authentication).
-
-<Info>
-  Installation, the full tool catalog, and one-click setup for clients such as
-  Cursor are covered on the dedicated [Datum MCP](/datum-mcp) page, and upstream
-  in the [Datum MCP repository](https://github.com/datum-cloud/datum-mcp).
-</Info>
-
-## Related
-
-- [Authentication](/datumctl/authentication) — set up credentials before your first question.
-- [Datum MCP](/datum-mcp) — connect a desktop AI client such as Claude Desktop or Cursor to Datum Cloud with the Datum MCP server.
-- [Contexts & scoping](/datumctl/contexts-and-scoping) — how the assistant decides which organization or project to operate against.
-- [Overview](/datumctl/overview) — new to the CLI? Start here to see how `datumctl` is structured.
+- [Logging in](/datumctl/auth/logging-in) — authenticate `datumctl` before your first question.
+- [MCP server](/datumctl/ai/mcp-server) — prefer a graphical AI client? Connect Claude
+  Desktop, Cursor, or another MCP-aware app to the Datum MCP server.
+- [Datum MCP](/datum-mcp) — install the standalone MCP server and get its full tool catalog.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how scope resolution decides which
+  organization or project the assistant operates against.
+- [Reading resources](/datumctl/resources/reading) — the `get` and `describe` commands the
+  assistant runs on your behalf.
+- [datumctl overview](/datumctl/overview) — new to the CLI? See how `datumctl` is structured.

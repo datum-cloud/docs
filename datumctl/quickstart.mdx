@@ -57,7 +57,7 @@ This guide takes you from nothing installed to running your first command agains
     datumctl login
     ```
 
-    This opens your browser to complete sign-in, then discovers the organizations and projects you can access. For managing multiple accounts, switching users, and signing out, see [Authentication](/datumctl/authentication).
+    This opens your browser to complete sign-in, then discovers the organizations and projects you can access. For the full sign-in flow — the browser and device-code flows, `whoami`, and signing out — see [Logging in](/datumctl/auth/logging-in); for juggling several accounts see [Managing accounts & tokens](/datumctl/auth/managing-accounts).
 
     <Note>
       On a headless machine — SSH session, CI runner, or container with no browser — add `--no-browser` to authenticate with a device-code flow instead:
@@ -117,8 +117,8 @@ You are now installed, authenticated, and pointed at a context. From here you ca
   <Card title="Contexts & scoping" icon="crosshairs" href="/datumctl/contexts-and-scoping">
     Understand how commands choose an organization or project, and how to switch between them.
   </Card>
-  <Card title="Working with resources" icon="cubes" href="/datumctl/working-with-resources">
-    Create, inspect, update, and delete Datum Cloud resources.
+  <Card title="Reading resources" icon="cubes" href="/datumctl/resources/reading">
+    List, retrieve, and inspect Datum Cloud resources with get and describe.
   </Card>
   <Card title="Discovering resources & schemas" icon="magnifying-glass" href="/datumctl/discovering-resources">
     Find which resource types exist and inspect their fields before you author manifests.
@@ -132,8 +132,8 @@ You are now installed, authenticated, and pointed at a context. From here you ca
   <Card title="Using plugins" icon="puzzle-piece" href="/datumctl/plugins/using-plugins">
     Extend datumctl with additional commands from a plugin catalog.
   </Card>
-  <Card title="Authentication" icon="key" href="/datumctl/authentication">
-    Manage multiple accounts, switch users, and sign out.
+  <Card title="Managing accounts" icon="key" href="/datumctl/auth/managing-accounts">
+    Manage multiple accounts, switch users, sign out, and print access tokens.
   </Card>
   <Card title="Overview" icon="compass" href="/datumctl/overview">
     Understand how datumctl is structured and how it talks to Datum Cloud.

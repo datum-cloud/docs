@@ -1,0 +1,158 @@
+---
+title: "Automating datumctl in CI/CD"
+sidebarTitle: "Automating in CI/CD"
+description: "Run datumctl non-interactively in any pipeline — headless service-account login, credential helpers, structured errors, and exit-code handling on headless runners."
+---
+
+`datumctl` is built to run unattended. Any CI system — GitLab CI, CircleCI, Jenkins, Buildkite, Argo, a cron job, or a container entrypoint — can authenticate as a service account, run commands, and branch on machine-readable results without a human at the keyboard.
+
+<Info>
+  On **GitHub Actions**, you rarely need to wire this up by hand. The [setup-datumctl-action](/datumctl/cicd/github-actions) installs the CLI and authenticates a service account in one step. This page is for every other pipeline, and for understanding what that action does under the hood.
+</Info>
+
+## Authenticate as a service account
+
+Interactive browser login is the default, and it is the wrong choice for a pipeline — there is no browser to open and no prompt a build agent can answer. Instead, authenticate with a **service account** credentials file using `datumctl login --credentials`:
+
+```bash
+datumctl login --credentials ./datum-credentials.json
+```
+
+This performs a non-interactive login: `datumctl` signs a JWT with the service account's private key, exchanges it for an access token, and stores the resulting session so subsequent commands are authenticated. No browser, no device code, no `--no-browser` device flow.
+
+<Note>
+  Create the service account and download its credentials JSON before you can log in this way. See [Service accounts](/platform/service-accounts) for creating an account, choosing a Datum-managed key, and downloading the one-time credentials file. Treat that file like a password — inject it from your CI secret store, never commit it.
+</Note>
+
+For a staging environment, point login at the staging auth host:
+
+```bash
+datumctl login --credentials ./datum-credentials.json \
+  --hostname auth.staging.env.datum.net
+```
+
+<Steps>
+  <Step title="Store the credentials JSON as a secret">
+    Save the full contents of the service account credentials file as a CI secret (for example `DATUM_SA_CREDENTIALS`). Do not inline it into a script or commit it to the repository.
+  </Step>
+  <Step title="Materialize it to a file at runtime">
+    `datumctl login --credentials` takes a **path**, so write the secret to a file in the job's workspace first. Prefer a path the runner cleans up automatically.
+
+    ```bash
+    printf '%s' "$DATUM_SA_CREDENTIALS" > "$RUNNER_TEMP/datum-credentials.json"
+    datumctl login --credentials "$RUNNER_TEMP/datum-credentials.json"
+    ```
+  </Step>
+  <Step title="Run your datumctl commands">
+    Once logged in, the session is cached and later steps in the same job are authenticated.
+
+    ```bash
+    datumctl get projects --organization "$DATUM_ORG" -o json
+    ```
+  </Step>
+</Steps>
+
+### A generic pipeline step
+
+The same three moves work in any CI system. A GitLab CI job, for example:
+
+```yaml
+deploy:
+  image: alpine:latest
+  script:
+    - printf '%s' "$DATUM_SA_CREDENTIALS" > /tmp/datum-credentials.json
+    - datumctl login --credentials /tmp/datum-credentials.json
+    - datumctl apply -f ./project.yaml --organization "$DATUM_ORG"
+```
+
+<Warning>
+  Base64-encode the secret if your CI strips newlines or mangles multi-line values — the credentials JSON contains a PEM private key with embedded newlines. Decode it back to a file before calling `datumctl login`. (The GitHub Action accepts raw JSON or base64 for exactly this reason.)
+</Warning>
+
+## Use auth get-token as a credential helper
+
+When another tool in your pipeline needs a raw bearer token to call the Datum API directly, `datumctl auth get-token` prints one for the active session on stdout:
+
+```bash
+TOKEN=$(datumctl auth get-token)
+curl -H "Authorization: Bearer $TOKEN" https://api.datum.net/...
+```
+
+`datumctl` handles refresh for you: if the stored token has expired, `get-token` uses the stored refresh material to obtain a new one before printing, so the value you capture is always fresh. This makes it a natural credential helper for scripts and HTTP clients that live alongside `datumctl` in a job.
+
+<Note>
+  Most commands never need this — `datumctl` authenticates its own requests automatically. Reach for `auth get-token` only when a *separate* process needs the token. For its Kubernetes `ExecCredential` output mode, see [using datumctl with kubectl](/datumctl/kubectl-interop).
+</Note>
+
+## Get machine-readable failures with --error-format=json
+
+By default `datumctl` prints errors as human-readable text on stderr. In a pipeline you want to branch on failures programmatically, so pass the global `--error-format=json` flag to get a single-line JSON envelope instead:
+
+```bash
+datumctl get projects --organization does-not-exist --error-format json
+```
+
+```json
+{
+  "error": {
+    "message": "the organization \"does-not-exist\" was not found",
+    "hint": "Run 'datumctl get organizations' to see organizations you can access.",
+    "retryable": false
+  }
+}
+```
+
+`--error-format` is a persistent flag available on every command, and it only shapes errors on stderr — successful output on stdout is still controlled by `-o`. Read the `retryable` field to decide whether to back off and retry, and `code`/`hint` to decide what to do next. For the full envelope schema and the allowed values (`human`, `json`, `yaml`), see [Output formats & scripting](/datumctl/output-and-scripting).
+
+## Branch on exit codes
+
+`datumctl` follows conventional exit-code semantics, so a pipeline can gate on `$?`:
+
+| Exit code | Meaning |
+| --- | --- |
+| `0` | Success. |
+| `1` | A general error — unknown command, invalid flag value, authentication failure, or a failed API request. |
+| `>1` | A lower-level fatal error from the underlying request machinery. |
+
+`datumctl diff` is the exception: it exits `0` when there are no differences, `1` when there are, and `>1` on error — which makes it a useful gate before a write.
+
+```bash
+datumctl diff -f ./project.yaml --organization "$DATUM_ORG" \
+  && datumctl apply -f ./project.yaml --organization "$DATUM_ORG"
+```
+
+<Warning>
+  `datumctl delete` runs without a confirmation prompt. In automation, gate destructive operations behind an explicit review step or a `--dry-run=client` preview. See [Output formats & scripting](/datumctl/output-and-scripting) for the full scripting checklist, including pinning `--organization`/`--project` on every call.
+</Warning>
+
+## Credential storage on headless runners
+
+On a workstation, `datumctl` stores your session in the operating system keyring (Keychain, Secret Service, and so on). CI runners and containers usually have **no system keyring available**, so `datumctl` transparently falls back to an on-disk file at:
+
+```text
+~/.datumctl/credentials.json
+```
+
+The file is written with `0600` permissions but is **not encrypted**, so on a shared or long-lived runner you should treat it as sensitive. When the fallback engages, `datumctl login` prints a one-time warning to stderr, for example:
+
+```text
+warning: system keyring unavailable (...); falling back to insecure file storage at /home/runner/.datumctl/credentials.json
+```
+
+This is expected and harmless on an ephemeral runner. To keep it clean:
+
+- Prefer **ephemeral runners** that are destroyed after the job, so the credentials file never outlives the build.
+- On a **persistent or shared runner**, log out at the end of the job so the file does not linger:
+
+  ```bash
+  datumctl logout --all
+  ```
+- Point `$HOME` at a job-scoped, cleaned-up directory if your runner reuses home directories across builds, so each job gets its own credential file.
+
+## Related
+
+- [GitHub Actions](/datumctl/cicd/github-actions) — install and authenticate `datumctl` in a GitHub workflow in a single step.
+- [Service accounts](/datumctl/auth/service-accounts) — the credentials-file format and how to use it with `datumctl login --credentials`.
+- [Create a service account in the portal](/platform/service-accounts) — generate and download the credentials this page consumes.
+- [Output formats & scripting](/datumctl/output-and-scripting) — the `-o json` output modes, error envelope, and exit-code semantics.
+- [Using datumctl with kubectl](/datumctl/kubectl-interop) — the `datumctl auth get-token` credential-helper mode for kubectl in CI.

@@ -170,12 +170,13 @@ Work through this checklist:
 
 ## Contexts and users
 
-Contexts are tied to the user you're authenticated as. Each stored user session has its own set of discovered contexts. When you switch users, your active context follows that user's most recently used context. For how to log in and switch between accounts, see [Authentication](/datumctl/authentication).
+Contexts are tied to the user you're authenticated as. Each stored user session has its own set of discovered contexts. When you switch users, your active context follows that user's most recently used context. To log in, see [Logging in](/datumctl/auth/logging-in); to switch between stored accounts, see [Managing accounts & tokens](/datumctl/auth/managing-accounts).
 
 ## Related
 
-- [Authentication](/datumctl/authentication) — logging in, switching users, and how sessions map to contexts.
-- [Working with resources](/datumctl/working-with-resources) — the `get`, `apply`, and `delete` commands that run against the scope you set here.
+- [Logging in](/datumctl/auth/logging-in) — sign in, verify your identity with `whoami`, and sign out.
+- [Managing accounts & tokens](/datumctl/auth/managing-accounts) — switch the active user and how each session maps to a context.
+- [Reading resources](/datumctl/resources/reading) — the `get` and `describe` commands that run against the scope you set here.
 - [Output formats & scripting](/datumctl/output-and-scripting) — pinning `--organization` and `--project` explicitly and reading `DATUM_PROJECT`/`DATUM_ORGANIZATION` in CI.
 - [Overview](/datumctl/overview) — how `datumctl` is structured and talks to the Datum API.
 - The [CLI Commands reference](/cli/options) for `datumctl ctx` and the `--organization`/`--project` flags.

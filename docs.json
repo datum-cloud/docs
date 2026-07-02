@@ -146,17 +146,31 @@
             "group": "Getting started",
             "pages": [
               "datumctl/overview",
-              "datumctl/quickstart",
-              "datumctl/authentication"
+              "datumctl/quickstart"
+            ]
+          },
+          {
+            "group": "Authentication",
+            "pages": [
+              "datumctl/auth/logging-in",
+              "datumctl/auth/service-accounts",
+              "datumctl/auth/managing-accounts"
             ]
           },
           {
             "group": "Core concepts",
             "pages": [
               "datumctl/contexts-and-scoping",
-              "datumctl/working-with-resources",
               "datumctl/discovering-resources",
               "datumctl/output-and-scripting"
+            ]
+          },
+          {
+            "group": "Working with resources",
+            "pages": [
+              "datumctl/resources/reading",
+              "datumctl/resources/changing",
+              "datumctl/resources/safe-changes"
             ]
           },
           {
@@ -168,10 +182,23 @@
             ]
           },
           {
-            "group": "Interactive & AI",
+            "group": "Interactive console",
             "pages": [
-              "datumctl/console",
-              "datumctl/ai-and-mcp"
+              "datumctl/console"
+            ]
+          },
+          {
+            "group": "AI & MCP",
+            "pages": [
+              "datumctl/ai/assistant",
+              "datumctl/ai/mcp-server"
+            ]
+          },
+          {
+            "group": "CI/CD",
+            "pages": [
+              "datumctl/cicd/github-actions",
+              "datumctl/cicd/automating"
             ]
           },
           {
