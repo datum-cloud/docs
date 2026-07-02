@@ -1,0 +1,120 @@
+---
+title: "BackendTrafficPolicy"
+sidebarTitle: "BackendTrafficPolicy"
+description: "BackendTrafficPolicy allows the user to configure the behavior of the connection between the Envoy Proxy listener and the backend service."
+---
+
+<Note>
+  API resource reference for **BackendTrafficPolicy**, an [Envoy Gateway](/api/networking/envoy/overview) extension resource. To create or change one, see [Changing resources](/datumctl/resources/changing); to inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  This resource is part of the `v1alpha1` API and is subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `gateway.envoyproxy.io` |
+| Version | `v1alpha1` |
+| Kind | `BackendTrafficPolicy` |
+| Scope | Project |
+
+## Overview
+
+A `BackendTrafficPolicy` tunes how the gateway sends traffic from a listener to the backend services behind it. It is an Envoy Gateway extension to the [Gateway API](https://gateway-api.sigs.k8s.io/) standard, defined by the [Envoy Gateway API](https://gateway.envoyproxy.io/docs/api/extension_types/): you attach it to a `Gateway` or route resource and use it to shape connection behavior — load balancing, retries, timeouts, circuit breaking, rate limiting, active health checks, fault injection, and more.
+
+Use it when you need finer control over backend traffic than the route itself provides, for example to cap concurrent connections to a backend, retry failed upstream requests, apply rate limits, or gradually ramp traffic to newly added endpoints. The policy attaches to a target resource through `targetRefs` and takes effect within the same Project.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.targetRefs` | []Object | No | Target resources (typically Gateways) this policy attaches to. |
+| `spec.targetRefs[].group` | string | Yes | Group of the target resource. |
+| `spec.targetRefs[].kind` | string | Yes | Kind of the target resource. |
+| `spec.targetRefs[].name` | string | Yes | Name of the target resource. |
+| `spec.targetRefs[].sectionName` | string | No | A section within the target (Gateway listener name, route rule name, or Service port name). Targets the whole resource when unset. |
+| `spec.targetSelectors` | []Object | No | Selects target resources for this policy by label. |
+| `spec.targetRef` | Object | No | Single target resource this policy attaches to. Deprecated: use `targetRefs`/`targetSelectors` instead. |
+| `spec.mergeType` | string | No | How this configuration merges into a parent policy (one targeting a Gateway or Listener). Cannot be set when targeting a parent resource. |
+| `spec.loadBalancer` | Object | No | Load balancer policy for routing to backend endpoints. Defaults to `LeastRequest`. |
+| `spec.loadBalancer.type` | string | Yes* | Load balancer type: `ConsistentHash`, `LeastRequest`, `Random`, or `RoundRobin`. Required when `loadBalancer` is set. |
+| `spec.loadBalancer.consistentHash` | Object | No | Configuration used when `type` is `ConsistentHash`. |
+| `spec.loadBalancer.slowStart` | Object | No | Gradually increases traffic to newly added hosts (RoundRobin/LeastRequest only). |
+| `spec.loadBalancer.zoneAware` | Object | No | Distributes requests across locality zones. |
+| `spec.retry` | Object | No | Retry behavior. Disabled when unset. |
+| `spec.retry.numRetries` | integer | No | Number of retries to attempt. Defaults to `2`. |
+| `spec.retry.perRetry` | Object | No | Retry policy applied per retry attempt (e.g. per-try timeout, backoff). |
+| `spec.retry.retryOn` | Object | No | Conditions that trigger a retry (e.g. connect failure, retriable status codes). |
+| `spec.timeout` | Object | No | Timeout settings for backend connections. |
+| `spec.timeout.http` | Object | No | HTTP timeout settings. |
+| `spec.timeout.tcp` | Object | No | TCP timeout settings. |
+| `spec.circuitBreaker` | Object | No | Circuit breaker thresholds for upstream connections and requests. Enabled with defaults when unset. |
+| `spec.circuitBreaker.maxConnections` | integer | No | Maximum connections Envoy establishes to the backend. |
+| `spec.circuitBreaker.maxParallelRequests` | integer | No | Maximum parallel requests to the backend. |
+| `spec.circuitBreaker.maxPendingRequests` | integer | No | Maximum pending requests queued to the backend. |
+| `spec.circuitBreaker.maxParallelRetries` | integer | No | Maximum parallel retries to the backend. |
+| `spec.circuitBreaker.maxRequestsPerConnection` | integer | No | Maximum requests over a single connection. Default: unlimited. |
+| `spec.healthCheck` | Object | No | Active/passive health checking of backends. |
+| `spec.healthCheck.active` | Object | No | Active health check configuration. |
+| `spec.healthCheck.passive` | Object | No | Passive (outlier detection) health check configuration. |
+| `spec.healthCheck.panicThreshold` | integer | No | Unhealthy-endpoint threshold at which Envoy balances across all endpoints. Defaults to 50%; `0` disables panic mode. |
+| `spec.rateLimit` | Object | No | Limits incoming requests based on attributes of the traffic flow. |
+| `spec.rateLimit.type` | string | Yes* | Rate limit scope: `Global` or `Local`. Required when `rateLimit` is set. |
+| `spec.rateLimit.local` | Object | No | Local rate limit configuration. |
+| `spec.rateLimit.global` | Object | No | Global rate limit configuration. |
+| `spec.faultInjection` | Object | No | Injects delays and aborts to mimic failure scenarios such as service failures and overloads. |
+| `spec.connection` | Object | No | Backend connection settings. |
+| `spec.tcpKeepalive` | Object | No | TCP keepalive settings for the upstream connection. Disabled by default. |
+| `spec.proxyProtocol` | Object | No | Enables the Proxy Protocol when communicating with the backend. |
+| `spec.compression` | []Object | No | Compression configuration for HTTP streams. |
+| `spec.http2` | Object | No | HTTP/2 configuration for backend connections. |
+| `spec.httpUpgrade` | []Object | No | HTTP protocol upgrade configuration. Defaults to websocket. |
+| `spec.dns` | Object | No | DNS resolution settings. |
+| `spec.requestBuffer` | Object | No | Buffers and fully receives each request before forwarding upstream, shielding backends from slow clients and enforcing a maximum request size. May impact performance. |
+| `spec.responseOverride` | []Object | No | Overrides specific responses with a custom one. First matching configuration wins. |
+| `spec.telemetry` | Object | No | Telemetry settings for the policy target, overriding the EnvoyProxy telemetry settings. |
+| `spec.useClientProtocol` | boolean | No | Prefer sending backend requests using the same HTTP protocol as the incoming request. Defaults to `false`. |
+
+<Info>
+  Fields marked Yes* are required only when their parent object is provided.
+</Info>
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.ancestors` | []Object | Ancestor resources (usually Gateways) this policy applies to, with the policy's status for each. A maximum of 16 ancestors are represented; an empty list means the policy is not relevant to any ancestor. |
+
+## Usage
+
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: backend-traffic-example
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: my-gateway
+  loadBalancer:
+    type: LeastRequest
+  retry:
+    numRetries: 3
+  timeout:
+    http:
+      requestTimeout: 10s
+```
+
+```bash
+datumctl apply -f backendtrafficpolicy.yaml --project my-project
+datumctl get backendtrafficpolicies --project my-project
+datumctl describe backendtrafficpolicy backend-traffic-example --project my-project
+```
+
+<Tip>
+  Run `datumctl explain backendtrafficpolicies --recursive` to see the full, live field tree for this resource.
+</Tip>

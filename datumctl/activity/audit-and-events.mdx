@@ -1,0 +1,255 @@
+---
+title: "Audit logs & events"
+sidebarTitle: "Audit logs & events"
+description: "Investigate who did what to which resource with datumctl activity audit, and surface resource lifecycle events and warnings with datumctl activity events."
+---
+
+When you need to answer a pointed question — "who deleted that DNS zone last night?" or "what went wrong at 14:20?" — `datumctl activity` gives you two purpose-built investigation tools:
+
+- **`datumctl activity audit`** records the actions people and machines take against your resources: who did what, when, and to which resource. This is your compliance and forensics trail.
+- **`datumctl activity events`** surfaces the lifecycle events a resource emits as it moves through its states — the warnings and status changes you reach for during an incident.
+
+Both commands share one query model — time ranges, server-side filters, pagination, and machine-readable output — so once you learn one, the other feels familiar.
+
+<Info>
+  `datumctl activity` is scoped like every other command: it acts on your active organization or project, and honors the `--project` and `--organization` flags. See [Contexts & scoping](/datumctl/contexts-and-scoping) for how scope is resolved.
+</Info>
+
+## The shared query model
+
+Every `activity` subcommand accepts the same flags for narrowing a time window, filtering server-side, paging through large result sets, and choosing an output format.
+
+### Time range
+
+Both commands default to the **last 24 hours**. Widen or narrow the window with `--start-time` and `--end-time`. Two formats are accepted:
+
+| Format | Example | Notes |
+| --- | --- | --- |
+| Relative | `now-7d`, `now-24h`, `now-30m` | Units: `s`, `m`, `h`, `d`, `w`. `--end-time` defaults to `now`. |
+| Absolute | `2026-01-01T00:00:00Z` | RFC3339 with a timezone. |
+
+```bash
+# Everything in the last week
+datumctl activity audit --start-time now-7d
+
+# A precise window around an incident
+datumctl activity events \
+  --start-time 2026-06-30T14:00:00Z \
+  --end-time   2026-06-30T14:30:00Z
+```
+
+### Pagination
+
+Results are paged. By default you get one page of up to 25 rows.
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--limit` | `25` | Rows per page, between 1 and 1000. |
+| `--all-pages` | off | Fetch every page automatically — ideal for an export. |
+| `--continue-after` | — | Resume from a cursor returned by a previous query. |
+
+<Note>
+  `--all-pages` and `--continue-after` are mutually exclusive. Use `--all-pages` when you want the whole result set in one go; use `--continue-after` when you are stepping through pages yourself (for example, in an automation loop that checkpoints its position).
+</Note>
+
+### Output format
+
+The default output is a human-readable table. Pass `-o` to get machine-readable output, and `--no-headers` to drop the table header row.
+
+| `-o` value | Description |
+| --- | --- |
+| _(none)_ | Formatted table (the default). |
+| `json` | A single JSON document — best for piping into `jq`. |
+| `yaml` | A YAML document. |
+| `jsonpath` | Extract specific fields, e.g. `-o jsonpath='{.items[*].objectRef.name}'`. |
+
+<Tip>
+  For pipelines, exports, and error handling patterns that apply across the CLI, see [Output formats & scripting](/datumctl/output-and-scripting).
+</Tip>
+
+---
+
+## Audit — who did what, when, to which resource
+
+<Info>
+  **The question:** _"Prove who did what, when, and to which resource — and hand me an exportable record."_
+</Info>
+
+`datumctl activity audit` answers that question. Each entry records an action (a verb) taken by a user against a resource, together with a timestamp and the response status. It is the tool for security reviews, compliance evidence, and after-the-fact forensics.
+
+The default table shows the timestamp, verb, user, affected resource, and status code:
+
+```bash
+datumctl activity audit
+```
+
+### Narrowing the trail
+
+Four shorthand flags let you zero in without writing a filter expression. They combine with **AND** logic — every condition must match.
+
+| Flag | Filters by | Example |
+| --- | --- | --- |
+| `--user` | The identity that performed the action | `--user alice@example.com` |
+| `--verb` | The action taken | `--verb delete` |
+| `--resource` | The resource type acted on | `--resource dnszones` |
+| `--namespace` | The target namespace | `--namespace production` |
+
+For anything the shorthand flags do not cover, `--filter` takes a server-side [Common Expression Language (CEL)](https://cel.dev/) expression that is applied on top of them — for example `--filter "responseStatus.code >= 400"` to find failed requests.
+
+<Note>
+  Not sure which values exist in your data? The audit command can suggest them. `datumctl activity audit --suggest user.username` lists the users with recorded activity in the window, which is a fast way to discover exactly what to pass to `--user`.
+</Note>
+
+### Scenario: who deleted resources last week?
+
+A security auditor wants every deletion across the project over the past seven days, with the responsible identity:
+
+```bash
+datumctl activity audit --start-time now-7d --verb delete
+```
+
+To focus on one person's activity against sensitive resources:
+
+```bash
+datumctl activity audit \
+  --start-time now-30d \
+  --user alice@example.com \
+  --resource secrets
+```
+
+### Scenario: export an immutable record
+
+Auditors and SIEM pipelines need the full record, not a single page. Combine `--all-pages` with `-o json` to capture everything in the window as one JSON document:
+
+```bash
+# Export a full 30-day audit record for archival or ingestion
+datumctl activity audit \
+  --start-time now-30d \
+  --all-pages \
+  -o json > audit-record.json
+```
+
+That file is a stable, machine-readable artifact you can attach to a compliance report or feed into a log store.
+
+<Tip>
+  Pull just the fields you need with a JSONPath expression instead of post-processing:
+
+  ```bash
+  datumctl activity audit --start-time now-7d --verb delete \
+    -o jsonpath='{.items[*].objectRef.name}'
+  ```
+</Tip>
+
+### Scenario: stream audit records into a logging pipeline
+
+Automation and SIEM integrators typically want to ingest audit records incrementally and checkpoint their position rather than re-pull the whole window each run. Page through the results yourself with `--continue-after`, using the cursor the CLI reports after each page:
+
+```bash
+# First page — capture the continue cursor from the output
+datumctl activity audit --start-time now-24h --limit 1000 -o json
+
+# Next run resumes from where you left off
+datumctl activity audit --start-time now-24h --limit 1000 \
+  --continue-after "<cursor-from-previous-page>" -o json
+```
+
+<Tip>
+  For a robust wrapper — non-interactive auth, pinning `--organization`/`--project`, structured errors, and branching on exit codes — see [Output formats & scripting](/datumctl/output-and-scripting).
+</Tip>
+
+---
+
+## Events — what changed, and were there warnings?
+
+<Info>
+  **The question:** _"Something broke at 14:20 — what was happening to my resources just before, and were there any warnings?"_
+</Info>
+
+`datumctl activity events` surfaces the lifecycle events resources emit as they change state — the same events you would see reported against a resource, retained far longer than the live event window so you can investigate after the fact. Each event carries a type (`Normal` or `Warning`), a reason, the object it regards, and a message.
+
+The default table shows the last-seen time, type, reason, regarding object, and message:
+
+```bash
+datumctl activity events
+```
+
+### The on-call reflex: filter to warnings
+
+When you are paged, the fastest signal is the set of warning events. `--type Warning` cuts straight to problems:
+
+```bash
+datumctl activity events --type Warning --start-time now-1h
+```
+
+### Zeroing in during an incident
+
+Combine these flags to narrow from "everything" down to the resource you suspect:
+
+| Flag | Filters by | Example |
+| --- | --- | --- |
+| `--type` | Event severity: `Normal` or `Warning` | `--type Warning` |
+| `--reason` | The machine reason for the event | `--reason FailedMount` |
+| `--regarding-kind` | The kind of resource the event is about | `--regarding-kind Workload` |
+| `--regarding-name` | A specific resource by name | `--regarding-name checkout-api` |
+| `--namespace` | The namespace of the regarding resource | `--namespace production` |
+| `--field-selector` | A raw field-selector expression | `--field-selector "type=Warning,reason=Scheduled"` |
+
+The shorthand flags are combined into a single field selector for you; `--field-selector` lets you express conditions the shorthands do not cover. Comma-separated conditions must all match.
+
+<Note>
+  Unsure which reasons appear in your data? `datumctl activity events --suggest reason` lists the event reasons seen in the window, so you know exactly what to pass to `--reason`.
+</Note>
+
+### Scenario: what happened to one resource?
+
+An on-call responder suspects a specific resource is the culprit. Pull every event about it in the last hour:
+
+```bash
+datumctl activity events \
+  --regarding-kind Workload \
+  --regarding-name checkout-api \
+  --start-time now-1h
+```
+
+Then narrow to only the warnings for that resource over a longer window to see whether the trouble started earlier:
+
+```bash
+datumctl activity events \
+  --regarding-kind Workload \
+  --regarding-name checkout-api \
+  --type Warning \
+  --start-time now-24h
+```
+
+### Scenario: hunt a recurring failure by reason
+
+If you already know the failure mode, filter by its reason across the whole project to see how widespread it is:
+
+```bash
+datumctl activity events --reason FailedMount --start-time now-7d
+```
+
+<Warning>
+  Events answer "what happened to a resource," while audit answers "who acted on a resource." During an incident, reach for `events --type Warning` to find the symptom, then switch to `audit` to find the change — a `--verb update` or `--verb delete` around the same timestamp — that likely caused it.
+</Warning>
+
+---
+
+## Choosing between audit and events
+
+<CardGroup cols={2}>
+  <Card title="Reach for audit when…">
+    You need to know **who** took an action, when, and against which resource — deletions, updates, failed requests, or a full compliance export.
+  </Card>
+  <Card title="Reach for events when…">
+    You need to know **what happened** to a resource — warnings, lifecycle changes, and the symptoms of an incident as the platform reports them.
+  </Card>
+</CardGroup>
+
+## Related
+
+- [Querying activity](/datumctl/activity/overview) — the hub for the whole `activity` command family, including the persona routing table and the shared query model.
+- [Change history & feed](/datumctl/activity/change-history-and-feed) — the `feed` and `history` subcommands, for a merged, human-readable activity stream and per-resource spec diffs.
+- [Output formats & scripting](/datumctl/output-and-scripting) — `jq`/JSONPath patterns, structured errors, and exit-code handling for wrapping these commands in pipelines and SIEM ingestion.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how the active organization and project are resolved, and how to pin them explicitly with `--organization` and `--project`.
+- [Discovering resources & schemas](/datumctl/discovering-resources) — find the resource-type and kind names to pass to `--resource` and `--regarding-kind`.

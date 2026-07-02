@@ -1,0 +1,72 @@
+---
+title: "BillingAccountBinding"
+sidebarTitle: "BillingAccountBinding"
+description: "BillingAccountBinding links a project to a billing account, establishing billing responsibility for the project's resource consumption."
+---
+
+<Note>
+  API resource reference for **BillingAccountBinding**, part of the [Billing service](/api/billing/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  This resource is part of the `v1alpha1` API and is subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `billing.miloapis.com` |
+| Version | `v1alpha1` |
+| Kind | `BillingAccountBinding` |
+| Scope | Project |
+
+## Overview
+
+A `BillingAccountBinding` connects a Project to a billing account so that the Project's resource consumption is charged to that account. Creating a binding establishes billing responsibility for the Project; the platform tracks which account is currently responsible and when that responsibility took effect.
+
+All fields in the spec are immutable once the binding is created. To move a Project to a different billing account, create a new binding — the previous one moves to the `Superseded` phase.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.billingAccountRef` | Object | Yes | References the billing account to bind. |
+| `spec.billingAccountRef.name` | string | Yes | Name of the BillingAccount. |
+| `spec.projectRef` | Object | Yes | References the project to bind to the billing account. |
+| `spec.projectRef.name` | string | Yes | Name of the project. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.phase` | string | Current lifecycle phase of the binding. One of `Active` or `Superseded`. |
+| `status.billingResponsibility` | Object | Tracks when billing responsibility was established for this binding. |
+| `status.billingResponsibility.currentAccount` | string | Name of the currently responsible billing account. |
+| `status.billingResponsibility.establishedAt` | string | Time when billing responsibility was established. |
+| `status.conditions` | []Object | Latest available observations of the binding's state. |
+| `status.observedGeneration` | integer | Most recent generation observed by the controller. |
+
+## Usage
+
+```yaml
+apiVersion: billing.miloapis.com/v1alpha1
+kind: BillingAccountBinding
+metadata:
+  name: my-project-billing
+spec:
+  billingAccountRef:
+    name: acme-billing-account
+  projectRef:
+    name: my-project
+```
+
+```bash
+datumctl apply -f billingaccountbinding.yaml --project my-project
+datumctl get billingaccountbindings --project my-project
+datumctl describe billingaccountbindings my-project-billing --project my-project
+```
+
+<Tip>
+  Run `datumctl explain billingaccountbindings --recursive` to see the full, live field tree for this resource.
+</Tip>

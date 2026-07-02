@@ -1,0 +1,191 @@
+---
+title: "Querying activity"
+sidebarTitle: "Querying activity"
+description: "Investigate what changed, who did it, and when — using the datumctl activity command family for audit records, resource events, a merged feed, and per-resource change history."
+---
+
+`datumctl activity` answers questions about *what has happened* in your organization or project — as opposed to `get` and `describe`, which show you the current state of a resource. Reach for it when you need to reconstruct a timeline, prove who took an action, understand why something changed, or export an immutable record for compliance.
+
+The command is organized into four subcommands. Each one queries the same underlying activity service but shapes the data for a different question:
+
+<CardGroup cols={2}>
+  <Card title="audit" icon="scroll">
+    **Use this when** you need the authoritative record of *who did what, when, to which resource*. Actions and verbs (create, update, delete) with the acting user attached.
+  </Card>
+  <Card title="events" icon="bell">
+    **Use this when** you want lifecycle signals a resource emitted — state changes, warnings, and notable occurrences — with extended retention.
+  </Card>
+  <Card title="feed" icon="stream">
+    **Use this when** you want one merged, human-readable stream across audit, resource events, and change history — optionally streaming live.
+  </Card>
+  <Card title="history" icon="clock-rotate-left">
+    **Use this when** you want the change log for a single resource, including spec diffs between versions.
+  </Card>
+</CardGroup>
+
+<Info>
+  Activity is scoped like the rest of the CLI: it honors your active context and the `--organization` / `--project` flags. See [Contexts & scoping](/datumctl/contexts-and-scoping) for how scope is resolved.
+</Info>
+
+## Which command answers your question?
+
+Start from the question you are trying to answer, then use the command in the second column.
+
+| The question you're asking | Reach for | Key flags |
+| --- | --- | --- |
+| *Prove who did what, when, to which resource — and export an immutable record.* (security / compliance auditor) | `activity audit` | `--user`, `--verb`, `--resource`, `-n/--namespace`, a time range, `--all-pages`, `-o json` |
+| *Something broke at 14:20 — what changed just before, and were there warnings?* (SRE / on-call responder) | `activity feed`, then `activity events`, then `activity history` | `feed --start-time now-1h`, `events --type Warning`, `history <type> <name> --diff`, `feed --watch` for live |
+| *What is happening across the project, and which changes are human vs automated?* (platform administrator) | `activity feed` | `--change-source human` / `--change-source system`, org vs. project scope |
+| *What changed on my resource, by whom, and what did it look like before?* (application developer / resource owner) | `activity history`, `activity feed` | `history <type> <name> --diff`, `feed --actor <name>` |
+| *Stream or export audit records into our logging pipeline.* (automation / SIEM integrator) | `activity audit` | `-o json`, `--all-pages` (or `--continue-after` for cursor paging) |
+
+## The shared query model
+
+Every subcommand shares the same querying primitives, so once you learn them for `audit` they carry over to `events`, `feed`, and `history`.
+
+### Time range
+
+Bound the query with `--start-time` and `--end-time`. Both accept relative expressions (`now`, `now-1h`, `now-24h`, `now-7d`, `now-30d`) and absolute RFC 3339 timestamps (`2026-01-01T00:00:00Z`).
+
+```bash
+# Everything in the last hour
+datumctl activity feed --start-time now-1h
+
+# A fixed window
+datumctl activity audit --start-time 2026-01-14T00:00:00Z --end-time 2026-01-15T00:00:00Z
+```
+
+<Note>
+  When you omit the time range, `audit`, `events`, and `feed` default to the last 24 hours; `history` defaults to the last 30 days.
+</Note>
+
+### Filtering
+
+`audit` and `feed` accept a `--filter` [Common Expression Language (CEL)](https://cel.dev/) expression for precise server-side filtering. `events`, `feed`, and `history` also expose typed convenience flags (for example `--type`, `--reason`, `--actor`) so you rarely need to hand-write CEL for common cases.
+
+```bash
+# CEL: one user, one API group
+datumctl activity audit --project my-project-id \
+  --filter='user.username == "swells@datum.net" && objectRef.apiGroup == "networking.datumapis.com"'
+```
+
+### Pagination
+
+Results are paged. `--limit` sets the page size (1–1000; defaults to 25 for `audit`, `events`, and `feed`, and 100 for `history`). When more results exist, the CLI tells you how to continue:
+
+```bash
+datumctl activity audit --limit 3
+# ...
+# More results available. Use --continue-after '{continue-token}' to get the next page.
+# Or use --all-pages to fetch all results automatically.
+```
+
+- `--all-pages` fetches every page automatically — ideal for a complete export.
+- `--continue-after '<cursor>'` fetches the next page from a cursor, giving an integrator explicit control over paging.
+
+<Note>
+  `--all-pages` and `--continue-after` are mutually exclusive — pass one or the other.
+</Note>
+
+### Output
+
+The default is a compact table. Pass `-o` to get machine-readable output for [`jq`](https://jqlang.org/), JSONPath, or an ingestion pipeline; add `--no-headers` to drop the table header row.
+
+```bash
+# Full records as JSON, ready for jq or a SIEM
+datumctl activity audit --start-time now-30d --all-pages -o json > audit.json
+
+# Extract a single field with JSONPath
+datumctl activity feed -o jsonpath='{.items[*].verb}'
+
+# YAML for reading a whole record
+datumctl activity events --type Warning -o yaml
+```
+
+<Tip>
+  Building automation around activity? See [Output formats & scripting](/datumctl/output-and-scripting) for the JSON/YAML/JSONPath patterns, exit-code semantics, and structured errors that apply to these commands.
+</Tip>
+
+## The four subcommands in depth
+
+<Tabs>
+  <Tab title="audit">
+    Records **who did what, when, to which resource**. Every entry ties an action (verb) on a resource to the acting user, making it the authoritative source for compliance.
+
+    Adds `--user`, `--verb` (create, update, delete, patch, get, list, watch), `--resource` (resource type), and `-n/--namespace` on top of the shared model, plus `--filter` for CEL.
+
+    ```bash
+    # Deletes in the last 7 days
+    datumctl activity audit --verb delete --start-time now-7d
+
+    # One resource type, exported for the record
+    datumctl activity audit --resource projects --start-time now-30d --all-pages -o json > audit.json
+    ```
+  </Tab>
+  <Tab title="events">
+    Surfaces **resource lifecycle events** — state changes and noteworthy occurrences a resource emitted — with extended retention.
+
+    Adds `--type` (`Normal` or `Warning`), `--reason`, `--regarding-kind`, `--regarding-name`, `--field-selector`, and `-n/--namespace`.
+
+    ```bash
+    # Only warnings in the last day
+    datumctl activity events --type Warning --start-time now-24h
+
+    # Events about one resource
+    datumctl activity events --regarding-kind Project --regarding-name my-project-id
+    ```
+  </Tab>
+  <Tab title="feed">
+    A **merged, human-readable stream** that combines audit records, resource events, and change history into a single timeline. The fastest way to see "everything that just happened."
+
+    Adds `--change-source` (`human` or `system`), `--actor`, `--kind`, `--api-group`, `--resource-uid`, `--search` (full-text over summaries), `-n/--namespace`, `--filter` (CEL), and `-w/--watch` to stream new activity live.
+
+    ```bash
+    # A timeline of the last hour
+    datumctl activity feed --start-time now-1h
+
+    # Only human-initiated changes
+    datumctl activity feed --change-source human
+
+    # Follow live
+    datumctl activity feed --watch
+    ```
+  </Tab>
+  <Tab title="history">
+    The **change log for a single resource**, chronologically. Add `--diff` to see the spec changes between consecutive versions.
+
+    Takes positional `RESOURCE_TYPE` and `NAME`; use `-n/--namespace` for namespaced resources.
+
+    ```bash
+    # What changed on this project, and how
+    datumctl activity history projects my-project-id --diff
+    ```
+  </Tab>
+</Tabs>
+
+## How activity relates to the rest of datumctl
+
+- **vs. `get` / `describe`** — Those show the *current* state of a resource. Activity shows the *history* of actions and changes over time. Use `describe` to see what a resource looks like now; use `history <type> <name> --diff` to see how it got there.
+- **vs. the console's activity dashboard** — The [interactive console](/datumctl/console) has an activity dashboard that browses this same data visually. The `activity` subcommands are the scriptable, exportable counterpart — the same information, shaped for pipelines and the terminal.
+
+## Next steps
+
+Pick the subcommand that matches your question from the routing table above, or dig into the two detail guides:
+
+<CardGroup cols={2}>
+  <Card title="Audit logs & events" href="/datumctl/activity/audit-and-events" icon="scroll">
+    The `audit` and `events` subcommands — prove who did what for compliance, and surface lifecycle warnings during an incident.
+  </Card>
+  <Card title="Change history & feed" href="/datumctl/activity/change-history-and-feed" icon="clock-rotate-left">
+    The `history` and `feed` subcommands — diff a single resource across versions, or watch a merged, human-readable timeline.
+  </Card>
+</CardGroup>
+
+## Related
+
+- [Audit logs & events](/datumctl/activity/audit-and-events) — deep dive on `audit` and `events`, including compliance exports and incident-response triage.
+- [Change history & feed](/datumctl/activity/change-history-and-feed) — deep dive on `history` and `feed`, including spec diffs and the live `--watch` timeline.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how the active organization and project are resolved before any activity query runs.
+- [Discovering resources & schemas](/datumctl/discovering-resources) — find the `RESOURCE_TYPE` names that `activity history` expects.
+- [Output formats & scripting](/datumctl/output-and-scripting) — JSON/YAML/JSONPath, structured errors, and exit codes for wrapping activity queries in automation.
+- [Interactive console](/datumctl/console) — browse this same activity data visually in the console's activity dashboard.

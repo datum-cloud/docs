@@ -1,0 +1,129 @@
+---
+title: "Status & conditions"
+sidebarTitle: "Status & conditions"
+description: "How to read a resource's observed state and interpret the standard conditions pattern across Datum Cloud."
+---
+
+<Note>
+  A concept page for the whole [API reference](/api/overview). Every resource has a `spec` (the desired state you declare) and a `status` (the observed state the platform reports back). This page explains how to read `status` and the shared `conditions` pattern. To actually read a resource, see [Reading resources](/datumctl/resources/reading) and [Output formats & scripting](/datumctl/output-and-scripting).
+</Note>
+
+<Warning>
+  The Datum Cloud API is currently **alpha** (`v1alpha1`; the Gateway API resources are served at stable `v1`). Status fields, condition types, and reason strings may change in backward-incompatible ways between releases.
+</Warning>
+
+## Spec vs. status
+
+Datum Cloud resources separate what you *want* from what the platform *observes*:
+
+| Section | Who writes it | What it means |
+| --- | --- | --- |
+| `spec` | You | The desired state you declare. This is the part you edit and apply. |
+| `status` | The platform | The observed state, reported back as the platform works toward your `spec`. Read-only. |
+
+You never set `status` yourself. When you apply a manifest, the platform stores your `spec`, then a controller works to make reality match it and records progress in `status`. Reading `status` is how you answer "did what I asked for actually happen, and is it healthy?"
+
+<Info>
+  Because `status` is populated asynchronously, a freshly created resource may have an empty or partial `status` for a short time while the platform reconciles it. Re-read the resource to see it converge.
+</Info>
+
+## What lives in status
+
+The exact `status` fields differ per resource, but they fall into two broad kinds:
+
+- **Observed values** — concrete data the platform discovered or assigned. For example, a [DNSZone](/api/dns/dnszone) reports `status.nameservers` (the active authoritative nameservers) and `status.recordCount`. These are useful outputs you often need downstream.
+- **`status.conditions`** — a standardized list describing the resource's health and readiness. This is the same shape on every resource that has it, so once you can read conditions on one resource you can read them on all of them.
+
+The rest of this page focuses on `conditions`, since it is the common pattern.
+
+## The conditions pattern
+
+`status.conditions` is a list of objects. Each entry describes **one aspect** of the resource's current state — for example, whether it was accepted, whether it was programmed into the underlying system, or whether it is fully ready. A resource surfaces several conditions at once, and you read them together to understand its overall state.
+
+Every condition has the same fields:
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `type` | string | The aspect of state this condition describes, in CamelCase (e.g. `Accepted`, `Programmed`, `Ready`). |
+| `status` | string | One of `True`, `False`, or `Unknown` — whether that aspect currently holds. |
+| `reason` | string | A programmatic, CamelCase identifier for *why* the condition is in its current state. Stable enough to branch on in scripts. |
+| `message` | string | A human-readable explanation of the transition. May be empty. |
+| `lastTransitionTime` | string | RFC 3339 timestamp of when `status` last changed to its current value. |
+| `observedGeneration` | integer | The `metadata.generation` the condition was evaluated against. |
+
+### Interpreting the status value
+
+The meaning of `True` and `False` depends on the condition `type` — read them relative to what the type asserts (e.g. "is this Ready?"), not as generic pass/fail:
+
+- **`True`** — the aspect named by `type` holds. For a positive readiness type like `Ready` or `Accepted`, `True` is the healthy, desired outcome.
+- **`False`** — the aspect does not hold. Check `reason` and `message` to find out why. For a readiness type, `False` usually means something needs your attention or is still failing.
+- **`Unknown`** — the platform cannot currently determine the state (for example, it hasn't observed the resource yet, or a dependency is itself unknown). Often a transient state right after a change.
+
+<Tip>
+  Read `reason` and `message` together. `reason` is a stable machine-readable code you can match on in automation; `message` is the human explanation of what happened and, often, what to do next.
+</Tip>
+
+### Checking observedGeneration first
+
+`metadata.generation` increments each time you change a resource's `spec`. A condition's `observedGeneration` tells you which generation the platform had processed when it set that condition.
+
+<Warning>
+  If `status.conditions[*].observedGeneration` is **less than** the current `metadata.generation`, the condition is stale — it reflects an earlier version of your `spec`, not your latest change. Wait for the platform to catch up before trusting a condition's `status`. A `Ready: True` that describes an old generation does not mean your newest edit succeeded.
+</Warning>
+
+## Common readiness condition types
+
+Condition types are defined per resource, so always confirm the exact set for a given resource (see [inspecting the schema](#discovering-a-resources-status-schema)). That said, several types recur across the API, especially on networking and DNS resources:
+
+| Type | Roughly means |
+| --- | --- |
+| `Accepted` | The platform validated your `spec` and accepted the request. |
+| `Programmed` | The accepted configuration was applied to the underlying system (e.g. the DNS zone or route is live). |
+| `Ready` | The resource is fully provisioned and usable. |
+
+For example, a [DNSZone](/api/dns/dnszone)'s `status.conditions` "tracks state such as Accepted and Programmed readiness," and the Gateway API resources such as [HTTPRoute](/api/networking/gateway/httproute) use `Accepted` and `Programmed` in the same way. A healthy resource typically shows these as `status: True` with a `reason` that echoes the type (for example `Accepted` / `Programmed`).
+
+<Info>
+  There is no universal, fixed list of condition types. Treat the table above as common conventions, not a guarantee — the authoritative set for any resource comes from its schema and its own reference page.
+</Info>
+
+## Inspecting status with the CLI
+
+Conditions and other status fields are easiest to read with `datumctl`.
+
+`datumctl describe` renders conditions in a readable block, which is the fastest way to eyeball readiness and reasons:
+
+```bash
+datumctl describe dnszone example-com --project my-project
+```
+
+`datumctl get -o yaml` prints the full object — use it to see the raw `status`, every condition field, and `observedGeneration`:
+
+```bash
+datumctl get dnszone example-com -o yaml --project my-project
+```
+
+For scripting, extract a specific condition or field with an output template instead of parsing text. See [Output formats & scripting](/datumctl/output-and-scripting) for JSONPath and Go-template patterns, and [Contexts & scoping](/datumctl/contexts-and-scoping) for selecting the Project or Platform scope you're reading from.
+
+<Tip>
+  When a change doesn't seem to take effect, compare `metadata.generation` against each condition's `observedGeneration` in the `-o yaml` output. If they differ, the platform is still reconciling your latest `spec`.
+</Tip>
+
+## Discovering a resource's status schema
+
+Because status fields and condition types vary by resource, inspect the live schema rather than guessing:
+
+```bash
+datumctl explain dnszone.status --recursive
+```
+
+This lists the exact `status` fields and the `conditions` structure for that resource, straight from the live API. See [Discovering resources & schemas](/datumctl/discovering-resources) for more on exploring the API this way, and [Safe changes & declarative config](/datumctl/resources/safe-changes) for previewing edits before you apply them.
+
+## Related
+
+- [API conventions](/api/concepts/conventions) — the `spec`/`status` model this page builds on.
+- [Resource references](/api/concepts/references) — status often reports resolved relationships (for example a `ResolvedRefs` condition), and this page explains how to follow them.
+- [Object metadata](/api/concepts/metadata) — `metadata.generation`, which conditions compare against via `observedGeneration`.
+- [Reading resources](/datumctl/resources/reading) — `get` and `describe` to see status and conditions.
+- [Output formats & scripting](/datumctl/output-and-scripting) — extract a specific condition or field for automation.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — select the Project or Platform scope you read status from.

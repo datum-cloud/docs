@@ -1,0 +1,30 @@
+---
+title: "Resource Manager"
+sidebarTitle: "Overview"
+description: "Organizations and projects — the top-level containers for everything you run on Datum Cloud."
+---
+
+Datum Cloud groups everything you build under the `resourcemanager.miloapis.com` API. An **Organization** is the top-level container that owns billing, membership, and access; a **Project** lives within an organization and holds the resources you actually run — DNS zones, networks, and more. **OrganizationMembership** connects a user to an organization and assigns the roles that grant them access. Together these form the container hierarchy that every other Datum Cloud resource lives inside.
+
+<Warning>
+  The Resource Manager API is **alpha** (`v1alpha1`). Fields and behavior may change in backward-incompatible ways between releases.
+</Warning>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Organization" icon="building" href="/api/resource-manager/organization">
+    The top-level container that owns billing, membership, and access for everything beneath it.
+  </Card>
+  <Card title="Project" icon="folder" href="/api/resource-manager/project">
+    A container within an organization that holds the resources you run on Datum Cloud.
+  </Card>
+  <Card title="OrganizationMembership" icon="user-plus" href="/api/resource-manager/organizationmembership">
+    Connects a user to an organization and assigns the roles that grant them access.
+  </Card>
+</CardGroup>
+
+## Learn more
+
+- [API resources overview](/api/overview) — the resource reference landing page across all Datum Cloud services.
+- [Changing resources](/datumctl/resources/changing) — how to apply, edit, and safely preview changes to these resources.

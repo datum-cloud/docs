@@ -1,0 +1,135 @@
+---
+title: "Adding Catalogs"
+sidebarTitle: "Adding catalogs"
+description: "Register additional and internal plugin catalogs, and understand the trust decision and enterprise guardrails involved."
+---
+
+A **catalog** is a published list of datumctl plugins. It's the marketplace that `plugin search`, `plugin browse`, and `plugin install` read from. In command syntax a catalog is called an **index**, so the commands live under `datumctl plugin index`.
+
+The official **datum** catalog is always present and trusted with no setup. You can register additional catalogs — a company's internal catalog or a community one — and their plugins then appear alongside Datum's.
+
+<Info>
+  Registering a catalog only makes its plugins discoverable. Nothing is downloaded or run until you install a specific plugin from it.
+</Info>
+
+## Registering a catalog
+
+```bash
+datumctl plugin index add <name> <source>
+```
+
+The `<name>` is a short local alias you'll use to refer to the catalog (for example `acme/deploy` when installing). The `<source>` can be:
+
+<Tabs>
+  <Tab title="HTTPS URL">
+    ```bash
+    datumctl plugin index add acme https://plugins.acme.example/index.yaml
+    ```
+  </Tab>
+  <Tab title="GitHub repo">
+    ```bash
+    datumctl plugin index add community datum-community/datumctl-plugins
+    ```
+  </Tab>
+  <Tab title="Local path">
+    ```bash
+    datumctl plugin index add local ./my-catalog
+    ```
+  </Tab>
+</Tabs>
+
+Remote sources must be HTTPS. Local paths are supported for development and air-gapped use.
+
+### The one-time trust decision
+
+Adding a third-party catalog is a deliberate, one-time trust decision. datumctl prompts you to confirm and explains what you're agreeing to:
+
+<Warning>
+  Datum does not review, verify, or endorse plugins from a third-party catalog. Its plugins are programs that run on your machine **with your Datum credentials**. Only add catalogs you trust.
+</Warning>
+
+To confirm without a prompt in scripts or CI, pass `--yes`:
+
+```bash
+datumctl plugin index add acme https://plugins.acme.example/index.yaml --yes
+```
+
+<Note>
+  Regardless of which catalog a plugin comes from, downloads remain HTTPS-only and every plugin binary is checksum-verified on install and on every run. The trust decision is about *who authored the plugin*, not about transport security.
+</Note>
+
+## Listing catalogs
+
+```bash
+datumctl plugin index list
+```
+
+This shows every registered catalog with its type, plugin count, trust badge (`official` or `third-party`), and description. The official **datum** catalog is always listed first.
+
+## Refreshing catalog metadata
+
+Catalog listings are cached. Refresh them to pick up newly published plugins or versions:
+
+```bash
+# Refresh every catalog
+datumctl plugin index update
+
+# Refresh a single catalog
+datumctl plugin index update community
+```
+
+## Removing a catalog
+
+```bash
+datumctl plugin index remove community
+```
+
+The official **datum** catalog cannot be removed, and catalogs pre-seeded by your organization cannot be removed here. Removing a catalog does **not** uninstall plugins you already installed from it.
+
+## Enterprise guardrails
+
+Platform teams can pre-seed approved catalogs onto a workstation and constrain which catalogs users may add. This is configured through environment variables read by datumctl:
+
+- `DATUMCTL_PLUGIN_MANAGED_CONFIG` — path to a YAML file that pre-registers approved catalogs and, optionally, an allow-list.
+- `DATUMCTL_PLUGIN_ALLOWED_INDEXES` — a comma-separated allow-list that supplements the file.
+
+A managed configuration file looks like this:
+
+```yaml
+# Catalogs pre-registered for the user (no manual action, cannot be removed)
+indexes:
+  - name: acme
+    source: github.com/acme-corp/datumctl-plugins
+    description: ACME internal plugins
+    owner: ACME Platform Team
+
+# Constrains which catalogs a user may add themselves.
+# When empty, any catalog may be added.
+allowedIndexes:
+  - github.com/acme-corp/*
+  - plugins.acme.example
+```
+
+### How the allow-list scopes publishers
+
+When an allow-list is in effect, only catalogs matching an entry may be registered. Entries are matched by form:
+
+| Entry form | Example | Authorizes |
+|------------|---------|------------|
+| GitHub owner | `github.com/acme-corp` | any repo under that owner |
+| GitHub owner (wildcard) | `github.com/acme-corp/*` | any repo under that owner |
+| GitHub repo | `github.com/acme-corp/datumctl-plugins` | exactly that repo |
+| Any GitHub repo | `github.com/*` | every GitHub repo |
+| Host pattern | `plugins.acme.example` or `*.acme.example` | a non-GitHub remote host |
+| Bare name | `local` | a local-path catalog by name |
+
+GitHub sources are authorized **only** by a `github.com/<owner>` scope entry — a plain host pattern such as `raw.githubusercontent.com` will not green-light every GitHub repository. This lets platform teams pin permitted publishers down to a specific GitHub owner or repository.
+
+<Note>
+  The allow-list is enforced continuously, not just when a catalog is added. If a catalog's source stops being permitted, datumctl marks it disabled: it still appears in `plugin index list` (flagged as disabled) but is excluded from search, browse, and install.
+</Note>
+
+## Next steps
+
+- [Using plugins](/datumctl/plugins/using-plugins) — install and run plugins from your catalogs
+- [Publishing catalogs](/datumctl/plugins/publishing-catalogs) — author and host a catalog of your own

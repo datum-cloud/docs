@@ -1,0 +1,80 @@
+---
+title: "UserInvitation"
+sidebarTitle: "UserInvitation"
+description: "UserInvitation is the Schema for the userinvitations API."
+---
+
+<Note>
+  API resource reference for **UserInvitation**, part of the [IAM service](/api/iam/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  This resource is part of the `v1alpha1` API and is subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `iam.miloapis.com` |
+| Version | `v1alpha1` |
+| Kind | `UserInvitation` |
+| Scope | Project |
+
+## Overview
+
+A `UserInvitation` invites a person to join an Organization and grants them one or more roles once they accept. Use it to bring a new member into a Datum Cloud Organization: you supply the invitee's email (and optionally their name), the Organization they are joining, and the roles they will receive. The invited user accepts by setting the invitation's `state` to `Accepted`, at which point the roles take effect. Invitations can also be `Declined` and may carry an expiration date after which they are no longer valid.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.email` | string | Yes | The email of the user being invited. |
+| `spec.state` | string | Yes | The state of the invitation. One of `Pending`, `Accepted`, or `Declined`. The invited user sets this to `Accepted` to accept the invitation. |
+| `spec.organizationRef` | Object | Yes | Reference to the Organization the user is invited to. |
+| `spec.organizationRef.name` | string | Yes | Name of the referenced Organization. |
+| `spec.roles` | []Object | Yes | The roles assigned to the user when they accept the invitation. |
+| `spec.roles[].name` | string | Yes | Name of the referenced Role. |
+| `spec.roles[].namespace` | string | No | Namespace of the referenced Role. If empty, the Role is assumed to be in the same location as the invitation. |
+| `spec.givenName` | string | No | The first name of the user being invited. |
+| `spec.familyName` | string | No | The last name of the user being invited. |
+| `spec.expirationDate` | string | No | The date and time when the invitation expires. If not specified, the invitation never expires. |
+| `spec.invitedBy` | Object | No | Reference to the user who issued the invitation. A mutation webhook defaults this to the user who made the request. |
+| `spec.invitedBy.name` | string | No | Name of the referenced inviting User. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.conditions` | []Object | Conditions representing the current status of the invitation. |
+| `status.inviteeUser` | Object | Information about the invitee user. May be empty if the invitee user has not been created yet. |
+| `status.inviterUser` | Object | Information about the user who issued the invitation. |
+| `status.organization` | Object | Information about the Organization named in the invitation. |
+
+## Usage
+
+```yaml
+apiVersion: iam.miloapis.com/v1alpha1
+kind: UserInvitation
+metadata:
+  name: invite-jane-doe
+spec:
+  email: jane.doe@example.com
+  givenName: Jane
+  familyName: Doe
+  state: Pending
+  organizationRef:
+    name: acme-corp
+  roles:
+    - name: organization-viewer
+```
+
+```bash
+datumctl apply -f userinvitation.yaml --project my-project
+datumctl get userinvitations.iam.miloapis.com --project my-project
+datumctl describe userinvitations.iam.miloapis.com invite-jane-doe --project my-project
+```
+
+<Tip>
+  Run `datumctl explain userinvitations.iam.miloapis.com --recursive` to see the full, live field tree for this resource.
+</Tip>

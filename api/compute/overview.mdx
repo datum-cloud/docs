@@ -1,0 +1,40 @@
+---
+title: "Compute"
+sidebarTitle: "Overview"
+description: "Run workloads on Datum Cloud — the workloads you declare, the deployments that place them, and the instances that run them."
+---
+
+Datum Cloud runs your applications through the `compute.datumapis.com` API. You declare a workload describing what to run and how it should be shaped, Datum places it across the requested locations as deployments, and each deployment brings up the instances that actually run your code. Workloads and their derived resources are Project resources you create with `datumctl apply -f`.
+
+<Warning>
+  The Compute API is **alpha** (`v1alpha`). Fields and behavior may change in backward-incompatible ways between releases.
+</Warning>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Workload" icon="cubes" href="/api/compute/workload">
+    The application you want to run — its template, resource shape, and placement policy. The top-level resource you author.
+  </Card>
+  <Card title="WorkloadDeployment" icon="server" href="/api/compute/workloaddeployment">
+    A placement of a workload derived from its policy, reconciled toward a target location.
+  </Card>
+  <Card title="Instance" icon="microchip" href="/api/compute/instance">
+    A single running unit created by a deployment, reporting its own runtime state.
+  </Card>
+</CardGroup>
+
+## How the pieces fit together
+
+- A **Workload** is the resource you author. It declares what to run and its placement policy.
+- A **WorkloadDeployment** is derived from a workload's placement policy, one per target location, and drives the desired state for that location.
+- An **Instance** is the running unit brought up by a deployment; its status reports the observed runtime state.
+
+<Tip>
+  Inspect the exact fields for any resource with `datumctl explain`, for example `datumctl explain workloads.spec` or `datumctl explain instances.spec`.
+</Tip>
+
+## Learn more
+
+- [API resources overview](/api/overview) — the resource reference landing page across all Datum Cloud services.
+- [Changing resources](/datumctl/resources/changing) — how to apply, edit, and safely preview changes to these resources.

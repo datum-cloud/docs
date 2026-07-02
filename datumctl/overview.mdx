@@ -4,26 +4,44 @@ sidebarTitle: "Overview"
 description: "High level overview of the Datum Cloud CLI."
 ---
 
-`datumctl` is the command-line tool for working with Datum Cloud. If you’ve used kubectl, you'll find a similar model with resources, commands, and a predictable structure. For both developers and AI agents, `datumctl` is the fastest way to interact with Datum.
+`datumctl` is the command-line tool for working with Datum Cloud. It exposes a consistent resource model — the same `get`, `apply`, `describe`, and `delete` verbs across every resource type — so both developers and AI agents get a fast, predictable way to interact with Datum.
 
 <Info>
-  Ready to play? Download and install via [our downloads page](https://www.datum.net/download/datumctl/).
+  Ready to play? Download and install via [our downloads page](https://www.datum.net/download/datumctl/), or follow the [Quickstart](/datumctl/quickstart) to go from install to your first command in a few minutes.
 </Info>
 
-## How these docs are organized
+## Find your way around
 
-`datumctl` documentation is split into two sections:
+This section teaches you how to use `datumctl`; the [CLI Commands](/cli/options) reference lists every command and flag. New here? The [Quickstart](/datumctl/quickstart) takes you from install to your first command.
 
-- **datumctl** (this section) covers concepts, authentication, and workflows — start here to learn how the CLI works.
-- **[CLI Commands](/cli/options)** contains the full flag-level reference for each command (`datumctl apply`, `datumctl get`, and so on).
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/datumctl/auth/logging-in">
+    Sign in, use service accounts for automation, and manage sessions and tokens.
+  </Card>
+  <Card title="Working with resources" icon="cube" href="/datumctl/resources/reading">
+    Read, change, and safely preview changes to Datum Cloud resources.
+  </Card>
+  <Card title="Contexts & scoping" icon="compass" href="/datumctl/contexts-and-scoping">
+    Control which organization and project your commands act on.
+  </Card>
+  <Card title="Activity & audit" icon="clock-rotate-left" href="/datumctl/activity/overview">
+    Investigate who changed what, review events, and follow the activity feed.
+  </Card>
+  <Card title="Interactive console" icon="terminal" href="/datumctl/console">
+    Browse and monitor resources in a full-screen terminal UI.
+  </Card>
+  <Card title="AI & MCP" icon="robot" href="/datumctl/ai/assistant">
+    Ask about your resources in natural language, or connect AI clients over MCP.
+  </Card>
+  <Card title="CI/CD" icon="gears" href="/datumctl/cicd/github-actions">
+    Install and authenticate `datumctl` in GitHub Actions and other pipelines.
+  </Card>
+  <Card title="Plugins" icon="puzzle-piece" href="/datumctl/plugins/using-plugins">
+    Extend the CLI with additional commands from plugin catalogs.
+  </Card>
+</CardGroup>
 
-## Design goals
-
-`datumctl` is designed with a few core principles in mind:
-
-- **Security** - Modern authentication (OIDC with PKCE) with no static API keys.
-- **Consistency** - Commands follow a predictable structure for ease of use.
-- **Scalability** - New resources are added without changing how the CLI feels.
+Also useful: [Output formats & scripting](/datumctl/output-and-scripting), [Discovering resources & schemas](/datumctl/discovering-resources), and — for existing Kubernetes users — the Kubernetes interop section, which covers [using datumctl with kubectl](/datumctl/kubectl-interop), [Kubernetes tools](/datumctl/kubernetes-tools) like Helm and k9s, and [GitOps with Flux & Argo CD](/datumctl/gitops).
 
 ## How it works
 

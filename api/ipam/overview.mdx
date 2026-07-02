@@ -1,0 +1,40 @@
+---
+title: "IPAM"
+sidebarTitle: "Overview"
+description: "IP address management on Datum Cloud — allocatable pools, claims against them, and the allocations they produce."
+---
+
+Datum Cloud manages IP address space through the `ipam.miloapis.com` API. You declare an allocatable pool from a CIDR (or carve a child pool from a parent), submit a claim requesting a sub-prefix of a given size and family, and the system records the resulting allocation carved out of the pool. Pools, claims, and allocations are resources you create and inspect with `datumctl apply -f` and `datumctl get`.
+
+<Warning>
+  The IPAM API is **alpha** (`v1alpha1`). Fields and behavior may change in backward-incompatible ways between releases.
+</Warning>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="IPPool" icon="network-wired" href="/api/ipam/ippool">
+    An allocatable address space. Root pools declare a CIDR directly; child pools carve a sub-prefix from a parent pool.
+  </Card>
+  <Card title="IPClaim" icon="ticket" href="/api/ipam/ipclaim">
+    A request for a sub-prefix of a chosen size and IP family, satisfied from a referenced or selected pool.
+  </Card>
+  <Card title="IPAllocation" icon="layer-group" href="/api/ipam/ipallocation">
+    A record of the CIDR carved out of an IPPool to satisfy an IPClaim.
+  </Card>
+</CardGroup>
+
+## How the pieces fit together
+
+- An **IPPool** defines allocatable address space. A root pool declares a CIDR directly, while a child pool carves a sub-prefix out of a parent pool.
+- An **IPClaim** requests a sub-prefix by IP family (`spec.ipFamily`) and size (`spec.prefixLength`), targeting a pool by reference (`spec.poolRef`) or selector (`spec.poolSelector`).
+- An **IPAllocation** records the specific CIDR carved out of an **IPPool** to satisfy an **IPClaim**.
+
+<Tip>
+  Inspect the exact fields for any resource with `datumctl explain`, for example `datumctl explain ippools.spec` or `datumctl explain ipclaims.spec`.
+</Tip>
+
+## Learn more
+
+- [API resources overview](/api/overview) — the resource reference landing page across all Datum Cloud services.
+- [Changing resources](/datumctl/resources/changing) — how to apply, edit, and safely preview changes to these resources.

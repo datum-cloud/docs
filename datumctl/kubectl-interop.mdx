@@ -1,0 +1,181 @@
+---
+title: "Using datumctl with kubectl"
+sidebarTitle: "Using kubectl"
+description: "Point kubectl at a Datum Cloud control plane using your active datumctl session — an opt-in escape hatch for existing kubectl users."
+---
+
+<Warning>
+  This guide is for **kubectl users only**. Datum Cloud requires no Kubernetes
+  knowledge — you manage organizations, projects, DNS zones, and other
+  resources directly with `datumctl get`, `datumctl apply`, `datumctl delete`,
+  and friends. If you have never used kubectl, you can skip this page entirely.
+</Warning>
+
+Some teams already run [kubectl](https://kubernetes.io/docs/reference/kubectl/) and want to reuse it against Datum Cloud. The
+commands on this page are an **opt-in escape hatch**, not the primary path.
+Everything you can do here you can also do with native `datumctl` commands, and
+we recommend the native commands for day-to-day work. If you do use kubectl,
+`datumctl` acts as the credential source so you never manage static keys.
+
+<Info>
+  Before you start, log in with the primary command so `datumctl` has an active
+  session to hand to kubectl:
+
+  ```text
+  datumctl login
+  ```
+
+  For CI or headless environments, add `--no-browser`. For staging, add
+  `--hostname auth.staging.env.datum.net`.
+</Info>
+
+## Generate a kubeconfig entry
+
+`datumctl auth update-kubeconfig` adds or updates a cluster, user, and context
+entry in your [kubeconfig](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/) so kubectl can authenticate to a Datum Cloud control
+plane using your active `datumctl` session. After it runs, kubectl
+automatically calls `datumctl auth get-token` to obtain a fresh credential on
+each request — there is nothing to rotate by hand.
+
+You must specify exactly **one** of `--organization` or `--project`. The two
+flags are mutually exclusive.
+
+<Tabs>
+  <Tab title="Organization control plane">
+    ```bash
+    datumctl auth update-kubeconfig --organization my-org-id
+    ```
+  </Tab>
+  <Tab title="Project control plane">
+    ```bash
+    datumctl auth update-kubeconfig --project my-project-id
+    ```
+  </Tab>
+</Tabs>
+
+On success, `datumctl` prints the kubeconfig path it wrote to, the user it
+configured, and the API server it targeted. It also sets the new entry as your
+current context.
+
+### Flags
+
+| Flag | Description |
+| --- | --- |
+| `--organization <id>` | Configure access to an organization's control plane. Mutually exclusive with `--project`. |
+| `--project <id>` | Configure access to a specific project's control plane. Mutually exclusive with `--organization`. |
+| `--kubeconfig <path>` | Path to the kubeconfig file to update. |
+| `--hostname <host>` | Override the API server hostname. Useful for self-hosted environments where the hostname cannot be derived from stored credentials. |
+| `--exec-interactive-mode <mode>` | Interactive mode for the kubeconfig exec credential plugin. One of `Never`, `IfAvailable` (default), or `Always`. |
+
+### Choosing where the kubeconfig is written
+
+By default, `datumctl` updates `$HOME/.kube/config`. If the `KUBECONFIG`
+environment variable is set, that path is used instead. Pass `--kubeconfig` to
+write to an explicit file — handy for keeping Datum Cloud entries separate from
+your other clusters.
+
+```bash
+datumctl auth update-kubeconfig --organization my-org-id --kubeconfig ~/.kube/datum-config
+```
+
+### Non-interactive use in CI and scripts
+
+The generated kubeconfig entry runs `datumctl` as a [client-go exec credential plugin](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#client-go-credential-plugins). In an
+interactive shell it can prompt you (for example, to complete a login) when a
+credential is needed. In CI or other non-interactive contexts, set the exec
+plugin's interactive mode to `Never` so kubectl fails fast instead of waiting
+on a prompt that can never be answered.
+
+```bash
+datumctl auth update-kubeconfig --project my-project-id --exec-interactive-mode Never
+```
+
+<Note>
+  The default is `IfAvailable`, which uses interactive prompts only when a
+  terminal is attached. `Always` requires an interactive terminal. Use `Never`
+  for automation.
+</Note>
+
+## Confirm your identity
+
+Once a control plane context is configured, `datumctl auth whoami` queries the
+Datum Cloud API server and shows the user identity and group memberships it
+resolved from your current credentials. It is useful for confirming which
+account kubectl is using and for troubleshooting access-denied errors.
+
+```bash
+datumctl auth whoami
+
+# Show the resolved identity as JSON
+datumctl auth whoami -o json
+```
+
+<Note>
+  `datumctl auth whoami` requires a control plane context configured with
+  `datumctl auth update-kubeconfig`. To see which `datumctl` account is
+  currently active without any control plane context, use `datumctl auth list`
+  instead.
+</Note>
+
+## Check permissions
+
+`datumctl auth can-i` verifies whether the active user is allowed to perform a
+specific action against a Datum Cloud resource type on the configured control
+plane. Provide an API verb (`get`, `list`, `watch`, `create`, `update`,
+`patch`, `delete`, or `*`) and a resource type.
+
+```bash
+# Check if you can list projects on the control plane
+datumctl auth can-i list projects
+
+# Check if you can create DNS zones
+datumctl auth can-i create dnszones
+
+# List all your permitted actions
+datumctl auth can-i --list
+
+# List permitted actions in a specific namespace
+datumctl auth can-i --list --namespace default
+```
+
+<Tip>
+  Run `datumctl api-resources` to see the resource types you can name in a
+  `can-i` check — [Discovering resources & schemas](/datumctl/discovering-resources)
+  covers resource discovery in full.
+</Tip>
+
+## How the credential handoff works
+
+<Steps>
+  <Step title="You configure the entry">
+    `datumctl auth update-kubeconfig` writes a context whose user runs
+    `datumctl auth get-token` as an exec credential plugin.
+  </Step>
+  <Step title="kubectl requests a token">
+    On each request, kubectl invokes `datumctl auth get-token`, which returns a
+    short-lived credential for the API server.
+  </Step>
+  <Step title="datumctl refreshes automatically">
+    If the stored token has expired, `datumctl` uses your refresh token to get
+    a new one before returning it — no static keys, no manual rotation.
+  </Step>
+</Steps>
+
+Because the kubeconfig entry pins to the `datumctl` session that was active
+when you generated it, switching accounts with `datumctl auth switch` and
+regenerating the entry keeps kubectl aligned with the account you intend to use.
+
+## Related
+
+- [Kubernetes tools](/datumctl/kubernetes-tools) — point Helm, the Terraform
+  Kubernetes provider, k9s, and other kubeconfig-driven tools at Datum Cloud.
+- [GitOps with Flux & Argo CD](/datumctl/gitops) — run a git-driven deployment
+  loop onto a Datum Cloud control plane through the same exec-credential kubeconfig.
+- [Managing accounts & tokens](/datumctl/auth/managing-accounts) — the native,
+  no-Kubernetes-required workflow for switching users, managing sessions, and
+  the `auth get-token` credential helper kubectl relies on.
+- [Logging in](/datumctl/auth/logging-in) — sign in with the browser or device-code flow.
+- [Reading resources](/datumctl/resources/reading) — the native `get` and `describe`
+  commands that replace kubectl for day-to-day work.
+- [Output formats & scripting](/datumctl/output-and-scripting) — retrieving tokens
+  and machine-readable output for scripting and credential-helper use.
