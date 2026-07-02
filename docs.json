@@ -146,7 +146,8 @@
             "group": "Getting started",
             "pages": [
               "datumctl/overview",
-              "datumctl/quickstart"
+              "datumctl/quickstart",
+              "datumctl/authentication"
             ]
           },
           {
@@ -155,7 +156,8 @@
               "datumctl/contexts-and-scoping",
               "datumctl/working-with-resources",
               "datumctl/discovering-resources",
-              "datumctl/output-and-scripting"
+              "datumctl/output-and-scripting",
+              "datumctl/activity"
             ]
           },
           {
@@ -175,11 +177,9 @@
             ]
           },
           {
-            "group": "Reference & interop",
+            "group": "kubectl interop",
             "pages": [
-              "datumctl/authentication",
-              "datumctl/kubectl-interop",
-              "datumctl/activity"
+              "datumctl/kubectl-interop"
             ]
           }
         ]
