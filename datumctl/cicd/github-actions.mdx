@@ -1,0 +1,153 @@
+---
+title: "GitHub Actions"
+sidebarTitle: "GitHub Actions"
+description: "Install and authenticate datumctl in GitHub Actions with the setup-datumctl-action, then run Datum Cloud commands in your workflows."
+---
+
+The [`setup-datumctl-action`](https://github.com/datum-cloud/setup-datumctl-action) is the officially supported way to run `datumctl` in a [GitHub Actions](https://docs.github.com/actions) workflow. In a single step it does two things:
+
+1. **Installs `datumctl`** — downloads the released binary for your runner's OS and architecture, verifies its published SHA-256 checksum, and adds it to `PATH` (no `sudo` required).
+2. **Authenticates a service account** — writes your service account credentials into the `datumctl` keyring so every later `datumctl` step in the job is already signed in.
+
+After the setup step runs, you can call any `datumctl` command directly.
+
+<Info>
+  This page is the hub for running `datumctl` in CI/CD. If you use a CI system other than GitHub Actions, see [Automating datumctl in CI/CD](/datumctl/cicd/automating) for the general headless-authentication and scripting patterns.
+</Info>
+
+## Minimal workflow
+
+The workflow below checks out your repository, installs and authenticates `datumctl`, then runs Datum Cloud commands. The service account credentials come from a repository secret (see [Set up the credentials secret](#set-up-the-credentials-secret)).
+
+```yaml
+name: datum
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  datum:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up datumctl
+        uses: datum-cloud/setup-datumctl-action@v1
+        with:
+          version: v0.15.0
+          credentials: ${{ secrets.DATUM_SA_CREDENTIALS }}
+
+      - name: List projects
+        run: datumctl get projects --organization my-org-id
+```
+
+Because the setup step authenticates for you, later steps run `datumctl` without a login command. Pass `--organization` (and `--project` where relevant) explicitly on every command so the workflow does not depend on ambient context state.
+
+<Tip>
+  Prefer `datumctl apply -f` for declarative create-or-update, and gate destructive changes with `datumctl diff -f` — `datumctl delete` proceeds without a confirmation prompt. See [Output formats & scripting](/datumctl/output-and-scripting) for exit codes and the `--error-format json` error envelope you can branch on in a pipeline.
+</Tip>
+
+## Inputs
+
+| Input | Required | Default | Description |
+| --- | --- | --- | --- |
+| `credentials` | Yes | — | Service account credentials JSON used to authenticate `datumctl`. Accepts either raw JSON or a base64-encoded blob. Always supply this from a secret — never inline it. |
+| `version` | No | `v0.15.0` | The `datumctl` release tag to install. Pin this to a known release for reproducible builds. |
+| `auth-hostname` | No | `auth.datum.net` | Datum Cloud authentication hostname. Set to `auth.staging.env.datum.net` to target the staging environment. |
+
+## Outputs
+
+| Output | Description |
+| --- | --- |
+| `version` | The `datumctl` version that was installed. |
+| `bin-path` | The install directory that was added to `PATH`. |
+
+You can read these in later steps — for example, to log the installed version:
+
+```yaml
+      - name: Set up datumctl
+        id: setup
+        uses: datum-cloud/setup-datumctl-action@v1
+        with:
+          credentials: ${{ secrets.DATUM_SA_CREDENTIALS }}
+
+      - name: Show installed version
+        run: echo "Installed datumctl ${{ steps.setup.outputs.version }}"
+```
+
+## Version pinning
+
+Pin both the action and the CLI so a workflow always behaves the same way:
+
+- **Pin the action tag** — `uses: datum-cloud/setup-datumctl-action@v1` tracks the latest `v1` release. For fully reproducible runs, pin to a specific tag (or commit SHA) instead.
+- **Pin the `version` input** — set `version:` to an explicit `datumctl` release tag rather than relying on the default, which changes as new releases ship.
+
+```yaml
+      - uses: datum-cloud/setup-datumctl-action@v1
+        with:
+          version: v0.15.0
+          credentials: ${{ secrets.DATUM_SA_CREDENTIALS }}
+```
+
+## How install and authentication work
+
+Understanding what the setup step does under the hood helps you reason about security and troubleshooting.
+
+<Steps>
+  <Step title="Verified install">
+    The action downloads the released `datumctl` tarball for the runner's OS and architecture — Linux and macOS on both `x86_64` and `arm64` — and verifies it against the checksum published with the release. It computes the SHA-256 of the downloaded artifact and compares it to the expected value, failing the step on a mismatch. The verified binary is placed on `PATH` without `sudo`.
+  </Step>
+  <Step title="Service account keyring auth">
+    The action loads the credentials you passed and authenticates the service account into the `datumctl` keyring. On headless runners there is no system keyring, so `datumctl` uses its file-backed keyring. This is the same non-interactive path as `datumctl login --credentials <file>` — every subsequent `datumctl` step in the job inherits the stored session and is authenticated automatically.
+  </Step>
+</Steps>
+
+<Note>
+  Service account sessions carry only the permissions granted to that account. Follow least-privilege and grant the service account exactly the access your workflow needs — nothing more. See [Service accounts](/datumctl/auth/service-accounts) for the credential model.
+</Note>
+
+## Set up the credentials secret
+
+The `credentials` input expects a service account credentials JSON document. Create one in the Datum portal and store it as an encrypted secret in GitHub.
+
+<Steps>
+  <Step title="Create a service account">
+    In the [Datum portal](https://app.datum.net), open your organization's IAM settings and create a service account. Grant it only the permissions the workflow requires.
+  </Step>
+  <Step title="Create a Datum-managed key">
+    For the service account, choose a Datum-managed key and download the credentials JSON. The full contents are shown only once, so save it immediately.
+  </Step>
+  <Step title="Store it as a secret">
+    In your GitHub repository (or environment), add a secret — for example `DATUM_SA_CREDENTIALS` — and paste in the credentials JSON. The action accepts either the raw JSON or a base64-encoded version.
+  </Step>
+  <Step title="Reference it in the workflow">
+    Pass the secret to the action's `credentials` input with `${{ secrets.DATUM_SA_CREDENTIALS }}`. Never commit credentials to the repository or inline them in workflow YAML.
+  </Step>
+</Steps>
+
+<Warning>
+  Treat the downloaded credentials file as sensitive. Store it only in GitHub's encrypted secrets (or your CI's secret store), rotate it periodically, and remove the local copy after uploading it.
+</Warning>
+
+## Targeting staging
+
+To run against the Datum Cloud staging environment, set the `auth-hostname` input:
+
+```yaml
+      - uses: datum-cloud/setup-datumctl-action@v1
+        with:
+          credentials: ${{ secrets.DATUM_SA_CREDENTIALS }}
+          auth-hostname: auth.staging.env.datum.net
+```
+
+<Note>
+  If your GitHub Actions runners generate a kubeconfig for existing kubectl users, see the [kubectl interop guide](/datumctl/kubectl-interop). In this section we use `datumctl` commands directly.
+</Note>
+
+## Related
+
+- [Automating datumctl in CI/CD](/datumctl/cicd/automating) — headless login, `datumctl auth get-token` as a credential helper, and cleanup patterns for any CI system.
+- [Service accounts](/datumctl/auth/service-accounts) — the credential model behind CI authentication and the credentials-file format the action consumes.
+- [Output formats & scripting](/datumctl/output-and-scripting) — machine-readable output, exit codes, and the `--error-format json` error envelope you can branch on.
+- [Using datumctl with kubectl](/datumctl/kubectl-interop) — generate a kubeconfig from a workflow for existing kubectl users.

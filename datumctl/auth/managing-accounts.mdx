@@ -1,0 +1,124 @@
+---
+title: "Managing accounts & tokens"
+sidebarTitle: "Managing accounts"
+description: "List, switch between, and remove locally authenticated Datum Cloud users, and print access tokens for tooling."
+---
+
+`datumctl` can hold sessions for more than one Datum Cloud user at a time. This is useful when you work across several identities — a personal account and a machine account, or accounts on different environments — and want to move between them without logging out and back in. This guide covers listing your local sessions, switching the active one, logging out, and printing access tokens for other tools.
+
+<Info>
+  New to the CLI? Start with the [Quickstart](/datumctl/quickstart) and [Logging in](/datumctl/auth/logging-in) guides. This page assumes you have already logged in at least once with `datumctl login`.
+</Info>
+
+## Working with multiple accounts
+
+Every time you run `datumctl login`, the resulting credentials are stored as a separate session. One session is always marked **active** — its credentials are used by every command that talks to the Datum Cloud API. The commands below let you see all your sessions and choose which one is active.
+
+### List your sessions
+
+```bash
+datumctl auth list
+# Alias: datumctl auth ls
+```
+
+This prints a table of every locally stored user:
+
+| Column     | Meaning                                                                                              |
+| ---------- | ---------------------------------------------------------------------------------------------------- |
+| `User`     | The email address used to log in. Pass this to `datumctl auth switch` or `datumctl logout`.          |
+| `Endpoint` | Shown only when your sessions span more than one API endpoint (for example production and staging).  |
+| `Status`   | `Active` marks the account whose credentials are used by default for all subsequent commands.        |
+
+If you have not logged in yet, the command tells you to run `datumctl login` to get started.
+
+### Switch the active account
+
+```bash
+# Switch to a specific account
+datumctl auth switch user@example.com
+
+# Or pick from an interactive list
+datumctl auth switch
+```
+
+Pass the email address exactly as it appears in `datumctl auth list`. If you omit the email, an interactive picker lists all your sessions so you can choose one. If a single email matches sessions on more than one endpoint, you are prompted to pick the right one.
+
+<Note>
+  Each session remembers the last context (organization or project) you used. Switching accounts also restores that account's context, so your active scope follows the identity you switch to. See [Contexts & scoping](/datumctl/contexts-and-scoping) for how the active context shapes what your commands act on.
+</Note>
+
+After switching, `datumctl` confirms the active user and shows the restored context (and endpoint, when you have sessions on more than one):
+
+```
+✓ Switched to Ada Lovelace (user@example.com)
+  Context:  my-project (proj-abc123)
+```
+
+The account must already be logged in. To add a new one, run `datumctl login` first — see [Logging in](/datumctl/auth/logging-in) for login options, including `--no-browser` for headless environments, or [Service accounts](/datumctl/auth/service-accounts) for machine-identity credentials.
+
+### Log out
+
+Logging out removes a user's stored credentials from this machine.
+
+```bash
+# Log out a single account
+datumctl logout user@example.com
+
+# Log out every account stored on this machine
+datumctl logout --all
+```
+
+You must either name an account or pass `--all` — the two cannot be combined. Use the email exactly as shown in `datumctl auth list`.
+
+<Warning>
+  `datumctl logout --all` removes every stored session and clears your saved contexts. You will need to run `datumctl login` again before you can run any authenticated command.
+</Warning>
+
+If you log out the active account while others remain, use `datumctl auth switch` to choose a new active session.
+
+## Printing access tokens for tooling
+
+`datumctl auth get-token` prints an access token for the active user. Most people never need it — `datumctl` obtains and refreshes tokens automatically for its own commands. It exists as a **credential helper** so that other tools can borrow your Datum Cloud session instead of managing their own login.
+
+```bash
+# Print a raw bearer token (default output)
+datumctl auth get-token
+```
+
+If the stored token has expired, `datumctl` uses the saved refresh token to fetch a new one before printing, so you always get a valid token.
+
+Common uses:
+
+- **Scripts and direct API calls** — capture the raw token and pass it as a bearer credential to `curl` or another HTTP client.
+- **Plugins** — [datumctl plugins](/datumctl/plugins/using-plugins) call `get-token` to obtain a fresh token for the active session rather than implementing their own authentication.
+- **kubectl** — for existing kubectl users, `get-token` also emits a Kubernetes-format credential object. This path is set up for you by `datumctl auth update-kubeconfig`; see [using datumctl with kubectl](/datumctl/kubectl-interop).
+
+### Flags
+
+| Flag                 | Description                                                                                                                     |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `--output`, `-o`     | Output format. `token` (default) prints the raw access token; `client.authentication.k8s.io/v1` prints a credential object for kubectl. |
+| `--session`          | Look up a specific session by name instead of the active one. Used by tooling that pins each configuration to its own session. |
+
+<Warning>
+  A printed token is a live credential for your Datum Cloud session. Do not log it, commit it, or paste it where it might be captured. Prefer piping it directly into the tool that needs it rather than storing it in a file or environment variable.
+</Warning>
+
+## Where credentials are stored
+
+`datumctl` splits what it stores in two places:
+
+- **Secrets** (access and refresh tokens) go into your operating system keyring — Keychain on macOS, Secret Service on Linux, Credential Manager on Windows.
+- **Session and context metadata** (which accounts exist, which is active, and each account's last context) lives in `~/.datumctl/config`.
+
+<Note>
+  When the OS keyring is unavailable — commonly on headless CI runners — `datumctl` falls back to a file at `~/.datumctl/credentials.json`, written with owner-only (`0600`) permissions. The fallback engages automatically; the rest of your workflow is unchanged. This file holds live tokens in plain text, so treat it as sensitive and keep it off shared or version-controlled storage.
+</Note>
+
+## Next steps
+
+- [Logging in](/datumctl/auth/logging-in) — the [PKCE](https://oauth.net/2/pkce/) browser flow, `--no-browser` device flow, `whoami`, and signing out.
+- [Service accounts](/datumctl/auth/service-accounts) — non-interactive machine credentials for CI and automation.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how the active account maps to the organizations and projects your commands target.
+- [Using plugins](/datumctl/plugins/using-plugins) — extend the CLI with commands that reuse your session through the credential helper.
+- [Using datumctl with kubectl](/datumctl/kubectl-interop) — hand your active session to kubectl (existing kubectl users only).

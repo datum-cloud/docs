@@ -141,55 +141,81 @@
       {
         "tab": "datumctl (CLI)",
         "icon": "terminal",
-        "pages": [
-          "datumctl/overview",
-          "datumctl/authentication",
-          "datumctl/activity"
-        ]
-      },
-      {
-        "tab": "CLI Commands",
-        "icon": "rectangle-list",
-        "pages": [
-          "cli/options",
+        "groups": [
+          {
+            "group": "Getting started",
+            "pages": [
+              "datumctl/overview",
+              "datumctl/quickstart"
+            ]
+          },
           {
             "group": "Authentication",
             "pages": [
-              "cli/datumctl_auth"
+              "datumctl/auth/logging-in",
+              "datumctl/auth/service-accounts",
+              "datumctl/auth/managing-accounts"
             ]
           },
           {
-            "group": "Resource Management",
+            "group": "Core concepts",
             "pages": [
-              "cli/datumctl_apply",
-              "cli/datumctl_create",
-              "cli/datumctl_delete",
-              "cli/datumctl_describe",
-              "cli/datumctl_diff",
-              "cli/datumctl_edit",
-              "cli/datumctl_get"
+              "datumctl/contexts-and-scoping",
+              "datumctl/discovering-resources",
+              "datumctl/output-and-scripting"
             ]
           },
           {
-            "group": "Discovery",
+            "group": "Working with resources",
             "pages": [
-              "cli/datumctl_api-resources",
-              "cli/datumctl_api-versions",
-              "cli/datumctl_explain"
+              "datumctl/resources/reading",
+              "datumctl/resources/changing",
+              "datumctl/resources/safe-changes"
             ]
           },
           {
-            "group": "Activity",
+            "group": "Activity & audit",
             "pages": [
-              "cli/datumctl_activity"
+              "datumctl/activity/overview",
+              "datumctl/activity/audit-and-events",
+              "datumctl/activity/change-history-and-feed"
             ]
           },
           {
-            "group": "Tools",
+            "group": "Interactive console",
             "pages": [
-              "cli/datumctl_completion",
-              "cli/datumctl_docs",
-              "cli/datumctl_mcp"
+              "datumctl/console"
+            ]
+          },
+          {
+            "group": "AI & MCP",
+            "pages": [
+              "datumctl/ai/assistant",
+              "datumctl/ai/mcp-server"
+            ]
+          },
+          {
+            "group": "CI/CD",
+            "pages": [
+              "datumctl/cicd/github-actions",
+              "datumctl/cicd/automating"
+            ]
+          },
+          {
+            "group": "Plugins",
+            "pages": [
+              "datumctl/plugins/using-plugins",
+              "datumctl/plugins/adding-catalogs",
+              "datumctl/plugins/publishing-catalogs",
+              "datumctl/plugins/building-plugins"
+            ]
+          },
+          {
+            "group": "Kubernetes interop",
+            "pages": [
+              "datumctl/kubectl-interop",
+              "datumctl/kubernetes-tools",
+              "datumctl/gitops"
             ]
           }
         ]

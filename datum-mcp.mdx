@@ -3,7 +3,7 @@ title: "Datum MCP"
 description: "Datum's official MCP server helps builders connect AI tools to their Datum projects and integrates with popular AI assistants like Cursor."
 ---
 
-Datum’s official [MCP server](https://github.com/datum-cloud/datum-mcp) helps you connect AI tools to your Datum projects using an open standard. Datum MCP gives AI tools secure access to your Datum resources. You can understand their current state, suggest and implement changes, and diagnose common configuration issues.
+Datum’s official [MCP server](https://github.com/datum-cloud/datum-mcp) helps you connect AI tools to your Datum projects using an open standard, the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP). Datum MCP gives AI tools secure access to your Datum resources. You can understand their current state, suggest and implement changes, and diagnose common configuration issues.
 
 Datum MCP integrates with popular AI assistants like Cursor, enabling you to view and manage:
 
@@ -15,6 +15,10 @@ Datum MCP integrates with popular AI assistants like Cursor, enabling you to vie
 - APIs (CRDs list/describe)
 
 Datum MCP implements the latest [MCP Authorization](https://modelcontextprotocol.io/specification/2025-06-18/basic/authorization) specifications and supports OAuth 2.1 (PKCE) auth or macOS Keychain token storage.
+
+<Info>
+  Using `datumctl`? See [Connecting an AI client with the MCP server](/datumctl/ai/mcp-server) for how the CLI docs frame this server and when to reach for it. Prefer to stay in the terminal instead? `datumctl` has a built-in assistant that answers questions in natural language without a separate MCP client — see the [AI assistant](/datumctl/ai/assistant) guide.
+</Info>
 
 **Install** - We offer three ways to get started:
 
