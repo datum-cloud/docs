@@ -94,7 +94,7 @@ Four shorthand flags let you zero in without writing a filter expression. They c
 | `--resource` | The resource type acted on | `--resource dnszones` |
 | `--namespace` | The target namespace | `--namespace production` |
 
-For anything the shorthand flags do not cover, `--filter` takes a server-side expression that is applied on top of them — for example `--filter "responseStatus.code >= 400"` to find failed requests.
+For anything the shorthand flags do not cover, `--filter` takes a server-side [Common Expression Language (CEL)](https://cel.dev/) expression that is applied on top of them — for example `--filter "responseStatus.code >= 400"` to find failed requests.
 
 <Note>
   Not sure which values exist in your data? The audit command can suggest them. `datumctl activity audit --suggest user.username` lists the users with recorded activity in the window, which is a fast way to discover exactly what to pass to `--user`.

@@ -61,7 +61,7 @@ datumctl activity audit --start-time 2026-01-14T00:00:00Z --end-time 2026-01-15T
 
 ### Filtering
 
-`audit` and `feed` accept a `--filter` [CEL expression](https://cel.dev) for precise server-side filtering. `events`, `feed`, and `history` also expose typed convenience flags (for example `--type`, `--reason`, `--actor`) so you rarely need to hand-write CEL for common cases.
+`audit` and `feed` accept a `--filter` [Common Expression Language (CEL)](https://cel.dev/) expression for precise server-side filtering. `events`, `feed`, and `history` also expose typed convenience flags (for example `--type`, `--reason`, `--actor`) so you rarely need to hand-write CEL for common cases.
 
 ```bash
 # CEL: one user, one API group
@@ -89,7 +89,7 @@ datumctl activity audit --limit 3
 
 ### Output
 
-The default is a compact table. Pass `-o` to get machine-readable output for `jq`, JSONPath, or an ingestion pipeline; add `--no-headers` to drop the table header row.
+The default is a compact table. Pass `-o` to get machine-readable output for [`jq`](https://jqlang.org/), JSONPath, or an ingestion pipeline; add `--no-headers` to drop the table header row.
 
 ```bash
 # Full records as JSON, ready for jq or a SIEM

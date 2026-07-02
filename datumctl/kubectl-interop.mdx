@@ -11,7 +11,7 @@ description: "Point kubectl at a Datum Cloud control plane using your active dat
   and friends. If you have never used kubectl, you can skip this page entirely.
 </Warning>
 
-Some teams already run kubectl and want to reuse it against Datum Cloud. The
+Some teams already run [kubectl](https://kubernetes.io/docs/reference/kubectl/) and want to reuse it against Datum Cloud. The
 commands on this page are an **opt-in escape hatch**, not the primary path.
 Everything you can do here you can also do with native `datumctl` commands, and
 we recommend the native commands for day-to-day work. If you do use kubectl,
@@ -32,7 +32,7 @@ we recommend the native commands for day-to-day work. If you do use kubectl,
 ## Generate a kubeconfig entry
 
 `datumctl auth update-kubeconfig` adds or updates a cluster, user, and context
-entry in your kubeconfig so kubectl can authenticate to a Datum Cloud control
+entry in your [kubeconfig](https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/) so kubectl can authenticate to a Datum Cloud control
 plane using your active `datumctl` session. After it runs, kubectl
 automatically calls `datumctl auth get-token` to obtain a fresh credential on
 each request — there is nothing to rotate by hand.
@@ -80,7 +80,7 @@ datumctl auth update-kubeconfig --organization my-org-id --kubeconfig ~/.kube/da
 
 ### Non-interactive use in CI and scripts
 
-The generated kubeconfig entry runs `datumctl` as a credential plugin. In an
+The generated kubeconfig entry runs `datumctl` as a [client-go exec credential plugin](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#client-go-credential-plugins). In an
 interactive shell it can prompt you (for example, to complete a login) when a
 credential is needed. In CI or other non-interactive contexts, set the exec
 plugin's interactive mode to `Never` so kubectl fails fast instead of waiting

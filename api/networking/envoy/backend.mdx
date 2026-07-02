@@ -23,7 +23,7 @@ description: "Backend allows the user to configure the endpoints of a backend an
 
 ## Overview
 
-A `Backend` defines a set of network endpoints that traffic can be routed to, along with the behavior of the connection from the Datum Cloud gateway data plane to those endpoints. It is an Envoy Gateway extension to the Gateway API: instead of routing to a Service, a route can reference a `Backend` to reach fully qualified domain names, raw IP addresses, or Unix domain sockets — with optional TLS origination and fallback behavior.
+A `Backend` defines a set of network endpoints that traffic can be routed to, along with the behavior of the connection from the Datum Cloud gateway data plane to those endpoints. It is an Envoy Gateway extension to the Gateway API, defined by the [Envoy Gateway API](https://gateway.envoyproxy.io/docs/api/extension_types/): instead of routing to a Service, a route can reference a `Backend` to reach fully qualified domain names, raw IP addresses, or Unix domain sockets — with optional TLS origination and fallback behavior.
 
 Use a `Backend` when you need to send traffic to a destination that is described by an explicit address (for example, an external API reachable by FQDN) rather than a Service in your Project, or when you need per-backend TLS or failover controls.
 

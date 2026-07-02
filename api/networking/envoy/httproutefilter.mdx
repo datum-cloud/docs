@@ -23,7 +23,7 @@ description: "HTTPRouteFilter is a custom Envoy Gateway HTTPRouteFilter which pr
 
 ## Overview
 
-An `HTTPRouteFilter` is an Envoy Gateway extension to the Gateway API that provides extended HTTP traffic processing options beyond the standard filters. Use it when a route needs behavior such as rewriting URL path or host, returning a fixed direct response, or injecting credentials into requests before they reach a backend.
+An `HTTPRouteFilter` is an Envoy Gateway extension to the Gateway API, defined by the [Envoy Gateway API](https://gateway.envoyproxy.io/docs/api/extension_types/), that provides extended HTTP traffic processing options beyond the standard filters. Use it when a route needs behavior such as rewriting URL path or host, returning a fixed direct response, or injecting credentials into requests before they reach a backend.
 
 You reference an `HTTPRouteFilter` from an `HTTPRoute` (via an extension-reference filter) so the extended processing applies to the matching traffic within a Project.
 

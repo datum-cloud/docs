@@ -23,7 +23,7 @@ description: "SecurityPolicy allows the user to configure various security setti
 
 ## Overview
 
-A `SecurityPolicy` applies security controls to a Gateway or to a route served by it. It is an Envoy Gateway extension to the Gateway API standard, attached to a target resource through a policy reference rather than being embedded in the Gateway itself.
+A `SecurityPolicy` applies security controls to a Gateway or to a route served by it. It is an Envoy Gateway extension to the Gateway API standard, defined by the [Envoy Gateway API](https://gateway.envoyproxy.io/docs/api/extension_types/), attached to a target resource through a policy reference rather than being embedded in the Gateway itself.
 
 Use it when you want to enforce authentication, authorization, or browser access rules on traffic entering your Project — for example requiring JWT or OIDC login, checking API keys or HTTP Basic credentials, delegating to an external authorization service, or configuring Cross-Origin Resource Sharing (CORS). A single policy attaches to one or more Gateways (or specific listeners/routes) and must live in the same Project as the resources it targets.
 

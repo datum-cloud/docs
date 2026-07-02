@@ -23,7 +23,7 @@ description: "BackendTrafficPolicy allows the user to configure the behavior of 
 
 ## Overview
 
-A `BackendTrafficPolicy` tunes how the gateway sends traffic from a listener to the backend services behind it. It is an Envoy Gateway extension to the [Gateway API](https://gateway-api.sigs.k8s.io/) standard: you attach it to a `Gateway` or route resource and use it to shape connection behavior — load balancing, retries, timeouts, circuit breaking, rate limiting, active health checks, fault injection, and more.
+A `BackendTrafficPolicy` tunes how the gateway sends traffic from a listener to the backend services behind it. It is an Envoy Gateway extension to the [Gateway API](https://gateway-api.sigs.k8s.io/) standard, defined by the [Envoy Gateway API](https://gateway.envoyproxy.io/docs/api/extension_types/): you attach it to a `Gateway` or route resource and use it to shape connection behavior — load balancing, retries, timeouts, circuit breaking, rate limiting, active health checks, fault injection, and more.
 
 Use it when you need finer control over backend traffic than the route itself provides, for example to cap concurrent connections to a backend, retry failed upstream requests, apply rate limits, or gradually ramp traffic to newly added endpoints. The policy attaches to a target resource through `targetRefs` and takes effect within the same Project.
 

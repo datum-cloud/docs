@@ -4,7 +4,7 @@ sidebarTitle: "GitHub Actions"
 description: "Install and authenticate datumctl in GitHub Actions with the setup-datumctl-action, then run Datum Cloud commands in your workflows."
 ---
 
-The [`setup-datumctl-action`](https://github.com/datum-cloud/setup-datumctl-action) is the officially supported way to run `datumctl` in a GitHub Actions workflow. In a single step it does two things:
+The [`setup-datumctl-action`](https://github.com/datum-cloud/setup-datumctl-action) is the officially supported way to run `datumctl` in a [GitHub Actions](https://docs.github.com/actions) workflow. In a single step it does two things:
 
 1. **Installs `datumctl`** — downloads the released binary for your runner's OS and architecture, verifies its published SHA-256 checksum, and adds it to `PATH` (no `sudo` required).
 2. **Authenticates a service account** — writes your service account credentials into the `datumctl` keyring so every later `datumctl` step in the job is already signed in.

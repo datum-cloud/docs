@@ -111,7 +111,7 @@ datumctl activity feed --kind Workload
 datumctl activity feed --search "created HTTPProxy"
 ```
 
-For advanced cases, `--filter` takes a server-side CEL expression (for example `spec.resource.kind in ['Workload', 'HTTPProxy']`).
+For advanced cases, `--filter` takes a server-side [Common Expression Language (CEL)](https://cel.dev/) expression (for example `spec.resource.kind in ['Workload', 'HTTPProxy']`).
 
 ### Watch live during an incident
 
