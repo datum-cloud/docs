@@ -144,7 +144,16 @@
         "pages": [
           "datumctl/overview",
           "datumctl/authentication",
-          "datumctl/activity"
+          "datumctl/activity",
+          {
+            "group": "Plugins",
+            "pages": [
+              "datumctl/plugins/using-plugins",
+              "datumctl/plugins/adding-catalogs",
+              "datumctl/plugins/publishing-catalogs",
+              "datumctl/plugins/building-plugins"
+            ]
+          }
         ]
       },
       {

@@ -1,0 +1,192 @@
+---
+title: "Building Plugins"
+sidebarTitle: "Building plugins"
+description: "Build a datumctl plugin in Go using the official SDK — manifest, context injection, credentials, and command forwarding."
+---
+
+A datumctl plugin is a standalone binary that datumctl runs on your users' behalf. When a user runs `datumctl dns zones list`, datumctl finds your `datumctl-dns` binary, injects the current context and a credentials helper, and hands off to it.
+
+This guide walks through building a plugin in Go with the official SDK, `go.datum.net/datumctl/plugin`.
+
+<Info>
+  The SDK reads only environment variables and execs subprocesses, so your plugin depends on it without pulling in any datumctl internals. A worked reference plugin lives at [`examples/plugin-dns`](https://github.com/datum-cloud/datumctl/tree/main/examples/plugin-dns) in the datumctl repository.
+</Info>
+
+## The model
+
+- A plugin is a binary named `datumctl-<name>` (for datumctl-native plugins) or `milo-<name>` (for portable milo-os platform plugins).
+- Users install it with `datumctl plugin install`, which places it in the managed plugins directory (`~/.datumctl/plugins/` by default), or it can live on their `PATH`.
+- Users then run it as `datumctl <name>` — datumctl forwards the arguments, injects context and credentials, and forwards shell completion.
+- Before running a managed plugin, datumctl verifies its SHA256 fingerprint every time.
+
+## Building your plugin
+
+<Steps>
+  <Step title="Add the SDK dependency">
+    ```bash
+    go get go.datum.net/datumctl/plugin
+    ```
+  </Step>
+
+  <Step title="Declare a manifest and serve it">
+    Call `plugin.ServeManifest` at the very top of `main()`. datumctl invokes your binary with `--plugin-manifest` to read its metadata; `ServeManifest` handles that protocol and exits before your command logic runs.
+
+    ```go
+    var manifest = plugin.Manifest{
+        Name:          "dns",
+        Version:       "v0.1.0",
+        Description:   "Manage Datum Cloud DNS zones",
+        APIVersion:    1,
+        MinAPIVersion: 1,
+    }
+    ```
+  </Step>
+
+  <Step title="Build a root command with pre-wired flags">
+    `plugin.NewRootCmd` returns a Cobra command with `--org`, `--project`, and `--output` flags already wired to the values datumctl injects.
+
+    ```go
+    root := plugin.NewRootCmd("dns", "Manage Datum Cloud DNS resources")
+    ```
+  </Step>
+
+  <Step title="Read context and fetch a token">
+    `plugin.Context()` reads the injected `DATUM_*` environment, and `plugin.Token()` calls the datumctl credentials helper for a fresh, short-lived access token. Call `Token()` immediately before each API request.
+
+    ```go
+    ctx := plugin.Context()
+    token, err := plugin.Token()
+    ```
+  </Step>
+</Steps>
+
+## A minimal plugin
+
+The following is a complete plugin grounded in the reference example. It serves its manifest, wires the root command, and adds a `zones list` subcommand that acquires a token and calls the Datum Cloud API:
+
+```go
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"os"
+
+	"github.com/spf13/cobra"
+	"go.datum.net/datumctl/plugin"
+)
+
+var manifest = plugin.Manifest{
+	Name:          "dns",
+	Version:       "v0.1.0",
+	Description:   "Manage Datum Cloud DNS zones",
+	APIVersion:    1,
+	MinAPIVersion: 1,
+}
+
+func main() {
+	// Handle --plugin-manifest and exit before cobra runs.
+	plugin.ServeManifest(manifest)
+
+	root := plugin.NewRootCmd("dns", "Manage Datum Cloud DNS resources")
+
+	zones := &cobra.Command{Use: "zones", Short: "Manage DNS zones"}
+	zones.AddCommand(&cobra.Command{
+		Use:   "list",
+		Short: "List DNS zones",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			ctx := plugin.Context()
+
+			// Fetch a fresh token right before the API call.
+			token, err := plugin.Token()
+			if err != nil {
+				return fmt.Errorf("failed to get credentials: %w", err)
+			}
+
+			url := fmt.Sprintf("https://%s/v1/organizations/%s/projects/%s/dnszones",
+				ctx.APIHost, ctx.Org, ctx.Project)
+
+			req, err := http.NewRequestWithContext(cmd.Context(), http.MethodGet, url, nil)
+			if err != nil {
+				return err
+			}
+			req.Header.Set("Authorization", "Bearer "+token)
+
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				return fmt.Errorf("API request failed: %w", err)
+			}
+			defer resp.Body.Close()
+
+			fmt.Fprintf(cmd.OutOrStdout(),
+				"DNS zones for org=%s project=%s (status %d)\n",
+				ctx.Org, ctx.Project, resp.StatusCode)
+			return nil
+		},
+	})
+
+	root.AddCommand(zones)
+
+	if err := root.Execute(); err != nil {
+		os.Exit(1)
+	}
+}
+```
+
+### The injected context
+
+`plugin.Context()` returns the values datumctl sets before running your plugin:
+
+| Field | Environment variable | Description |
+|-------|----------------------|-------------|
+| `Org` | `DATUM_ORG` | Current organization slug. |
+| `Project` | `DATUM_PROJECT` | Current project slug (may be empty). |
+| `APIHost` | `DATUM_API_HOST` | API base URL, e.g. `api.datum.net`. |
+| `PluginAPIVersion` | `DATUM_PLUGIN_API_VERSION` | Plugin API version the host declares. |
+| `CredentialsHelper` | `DATUM_CREDENTIALS_HELPER` | Absolute path to the datumctl binary. |
+| `Session` | `DATUM_SESSION` | Active session name (may be empty). |
+
+`plugin.Token()` runs the credentials helper (`$DATUM_CREDENTIALS_HELPER auth get-token`, adding `--session` when a session is active) and returns the token. Because tokens are short-lived, fetch one immediately before each request rather than caching it.
+
+## Building and testing locally
+
+```bash
+# Build with the datumctl- prefix so datumctl recognizes it.
+go build -o datumctl-dns .
+
+# Drop it into the managed plugins directory.
+cp datumctl-dns ~/.datumctl/plugins/
+
+# Run it through datumctl — context and credentials are injected automatically.
+datumctl dns zones list
+
+# Verify the manifest protocol directly.
+./datumctl-dns --plugin-manifest
+```
+
+Shell completion is automatic: datumctl forwards completion requests to your binary, so your Cobra command's built-in completion works when users run `datumctl dns <TAB>`. For flag-first commands, wrap your completion function with `plugin.WithFlagCompletion` to surface flags on a bare `<TAB>`.
+
+## Trust and verification for authors
+
+datumctl treats your plugin as untrusted code, which shapes how you distribute it:
+
+- **Ship checksums.** Whether users install from a catalog or directly from a GitHub release, datumctl verifies a SHA256 checksum before running your binary. Publish accurate checksums for every release archive.
+- **Managed installs are fingerprinted.** After install, datumctl records the binary's hash and re-verifies it on every run. Rebuilding or replacing the binary in place will cause datumctl to refuse it until it's reinstalled.
+- **A binary a user drops on their PATH is blocked by default.** datumctl will not run an unmanaged `datumctl-<name>` binary until the user explicitly trusts it with `datumctl plugin trust <name>`.
+
+## Getting your plugin into a catalog
+
+Once your plugin is released with archives and checksums, list it in a catalog so users can install it by name. See [Publishing catalogs](/datumctl/plugins/publishing-catalogs) for the manifest format, validation, and hosting.
+
+Users can always install directly from a GitHub release without a catalog:
+
+```bash
+datumctl plugin install your-org/datumctl-dns
+```
+
+This path requires a `checksums.txt` alongside your release archives, in goreleaser's default two-column format.
+
+## Next steps
+
+- [Publishing catalogs](/datumctl/plugins/publishing-catalogs) — list your plugin so users install it by name
+- [Using plugins](/datumctl/plugins/using-plugins) — how users install and run what you build

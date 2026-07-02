@@ -1,0 +1,148 @@
+---
+title: "Publishing Catalogs"
+sidebarTitle: "Publishing catalogs"
+description: "Author, validate, and host a datumctl plugin catalog so users and enterprises can discover and install your plugins."
+---
+
+A catalog is a single manifest file — an `index.yaml` — that lists the plugins you publish, their versions, and per-platform download URLs and checksums. Users register your catalog with [`datumctl plugin index add`](/datumctl/plugins/adding-catalogs), then search, browse, and install from it like any other.
+
+This guide covers the manifest format, validation, hosting, and versioning guidance.
+
+<Info>
+  If you're writing the plugin itself (not just publishing a catalog), start with [Building plugins](/datumctl/plugins/building-plugins). This guide assumes you already have released plugin binaries to point at.
+</Info>
+
+## The catalog manifest
+
+A catalog manifest is a `PluginList` document. It has an optional catalog-level identity header followed by an `items` list of plugin entries. Here is a complete, annotated example:
+
+```yaml
+apiVersion: datumctl.datum.net/v1alpha1
+kind: PluginList
+
+# Optional catalog identity, shown in `plugin index list` and `plugin browse`.
+name: acme
+description: ACME internal datumctl plugins
+owner: ACME Platform Team
+homepage: https://plugins.acme.example
+
+items:
+  - apiVersion: datumctl.datum.net/v1alpha1
+    kind: Plugin
+    metadata:
+      name: deploy                       # the name users install and run
+    spec:
+      shortDescription: Deploy ACME workloads to Datum Cloud
+      description: |
+        Longer description shown when inspecting the plugin in the browser.
+      homepage: https://github.com/acme-corp/datumctl-deploy
+      version: v1.2.0                     # the recommended version to install
+      platforms:
+        - selector:
+            matchLabels:
+              os: linux
+              arch: amd64
+          uri: https://github.com/acme-corp/datumctl-deploy/releases/download/v1.2.0/datumctl-deploy_Linux_x86_64.tar.gz
+          sha256: <lowercase hex sha256 of the archive>
+        - selector:
+            matchLabels:
+              os: darwin
+              arch: arm64
+          uri: https://github.com/acme-corp/datumctl-deploy/releases/download/v1.2.0/datumctl-deploy_Darwin_arm64.tar.gz
+          sha256: <lowercase hex sha256 of the archive>
+```
+
+### Field reference
+
+**Catalog header (all optional):**
+
+| Field | Purpose |
+|-------|---------|
+| `name` | Friendly catalog name shown in listings. |
+| `description` | One-line description of the catalog. |
+| `owner` | Who maintains the catalog. |
+| `homepage` | Catalog homepage URL. |
+
+A manifest with no header still parses — the only required content is the plugin list.
+
+**Each entry under `items` (`spec`):**
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `metadata.name` | Yes | The name users install and run (lowercase letters, digits, hyphens). |
+| `spec.version` | Yes | The recommended version to install. |
+| `spec.shortDescription` | Recommended | Shown in `search` and `browse`. |
+| `spec.description` | Optional | Longer text shown when inspecting the plugin. |
+| `spec.homepage` | Optional | The plugin's homepage. |
+| `spec.platforms` | Yes | One entry per supported OS/arch. |
+
+**Each entry under `spec.platforms`:**
+
+| Field | Required | Purpose |
+|-------|----------|---------|
+| `selector.matchLabels` | Yes | Matched against `{os: <GOOS>, arch: <GOARCH>}` to pick the right archive. |
+| `uri` | Yes | HTTPS URL of the release archive (`.tar.gz`, `.tgz`, or `.zip`). |
+| `sha256` | Yes | Lowercase hex SHA256 of the archive, verified on download. |
+| `files` | Optional | `from`/`to` directives naming the binary to extract from the archive. |
+
+<Warning>
+  Every `uri` must be HTTPS. datumctl rejects an entire catalog manifest if any download URI uses a non-HTTPS scheme.
+</Warning>
+
+The binary inside each archive should be named `datumctl-<name>` (or `datumctl-<name>.exe` on Windows). datumctl runs it as `datumctl <name>`.
+
+## Validating before you publish
+
+Lint a manifest before you ship it. The validator reports missing plugin names or versions, missing or non-HTTPS download URIs, missing checksums, and invalid platform selectors:
+
+```bash
+# Validate a local manifest
+datumctl plugin index validate ./index.yaml
+
+# Validate a published manifest
+datumctl plugin index validate https://plugins.acme.example/index.yaml
+```
+
+The source may be a local path, an HTTPS URL, or a GitHub `owner/repo`. A clean manifest reports `OK: manifest is valid`.
+
+## Hosting your catalog
+
+datumctl fetches catalog manifests over HTTPS only. You can host `index.yaml` in either of these ways:
+
+- **A GitHub repository.** Place `index.yaml` at the repository root. Users then add it with the `owner/repo` shorthand:
+
+  ```bash
+  datumctl plugin index add acme acme-corp/datumctl-plugins
+  ```
+
+  datumctl fetches from the default branch (`main`, falling back to `master`).
+
+- **Any HTTPS host.** Serve `index.yaml` from your own site and have users add the full URL:
+
+  ```bash
+  datumctl plugin index add acme https://plugins.acme.example/index.yaml
+  ```
+
+## Publisher scoping for enterprises
+
+Enterprises can constrain which catalogs their users may add through an allow-list, and GitHub sources are scoped by **owner** (and optionally repository). To make your catalog easy for enterprises to approve:
+
+- Host it under a stable GitHub owner or repository so it can be allow-listed as `github.com/<owner>` or `github.com/<owner>/<repo>`, or under a stable dedicated hostname for a host-pattern allow-list entry.
+- Avoid moving the catalog between owners or hosts, which would require every enterprise to update their allow-list.
+
+See [Adding catalogs](/datumctl/plugins/adding-catalogs#enterprise-guardrails) for how allow-list entries are matched.
+
+## Versioning guidance
+
+`spec.version` is the version datumctl installs when a user runs `datumctl plugin install <name>` without pinning. Users can pin a specific version with `datumctl plugin install <name>@<version>`.
+
+To make pinning reliable for your users:
+
+- Use consistent, sortable version strings (semantic versioning, e.g. `v1.2.0`) so newer releases are recognized as updates.
+- Keep `spec.version`, the archive `uri`, and its `sha256` in lockstep — bump all three together for each release.
+- Publish immutable release archives at stable URLs so a pinned version keeps resolving to the same bytes.
+
+## Next steps
+
+- [Building plugins](/datumctl/plugins/building-plugins) — write the plugin binaries your catalog points at
+- [Adding catalogs](/datumctl/plugins/adding-catalogs) — how users register and trust your catalog

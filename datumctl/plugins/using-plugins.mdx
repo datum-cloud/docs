@@ -1,0 +1,171 @@
+---
+title: "Using Plugins"
+sidebarTitle: "Using plugins"
+description: "Install, run, and manage datumctl plugins that extend the CLI with additional commands."
+---
+
+Plugins extend `datumctl` with additional commands without changing the core CLI. A plugin is an independent binary that datumctl runs on your behalf — once installed, you invoke it exactly like a built-in command.
+
+<Info>
+  Plugins are optional. You never need one to use `datumctl`, and the core CLI works the same whether or not you have any installed.
+</Info>
+
+## What a plugin is
+
+When you install a plugin named `dns`, you run it as:
+
+```bash
+datumctl dns zones list
+```
+
+datumctl injects your current organization, project, and a fresh short-lived access token into the plugin automatically, so plugins work with your active context and credentials without a separate login.
+
+Plugins come from **catalogs** (also called indexes). The official **datum** catalog is curated by Datum and always available with no setup — its plugins carry an `official` trust badge. You can also add third-party catalogs, whose plugins carry a `third-party` badge. See [Adding catalogs](/datumctl/plugins/adding-catalogs) to register more.
+
+## Finding plugins
+
+Search every registered catalog for available plugins:
+
+```bash
+# List everything available across all catalogs
+datumctl plugin search
+
+# Filter by name or description
+datumctl plugin search dns
+
+# Scope the search to a single catalog
+datumctl plugin search dns --index acme
+```
+
+Results show the plugin name, the catalog it came from, its version, its trust badge, and a short description.
+
+Prefer to explore interactively? `plugin browse` opens a filterable picker where you can inspect a plugin's details and install it in place:
+
+```bash
+datumctl plugin browse
+```
+
+<Note>
+  `plugin browse` requires an interactive terminal. In scripts or CI, use `plugin search` instead.
+</Note>
+
+## Installing a plugin
+
+Install by name from a catalog:
+
+```bash
+# Install from the official datum catalog (searched first)
+datumctl plugin install dns
+
+# Install from a specific catalog
+datumctl plugin install acme/deploy
+```
+
+You can also install directly from a GitHub release, without a catalog:
+
+```bash
+# Latest release
+datumctl plugin install datum-cloud/datumctl-dns
+
+# A specific release
+datumctl plugin install datum-cloud/datumctl-dns@v1.2.0
+```
+
+<Info>
+  If a bare name exists in more than one catalog, datumctl lists the matches instead of guessing. Qualify the name with its catalog (for example `acme/deploy`) to choose.
+</Info>
+
+### Pinning a version
+
+Pin a specific version at install time by appending `@version`:
+
+```bash
+# Pin a catalog plugin
+datumctl plugin install dns@v1.2.0
+datumctl plugin install acme/deploy@v2.0.0
+
+# Pin a GitHub release
+datumctl plugin install datum-cloud/datumctl-dns@v1.2.0
+```
+
+Without `@version`, datumctl installs the version the catalog recommends.
+
+### Restoring your plugin set
+
+Run `install` with no arguments to restore every plugin you previously installed, at its recorded version. This reproduces your plugin set on a new machine:
+
+```bash
+datumctl plugin install
+```
+
+## Listing what you have
+
+```bash
+datumctl plugin list
+```
+
+This shows each installed plugin with its catalog, version, trust badge, description, and a status indicator:
+
+| Status   | Meaning                                             |
+|----------|-----------------------------------------------------|
+| `ok`     | Installed and compatible with this datumctl.        |
+| `update` | A newer version is available in its catalog.        |
+| `!`      | Built for a different datumctl version.             |
+| `?`      | Version information is unavailable.                 |
+
+## Running an installed plugin
+
+An installed plugin behaves like a native command:
+
+```bash
+datumctl dns zones list
+```
+
+Tab completion works transparently — datumctl forwards completion requests to the plugin, so completing subcommands and flags just works:
+
+```bash
+datumctl dns <TAB>
+```
+
+## Upgrading and removing
+
+```bash
+# Upgrade a plugin to the latest version
+datumctl plugin upgrade dns
+
+# Remove a plugin
+datumctl plugin remove dns
+```
+
+`plugin upgrade` runs the same verified install flow as a fresh install.
+
+## How plugins stay trustworthy
+
+datumctl treats a plugin as untrusted code and protects you in a few ways:
+
+- **HTTPS-only downloads.** Plugin archives and catalog manifests are fetched over HTTPS only. Downloads to private, loopback, or link-local addresses are refused, and redirects are re-checked on every hop.
+- **Checksum verification on every run.** datumctl records a SHA256 fingerprint of each plugin binary at install time and verifies it *every time the plugin runs*. If a managed plugin binary is modified after installation, datumctl refuses to run it.
+- **Trust badges.** Every plugin and catalog shows whether it is `official` (Datum's curated **datum** catalog) or `third-party`, so you always know the source.
+
+<Warning>
+  Third-party plugins are programs that run on your machine with your Datum credentials, and Datum does not review them. Only install plugins from catalogs and sources you trust. See [Adding catalogs](/datumctl/plugins/adding-catalogs) for the trust decision involved in registering a catalog.
+</Warning>
+
+### Trusting a plugin already on your PATH
+
+If you have a plugin binary on your `PATH` that datumctl did not install (named `datumctl-<name>` or `milo-<name>`), datumctl blocks it from running until you explicitly trust it:
+
+```bash
+# Allow an unmanaged PATH plugin to run
+datumctl plugin trust dns
+
+# Revoke that trust later
+datumctl plugin untrust dns
+```
+
+Trusting records the binary's path and fingerprint. If the binary changes afterward, datumctl blocks it again until you re-run `plugin trust`.
+
+## Next steps
+
+- [Adding catalogs](/datumctl/plugins/adding-catalogs) — register additional or internal marketplaces
+- [Building plugins](/datumctl/plugins/building-plugins) — write your own plugin with the Go SDK
