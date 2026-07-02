@@ -24,11 +24,11 @@ This performs a non-interactive login: `datumctl` signs a JWT with the service a
   Create the service account and download its credentials JSON before you can log in this way. See [Service accounts](/platform/service-accounts) for creating an account, choosing a Datum-managed key, and downloading the one-time credentials file. Treat that file like a password — inject it from your CI secret store, never commit it.
 </Note>
 
-For a staging environment, point login at the staging auth host:
+For a self-hosted or otherwise custom environment, point login at that environment's auth host:
 
 ```bash
 datumctl login --credentials ./datum-credentials.json \
-  --hostname auth.staging.env.datum.net
+  --hostname auth.example.com
 ```
 
 <Steps>

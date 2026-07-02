@@ -71,15 +71,15 @@ Instead of launching a browser, `datumctl` prints a URL and a short code. Open t
   On headless runners, `datumctl` may fall back to a file-based credential store when no system keyring is available. When it does, it prints a one-line warning so you know where your credentials are kept.
 </Note>
 
-## Sign in to a non-production environment
+## Sign in to a custom environment
 
-By default `datumctl` authenticates against the production Datum Cloud environment. To sign in against staging, point at its authentication server with `--hostname`:
+By default `datumctl` authenticates against the production Datum Cloud environment. To sign in against a different environment — such as a self-hosted or otherwise custom Datum Cloud deployment — point at its authentication server with `--hostname`:
 
 ```bash
-datumctl login --hostname auth.staging.env.datum.net
+datumctl login --hostname auth.example.com
 ```
 
-The `--hostname` flag works with the browser flow, `--no-browser`, and service-account logins alike. A staging session is stored separately from your production session, so you can hold both at once and move between them.
+The `--hostname` flag works with the browser flow, `--no-browser`, and service-account logins alike. Each environment's session is stored separately, so you can hold sessions for more than one environment at once and move between them.
 
 ## Check who you are
 
