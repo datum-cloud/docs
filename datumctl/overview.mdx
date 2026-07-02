@@ -10,33 +10,38 @@ description: "High level overview of the Datum Cloud CLI."
   Ready to play? Download and install via [our downloads page](https://www.datum.net/download/datumctl/), or follow the [Quickstart](/datumctl/quickstart) to go from install to your first command in a few minutes.
 </Info>
 
-## How these docs are organized
+## Find your way around
 
-`datumctl` documentation is split into two sections:
+This section teaches you how to use `datumctl`; the [CLI Commands](/cli/options) reference lists every command and flag. New here? The [Quickstart](/datumctl/quickstart) takes you from install to your first command.
 
-- **datumctl** (this section) covers concepts, authentication, and workflows — start here to learn how the CLI works.
-- **[CLI Commands](/cli/options)** contains the full flag-level reference for each command (`datumctl apply`, `datumctl get`, and so on).
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/datumctl/auth/logging-in">
+    Sign in, use service accounts for automation, and manage sessions and tokens.
+  </Card>
+  <Card title="Working with resources" icon="cube" href="/datumctl/resources/reading">
+    Read, change, and safely preview changes to Datum Cloud resources.
+  </Card>
+  <Card title="Contexts & scoping" icon="compass" href="/datumctl/contexts-and-scoping">
+    Control which organization and project your commands act on.
+  </Card>
+  <Card title="Activity & audit" icon="clock-rotate-left" href="/datumctl/activity/overview">
+    Investigate who changed what, review events, and follow the activity feed.
+  </Card>
+  <Card title="Interactive console" icon="terminal" href="/datumctl/console">
+    Browse and monitor resources in a full-screen terminal UI.
+  </Card>
+  <Card title="AI & MCP" icon="robot" href="/datumctl/ai/assistant">
+    Ask about your resources in natural language, or connect AI clients over MCP.
+  </Card>
+  <Card title="CI/CD" icon="gears" href="/datumctl/cicd/github-actions">
+    Install and authenticate `datumctl` in GitHub Actions and other pipelines.
+  </Card>
+  <Card title="Plugins" icon="puzzle-piece" href="/datumctl/plugins/using-plugins">
+    Extend the CLI with additional commands from plugin catalogs.
+  </Card>
+</CardGroup>
 
-Within this section, the guides are grouped so each builds on the last:
-
-- **Getting started** — new to the CLI? The [Quickstart](/datumctl/quickstart) walks you through installing, logging in, picking a context, and running your first command.
-- **Authentication** — [Logging in](/datumctl/auth/logging-in) covers the browser and device-code sign-in flows, `whoami`, and signing out; [Service accounts](/datumctl/auth/service-accounts) covers non-interactive credentials for automation; and [Managing accounts & tokens](/datumctl/auth/managing-accounts) covers multiple sessions, switching users, and access tokens.
-- **Core concepts** — [Contexts & scoping](/datumctl/contexts-and-scoping) explains how a command decides which organization or project it acts on; [Discovering resources & schemas](/datumctl/discovering-resources) shows how to find resource types and inspect their fields; and [Output formats & scripting](/datumctl/output-and-scripting) covers machine-readable output, structured errors, and wrapping the CLI in automation.
-- **Working with resources** — [Reading resources](/datumctl/resources/reading) covers `get` and `describe`; [Changing resources](/datumctl/resources/changing) covers the `apply`, `create`, `edit`, and `delete` write verbs; and [Safe changes & declarative config](/datumctl/resources/safe-changes) covers previewing with `diff` and `--dry-run=server` before you write.
-- **Activity & audit** — [Querying activity](/datumctl/activity/overview) introduces the `activity` command family and routes you to the right subcommand; [Audit logs & events](/datumctl/activity/audit-and-events) covers the compliance trail and lifecycle warnings; and [Change history & feed](/datumctl/activity/change-history-and-feed) covers per-resource spec diffs and the merged, watchable timeline.
-- **Interactive console** — the [Interactive console](/datumctl/console) is a full-screen terminal UI for browsing, inspecting, and monitoring resources.
-- **AI & MCP** — the [AI assistant](/datumctl/ai/assistant) answers questions about your resources in natural language from the terminal, and the [MCP server](/datumctl/ai/mcp-server) connects Claude Desktop, Cursor, and other AI clients to Datum Cloud.
-- **CI/CD** — [GitHub Actions](/datumctl/cicd/github-actions) installs and authenticates `datumctl` in a workflow, and [Automating datumctl in CI/CD](/datumctl/cicd/automating) covers headless service-account login and scripting for any other pipeline.
-- **Plugins** — extend the CLI with additional commands. Start with [Using plugins](/datumctl/plugins/using-plugins).
-- **kubectl interop** — for existing kubectl users only, [using datumctl with kubectl](/datumctl/kubectl-interop) covers generating a kubeconfig entry and the related identity checks.
-
-## Design goals
-
-`datumctl` is designed with a few core principles in mind:
-
-- **Security** - Modern authentication (OIDC with PKCE) with no static API keys.
-- **Consistency** - Commands follow a predictable structure for ease of use.
-- **Scalability** - New resources are added without changing how the CLI feels.
+Also useful: [Output formats & scripting](/datumctl/output-and-scripting), [Discovering resources & schemas](/datumctl/discovering-resources), and — for existing kubectl users — [using datumctl with kubectl](/datumctl/kubectl-interop).
 
 ## How it works
 
