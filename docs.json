@@ -291,7 +291,27 @@
               "api/networking/network",
               "api/networking/subnet",
               "api/networking/httpproxy",
-              "api/networking/domain"
+              "api/networking/domain",
+              {
+                "group": "Gateway API",
+                "pages": [
+                  "api/networking/gateway/overview",
+                  "api/networking/gateway/gatewayclass",
+                  "api/networking/gateway/gateway",
+                  "api/networking/gateway/httproute",
+                  "api/networking/gateway/backendtlspolicy"
+                ]
+              },
+              {
+                "group": "Envoy Gateway",
+                "pages": [
+                  "api/networking/envoy/overview",
+                  "api/networking/envoy/backend",
+                  "api/networking/envoy/backendtrafficpolicy",
+                  "api/networking/envoy/httproutefilter",
+                  "api/networking/envoy/securitypolicy"
+                ]
+              }
             ]
           }
         ]

@@ -1,0 +1,83 @@
+---
+title: "Gateway"
+sidebarTitle: "Gateway"
+description: "Gateway represents an instance of a service-traffic handling infrastructure by binding Listeners to a set of IP addresses."
+---
+
+<Note>
+  API resource reference for **Gateway**, one of the [Gateway API](/api/networking/gateway/overview) resources. To create or change one, see [Changing resources](/datumctl/resources/changing); to inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Info>
+  Gateway follows the [Gateway API](https://gateway-api.sigs.k8s.io/) standard, an open, portable specification for service traffic routing.
+</Info>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `gateway.networking.k8s.io` |
+| Version | `v1` |
+| Kind | `Gateway` |
+| Scope | Project |
+
+## Overview
+
+A `Gateway` is the front door for traffic entering your Datum Cloud Project. It binds one or more **listeners** — logical endpoints defined by a port, protocol, and optional hostname — to a set of IP addresses, and delegates the actual routing of requests to route resources such as `HTTPRoute`.
+
+You choose the infrastructure that serves the Gateway by referencing a `GatewayClass` through `spec.gatewayClassName`. Each Gateway must declare at least one listener. Use a Gateway when you want to expose services in a Project to inbound traffic (for example, HTTP on port 80 and HTTPS on port 443) and attach routes that decide where matching requests go.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.gatewayClassName` | string | Yes | Name of the `GatewayClass` resource that defines the infrastructure serving this Gateway. |
+| `spec.listeners` | []Object | Yes | Logical endpoints bound on the Gateway's addresses. At least one listener must be specified, and each must be distinct by its combination of port, protocol, and (where applicable) hostname. |
+| `spec.listeners[].name` | string | Yes | Name of the listener. Must be unique within the Gateway. |
+| `spec.listeners[].port` | integer | Yes | Network port the listener accepts traffic on. |
+| `spec.listeners[].protocol` | string | Yes | Network protocol the listener expects (for example `HTTP`, `HTTPS`, `TLS`, `TCP`, `UDP`). |
+| `spec.listeners[].hostname` | string | No | Virtual hostname to match for protocols that support it. When unspecified, all hostnames match. Wildcard prefixes like `*.example.com` are treated as suffix matches. |
+| `spec.listeners[].tls` | Object | No | TLS configuration for the listener. Required when the protocol is `HTTPS` or `TLS`; invalid for `HTTP`, `TCP`, or `UDP`. |
+| `spec.listeners[].allowedRoutes` | Object | No | Restricts the types of routes that may attach to this listener and the Projects those routes may live in. |
+| `spec.addresses` | []Object | No | Requested address(es) that traffic bound for this Gateway will use. If omitted, addresses may be assigned automatically. |
+| `spec.addresses[].type` | string | No | Type of the address being requested. |
+| `spec.addresses[].value` | string | No | The requested address value (for example `1.2.3.4` or a hostname). When empty, a matching address is assigned automatically where supported. |
+| `spec.infrastructure` | Object | No | Infrastructure-level attributes, including `labels`, `annotations`, and an optional `parametersRef` to a resource holding extra configuration. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.addresses` | []Object | Network addresses that have actually been bound to the Gateway. May differ from `spec.addresses` when addresses are assigned dynamically or a requested address was unusable. |
+| `status.conditions` | []Object | Current conditions of the Gateway, such as `Accepted`, `Programmed`, and `Ready`. |
+| `status.listeners` | []Object | Per-listener status for each unique listener port defined in the spec. |
+
+## Usage
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: web-gateway
+spec:
+  gatewayClassName: datum-external-global-proxy
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+    - name: https
+      port: 443
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+```
+
+```bash
+datumctl apply -f gateway.yaml --project my-project
+datumctl get gateways --project my-project
+datumctl describe gateway web-gateway --project my-project
+```
+
+<Tip>
+  Run `datumctl explain gateways --recursive` to see the full, live field tree for this resource.
+</Tip>
