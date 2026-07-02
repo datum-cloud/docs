@@ -1,0 +1,71 @@
+---
+title: "IPClaim"
+sidebarTitle: "IPClaim"
+description: "IPClaim requests a sub-prefix of IP address space from an IP pool."
+---
+
+<Note>
+  API resource reference for **IPClaim**, part of the [IPAM service](/api/ipam/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  This resource is part of the `v1alpha1` API and is subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `ipam.miloapis.com` |
+| Version | `v1alpha1` |
+| Kind | `IPClaim` |
+| Scope | Project |
+
+## Overview
+
+An `IPClaim` requests a block of IP address space of a given size from an IP pool. You specify the address family (IPv4 or IPv6) and the prefix length you need, and identify the pool to carve the prefix from — either by direct reference or by matching pool labels. Once satisfied, the assigned CIDR is reported back on the claim's status. Use it when a workload or downstream resource needs its own dedicated slice of addresses managed within a Project.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.ipFamily` | string | Yes | The address family for the requested prefix (for example, `IPv4` or `IPv6`). |
+| `spec.prefixLength` | integer | Yes | The requested sub-prefix size in bits. Must be a valid mask length for the chosen `ipFamily` (0-32 for IPv4, 0-128 for IPv6). |
+| `spec.poolRef` | Object | No | References a specific pool to claim from by name. Set `poolRef.name`; an optional `poolRef.projectRef` points at a pool in another Project. |
+| `spec.poolSelector` | Object | No | Selects a parent pool by labels via `matchLabels` / `matchExpressions`, optionally scoped to a specific Project with `poolSelector.projectRef` for shared pools. |
+| `spec.ownerRef` | Object | No | An opaque cross-API reference to the object that owns this claim (`apiGroup`, `kind`, `name`, and optional `namespace`). |
+| `spec.reclaimPolicy` | string | No | Controls what happens to the allocated prefix when the claim is released. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.allocatedCIDR` | string | The CIDR block that was assigned to satisfy this claim. |
+| `status.boundAllocationRef` | Object | References the allocation object (by name) that backs this claim in the same scope. |
+| `status.phase` | string | The current lifecycle phase of the claim. |
+| `status.conditions` | []Object | Tracks state and readiness for the claim. |
+
+## Usage
+
+```yaml
+apiVersion: ipam.miloapis.com/v1alpha1
+kind: IPClaim
+metadata:
+  name: web-tier-v4
+spec:
+  ipFamily: IPv4
+  prefixLength: 24
+  poolSelector:
+    matchLabels:
+      tier: web
+```
+
+```bash
+datumctl apply -f ipclaim.yaml --project my-project
+datumctl get ipclaims --project my-project
+datumctl describe ipclaim web-tier-v4 --project my-project
+```
+
+<Tip>
+  Run `datumctl explain ipclaims --recursive` to see the full, live field tree for this resource.
+</Tip>

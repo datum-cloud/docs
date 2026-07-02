@@ -20,14 +20,59 @@ This section is the **resource and field reference** for Datum Cloud. It documen
 
 ## Browse by service
 
-Resources are organized by the service that owns them.
+Resources are organized by the service that owns them. Services group into three layers: **Foundation** services model who you are and what you own, **Infrastructure** services run and connect your workloads, and **Platform** services govern consumption, billing, and communication.
+
+### Foundation
+
+Model your organizations, projects, access control, and machine identities.
 
 <CardGroup cols={2}>
+  <Card title="Resource Manager" icon="sitemap" href="/api/resource-manager/overview">
+    Organizations, projects, and the membership that ties people to them.
+  </Card>
+  <Card title="IAM" icon="lock" href="/api/iam/overview">
+    Roles, policy bindings, groups, service accounts, and user invitations that control access.
+  </Card>
+</CardGroup>
+
+### Infrastructure
+
+Run workloads and connect them to the network.
+
+<CardGroup cols={2}>
+  <Card title="Compute" icon="server" href="/api/compute/overview">
+    Workloads, deployments, and the instances that run them.
+  </Card>
+  <Card title="Networking" icon="network-wired" href="/api/networking/overview">
+    Networks, subnets, gateways, and HTTP routing resources.
+  </Card>
   <Card title="DNS" icon="globe" href="/api/dns/overview">
     Managed DNS zones and records for your domains.
   </Card>
-  <Card title="Networking" icon="network-wired" href="/api/networking/overview">
-    Networks, gateways, and connectivity resources.
+  <Card title="IPAM" icon="diagram-project" href="/api/ipam/overview">
+    IP pools, claims, and allocations for address management.
+  </Card>
+</CardGroup>
+
+### Platform
+
+Govern consumption, pay for what you use, and stay informed.
+
+<CardGroup cols={2}>
+  <Card title="Quota" icon="gauge" href="/api/quota/overview">
+    Allowance buckets, resource claims, and grants that meter usage.
+  </Card>
+  <Card title="Billing" icon="credit-card" href="/api/billing/overview">
+    Billing accounts, account bindings, and payment methods.
+  </Card>
+  <Card title="Services" icon="cubes" href="/api/services/overview">
+    Service definitions, entitlements, and consumers.
+  </Card>
+  <Card title="Telemetry" icon="chart-line" href="/api/telemetry/overview">
+    Export policies that ship metrics and logs to your own tooling.
+  </Card>
+  <Card title="Notification" icon="bell" href="/api/notification/overview">
+    Contacts, contact groups, and the emails and broadcasts sent to them.
   </Card>
 </CardGroup>
 

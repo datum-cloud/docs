@@ -276,12 +276,33 @@
             ]
           },
           {
-            "group": "DNS",
+            "group": "Resource Manager",
             "pages": [
-              "api/dns/overview",
-              "api/dns/dnszone",
-              "api/dns/dnsrecordset",
-              "api/dns/dnszoneclass"
+              "api/resource-manager/overview",
+              "api/resource-manager/organization",
+              "api/resource-manager/project",
+              "api/resource-manager/organizationmembership"
+            ]
+          },
+          {
+            "group": "IAM",
+            "pages": [
+              "api/iam/overview",
+              "api/iam/role",
+              "api/iam/policybinding",
+              "api/iam/group",
+              "api/iam/groupmembership",
+              "api/iam/serviceaccount",
+              "api/iam/userinvitation"
+            ]
+          },
+          {
+            "group": "Compute",
+            "pages": [
+              "api/compute/overview",
+              "api/compute/workload",
+              "api/compute/workloaddeployment",
+              "api/compute/instance"
             ]
           },
           {
@@ -312,6 +333,70 @@
                   "api/networking/envoy/securitypolicy"
                 ]
               }
+            ]
+          },
+          {
+            "group": "DNS",
+            "pages": [
+              "api/dns/overview",
+              "api/dns/dnszone",
+              "api/dns/dnsrecordset",
+              "api/dns/dnszoneclass"
+            ]
+          },
+          {
+            "group": "IPAM",
+            "pages": [
+              "api/ipam/overview",
+              "api/ipam/ippool",
+              "api/ipam/ipclaim",
+              "api/ipam/ipallocation"
+            ]
+          },
+          {
+            "group": "Quota",
+            "pages": [
+              "api/quota/overview",
+              "api/quota/allowancebucket",
+              "api/quota/resourceclaim",
+              "api/quota/resourcegrant"
+            ]
+          },
+          {
+            "group": "Billing",
+            "pages": [
+              "api/billing/overview",
+              "api/billing/billingaccount",
+              "api/billing/billingaccountbinding",
+              "api/billing/paymentmethod"
+            ]
+          },
+          {
+            "group": "Services",
+            "pages": [
+              "api/services/overview",
+              "api/services/service",
+              "api/services/serviceentitlement",
+              "api/services/serviceconsumer"
+            ]
+          },
+          {
+            "group": "Telemetry",
+            "pages": [
+              "api/telemetry/overview",
+              "api/telemetry/exportpolicy"
+            ]
+          },
+          {
+            "group": "Notification",
+            "pages": [
+              "api/notification/overview",
+              "api/notification/contact",
+              "api/notification/contactgroup",
+              "api/notification/contactgroupmembership",
+              "api/notification/email",
+              "api/notification/emailbroadcast",
+              "api/notification/emailtemplate"
             ]
           }
         ]

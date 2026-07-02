@@ -1,0 +1,57 @@
+---
+title: "Group"
+sidebarTitle: "Group"
+description: "Group is the Schema for the groups API."
+---
+
+<Note>
+  API resource reference for **Group**, part of the [IAM service](/api/iam/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  This resource is part of the `v1alpha1` API and is subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `iam.miloapis.com` |
+| Version | `v1alpha1` |
+| Kind | `Group` |
+| Scope | Project |
+
+## Overview
+
+A `Group` is a named collection of members used to organize access control within a Project. Instead of granting permissions to each member individually, you create a `Group` and reference it when assigning roles, so a set of people can be managed together.
+
+A `Group` is identified entirely by its `metadata.name` — it has no spec fields. Membership and role assignments are established through other IAM resources that reference the group by name.
+
+## Spec fields
+
+This resource has no `spec`. A `Group` is defined solely by its `metadata.name`; there are no configurable spec fields.
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.conditions` | []Object | Latest available observations of the group's current state. Each entry includes `type`, `status` (`True`/`False`/`Unknown`), `reason`, `message`, `lastTransitionTime`, and `observedGeneration`. |
+
+## Usage
+
+```yaml
+apiVersion: iam.miloapis.com/v1alpha1
+kind: Group
+metadata:
+  name: platform-admins
+```
+
+```bash
+datumctl apply -f group.yaml --project my-project
+datumctl get groups.iam.miloapis.com --project my-project
+datumctl describe groups.iam.miloapis.com platform-admins --project my-project
+```
+
+<Tip>
+  Run `datumctl explain groups.iam.miloapis.com --recursive` to see the full, live field tree for this resource.
+</Tip>

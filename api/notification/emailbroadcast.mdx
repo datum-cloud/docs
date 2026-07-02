@@ -1,0 +1,74 @@
+---
+title: "EmailBroadcast"
+sidebarTitle: "EmailBroadcast"
+description: "EmailBroadcast is the Schema for the emailbroadcasts API. It represents a broadcast of an email to a set of contacts (ContactGroup)."
+---
+
+<Note>
+  API resource reference for **EmailBroadcast**, part of the [Notification service](/api/notification/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  This resource is part of the `v1alpha1` API and is subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `notification.miloapis.com` |
+| Version | `v1alpha1` |
+| Kind | `EmailBroadcast` |
+| Scope | Project |
+
+## Overview
+
+An `EmailBroadcast` sends an email to every contact in a `ContactGroup`, rendering the message from a referenced `EmailTemplate`. Use it to deliver a one-time message — such as an announcement or notice — to a defined audience within a Project.
+
+A broadcast is immutable once created: if you need to change the message, schedule, or audience, delete the resource and create a new one. You can optionally defer delivery with `scheduledAt`; if omitted, the broadcast is sent as soon as the controller reconciles it.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.contactGroupRef` | Object | Yes | References the ContactGroup that the broadcast is sent to. |
+| `spec.contactGroupRef.name` | string | Yes | Name of the referenced ContactGroup. |
+| `spec.contactGroupRef.namespace` | string | Yes | Namespace of the referenced ContactGroup. |
+| `spec.templateRef` | Object | Yes | References the EmailTemplate used to render the message. With the Resend provider, `HTMLBody`/`TextBody` may include `{{{FIRST_NAME}}}`, `{{{LAST_NAME}}}`, and `{{{EMAIL}}}` placeholders that are substituted at send time. |
+| `spec.templateRef.name` | string | Yes | Name of the referenced EmailTemplate. |
+| `spec.displayName` | string | No | Human-friendly display name for the broadcast. |
+| `spec.scheduledAt` | string | No | Time at which the broadcast should be sent (e.g., `2024-08-05T11:52:01.858Z`). If omitted, the message is sent as soon as the resource is reconciled. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.conditions` | []Object | Latest observations of the broadcast's state. The standard `Ready` condition tracks send status and sync to the email provider. |
+| `status.providerID` | string | Identifier returned by the underlying email provider (e.g., Resend) when the broadcast is created; used to track send status via provider webhooks. |
+
+## Usage
+
+```yaml
+apiVersion: notification.miloapis.com/v1alpha1
+kind: EmailBroadcast
+metadata:
+  name: launch-announcement
+spec:
+  displayName: Launch Announcement
+  contactGroupRef:
+    name: newsletter-subscribers
+    namespace: my-project
+  templateRef:
+    name: launch-announcement-template
+  scheduledAt: "2024-08-05T11:52:01.858Z"
+```
+
+```bash
+datumctl apply -f emailbroadcast.yaml --project my-project
+datumctl get emailbroadcasts --project my-project
+datumctl describe emailbroadcast launch-announcement --project my-project
+```
+
+<Tip>
+  Run `datumctl explain emailbroadcasts --recursive` to see the full, live field tree for this resource.
+</Tip>
