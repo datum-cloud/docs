@@ -39,9 +39,9 @@ datumctl get httpproxy --project $PROJECT --namespace $NAMESPACE
 
 ---
 
-## Configuration Steps
+## Configuration steps
 
-### Step 1: Set Variables
+### Step 1: Set variables
 
 #### Windows (PowerShell)
 
@@ -63,7 +63,7 @@ WAF_NAME="${PROXY_NAME}-waf"
 
 ---
 
-### Step 2: Apply WAF in Observe Mode
+### Step 2: Apply WAF in observe mode
 
 Start by attaching the WAF in `Observe` mode. Violations are logged but traffic is not blocked.
 
@@ -123,7 +123,7 @@ EOF
 
 ---
 
-### Step 3: Verify Policy Attachment
+### Step 3: Verify policy attachment
 
 ```bash
 datumctl get trafficprotectionpolicy $WAF_NAME \
@@ -134,7 +134,7 @@ Confirm the policy shows `Accepted=True` and is attached to the correct proxy.
 
 ---
 
-### Step 4: Switch to Enforce Mode
+### Step 4: Switch to enforce mode
 
 After observing traffic and confirming no false positives, switch the mode to `Enforce`.
 
@@ -194,9 +194,9 @@ EOF
 
 ---
 
-## Configuration Reference
+## Configuration reference
 
-### Paranoia Levels
+### Paranoia levels
 
 Paranoia level controls how aggressively the CRS applies rules. Higher levels catch more threats but increase false-positive risk.
 
@@ -211,7 +211,7 @@ Paranoia level controls how aggressively the CRS applies rules. Higher levels ca
 
 ---
 
-### Score Thresholds
+### Score thresholds
 
 The OWASP CRS uses anomaly scoring — each rule match adds to a running score. The request is blocked when the score exceeds the threshold.
 
@@ -224,7 +224,7 @@ Lower thresholds block more aggressively. The defaults (5 inbound, 4 outbound) a
 
 ---
 
-### Rule Exclusions
+### Rule exclusions
 
 Use rule exclusions to suppress specific rules causing false positives. Exclusions apply globally to the policy.
 
@@ -243,7 +243,7 @@ Use the minimum exclusion scope needed — prefer specific `ids` over broad `tag
 
 ---
 
-### Targeting a Specific Rule (sectionName)
+### Targeting a specific rule (sectionName)
 
 By default, a `TrafficProtectionPolicy` applies to the entire `HTTPProxy`. To scope it to a single named rule, use `sectionName`:
 
@@ -261,7 +261,7 @@ targetRefs:
 
 ## Verification
 
-### Test with a Known Attack Pattern
+### Test with a known attack pattern
 
 Send a request containing a SQL injection pattern to confirm the WAF detects it:
 
@@ -305,7 +305,7 @@ datumctl delete trafficprotectionpolicy $WAF_NAME \
 
 ---
 
-## Best Practices
+## Best practices
 
 - Always start in `Observe` mode and run for at least a few days of representative traffic before enforcing
 - Set `detection` one level higher than `blocking` to preview the impact of stricter rules before applying them
