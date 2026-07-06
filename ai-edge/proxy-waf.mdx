@@ -16,13 +16,13 @@ The proxy determines where traffic goes and how requests are shaped before reach
 
 The `HTTPProxy` resource handles Layer 7 routing and request processing. It supports hostname routing, path and header matching, redirects, rewrites, CORS, header manipulation, traffic mirroring, and TLS configuration to origin.
 
-### Inspect the Schema
+### Inspect the schema
 
 ```bash
 datumctl explain httpproxy --recursive
 ```
 
-### List and Inspect Proxies
+### List and inspect proxies
 
 ```bash
 # List all proxies
@@ -32,7 +32,7 @@ datumctl get httpproxies --namespace default
 datumctl get httpproxy <name> --namespace default -o yaml
 ```
 
-### Feature Reference
+### Feature reference
 
 ```text
 HTTPProxy
@@ -84,13 +84,13 @@ Each rule currently supports a single backend. Multiple backends per rule are no
 
 The `TrafficProtectionPolicy` resource provides application-layer security using the OWASP Core Rule Set. It attaches to the `gateway.networking.k8s.io/v1 HTTPRoute` that NSO creates from an `HTTPProxy` (using the same name), scoping the WAF to that proxy's traffic. Use `sectionName` to target a specific named rule.
 
-### Inspect the Schema
+### Inspect the schema
 
 ```bash
 datumctl explain trafficprotectionpolicy --recursive
 ```
 
-### List and Inspect WAF Policies
+### List and inspect WAF policies
 
 ```bash
 # List all WAF policies
@@ -100,7 +100,7 @@ datumctl get trafficprotectionpolicies --namespace default
 datumctl get trafficprotectionpolicy <name> --namespace default -o yaml
 ```
 
-### Feature Reference
+### Feature reference
 
 ```text
 TrafficProtectionPolicy
@@ -140,7 +140,7 @@ TrafficProtectionPolicy
 
 ---
 
-## Next Steps
+## Next steps
 
 - [Path-Based Routing](/ai-edge/path-routing) — Route requests to different backends by URL path
 - [HTTP Basic Authentication](/ai-edge/basic-auth) — Add username/password protection to a route
