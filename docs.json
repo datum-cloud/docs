@@ -162,8 +162,7 @@
             "pages": [
               "datumctl/contexts-and-scoping",
               "datumctl/discovering-resources",
-              "datumctl/output-and-scripting",
-              "datumctl/api-proxy"
+              "datumctl/output-and-scripting"
             ]
           },
           {
@@ -193,6 +192,12 @@
             "pages": [
               "datumctl/ai/assistant",
               "datumctl/ai/mcp-server"
+            ]
+          },
+          {
+            "group": "Developer tooling",
+            "pages": [
+              "datumctl/api-proxy"
             ]
           },
           {
