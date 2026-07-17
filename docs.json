@@ -162,7 +162,8 @@
             "pages": [
               "datumctl/contexts-and-scoping",
               "datumctl/discovering-resources",
-              "datumctl/output-and-scripting"
+              "datumctl/output-and-scripting",
+              "datumctl/api-proxy"
             ]
           },
           {
