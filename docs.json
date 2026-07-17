@@ -219,6 +219,155 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "API resources",
+        "icon": "boxes-stacked",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "api/overview"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "pages": [
+              "api/concepts/conventions",
+              "api/concepts/metadata",
+              "api/concepts/status-and-conditions",
+              "api/concepts/scopes",
+              "api/concepts/versioning",
+              "api/concepts/references",
+              "api/concepts/field-formats",
+              "api/concepts/validation"
+            ]
+          },
+          {
+            "group": "Resource Manager",
+            "pages": [
+              "api/resource-manager/overview",
+              "api/resource-manager/organization",
+              "api/resource-manager/project",
+              "api/resource-manager/organizationmembership"
+            ]
+          },
+          {
+            "group": "IAM",
+            "pages": [
+              "api/iam/overview",
+              "api/iam/role",
+              "api/iam/policybinding",
+              "api/iam/group",
+              "api/iam/groupmembership",
+              "api/iam/serviceaccount",
+              "api/iam/userinvitation"
+            ]
+          },
+          {
+            "group": "Compute",
+            "pages": [
+              "api/compute/overview",
+              "api/compute/workload",
+              "api/compute/workloaddeployment",
+              "api/compute/instance"
+            ]
+          },
+          {
+            "group": "Networking",
+            "pages": [
+              "api/networking/overview",
+              "api/networking/network",
+              "api/networking/subnet",
+              "api/networking/httpproxy",
+              "api/networking/domain",
+              {
+                "group": "Gateway API",
+                "pages": [
+                  "api/networking/gateway/overview",
+                  "api/networking/gateway/gateway",
+                  "api/networking/gateway/httproute",
+                  "api/networking/gateway/backendtlspolicy"
+                ]
+              },
+              {
+                "group": "Envoy Gateway",
+                "pages": [
+                  "api/networking/envoy/overview",
+                  "api/networking/envoy/backend",
+                  "api/networking/envoy/backendtrafficpolicy",
+                  "api/networking/envoy/httproutefilter",
+                  "api/networking/envoy/securitypolicy"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "DNS",
+            "pages": [
+              "api/dns/overview",
+              "api/dns/dnszone",
+              "api/dns/dnsrecordset"
+            ]
+          },
+          {
+            "group": "IPAM",
+            "pages": [
+              "api/ipam/overview",
+              "api/ipam/ipclaim",
+              "api/ipam/ipallocation"
+            ]
+          },
+          {
+            "group": "Quota",
+            "pages": [
+              "api/quota/overview",
+              "api/quota/allowancebucket",
+              "api/quota/resourceclaim",
+              "api/quota/resourcegrant"
+            ]
+          },
+          {
+            "group": "Billing",
+            "pages": [
+              "api/billing/overview",
+              "api/billing/billingaccount",
+              "api/billing/billingaccountbinding",
+              "api/billing/paymentmethod"
+            ]
+          },
+          {
+            "group": "Telemetry",
+            "pages": [
+              "api/telemetry/overview",
+              "api/telemetry/exportpolicy"
+            ]
+          },
+          {
+            "group": "Notification",
+            "pages": [
+              "api/notification/overview",
+              "api/notification/contact",
+              "api/notification/contactgroup",
+              "api/notification/contactgroupmembership",
+              "api/notification/email",
+              "api/notification/emailbroadcast"
+            ]
+          },
+          {
+            "group": "Platform resources",
+            "pages": [
+              "api/platform/overview",
+              "api/services/service",
+              "api/services/serviceentitlement",
+              "api/services/serviceconsumer",
+              "api/dns/dnszoneclass",
+              "api/networking/gateway/gatewayclass",
+              "api/ipam/ippool",
+              "api/notification/emailtemplate"
+            ]
+          }
+        ]
       }
     ]
   },

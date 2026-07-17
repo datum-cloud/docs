@@ -1,0 +1,106 @@
+---
+title: "Scopes: Project & Platform"
+sidebarTitle: "Scopes"
+description: "How Datum Cloud resources are scoped to a Project or shared across the Platform, and what that means for your active context and the --project/--organization flags."
+---
+
+<Note>
+  A concept reference for the **Scope** row you see in every resource page's **Identity** table. To put scoping into practice with the CLI, see [Contexts & scoping](/datumctl/contexts-and-scoping).
+</Note>
+
+Every resource in this reference is either **Project-scoped** or **Platform-scoped**. The **Identity** table at the top of each resource page states which one it is:
+
+| | |
+| --- | --- |
+| Scope | Project *or* Platform |
+
+Scope answers two practical questions: **where does this resource live**, and **which context do I need to be in to create, list, or read it**.
+
+## The two scopes
+
+<CardGroup cols={2}>
+  <Card title="Project-scoped" icon="folder">
+    The resource lives **inside a single Project**. It is created, listed, and read within the context of that Project, and it is isolated from resources in other Projects.
+  </Card>
+  <Card title="Platform-scoped" icon="globe">
+    The resource is **shared across the platform** — not owned by any one Project. Platform-scoped resources are often read-mostly and provided by Datum.
+  </Card>
+</CardGroup>
+
+### Project-scoped resources
+
+Most resources you create are Project-scoped. They belong to exactly one Project, so two Projects can each have their own resource of the same kind and name without conflict. Listing a Project-scoped kind returns only the resources in the Project you are currently working in.
+
+Examples of Project-scoped resources:
+
+- [`DNSZone`](/api/dns/dnszone) — an authoritative DNS zone that lives inside a Project.
+- [`HTTPRoute`](/api/networking/gateway/httproute) — routing rules attached to a Gateway within a Project.
+
+<Info>
+  A resource's `metadata` still carries a `namespace` field, and Project-scoped resources are addressed within a Project. But the user-facing scoping concept in Datum Cloud is simply **Project** — you do not manage or reason about the underlying `namespace` field to use these resources. See [Object metadata](/api/concepts/metadata) for how that field is handled.
+</Info>
+
+### Platform-scoped resources
+
+Platform-scoped resources are shared across the whole platform rather than being owned by a Project. They tend to be **read-mostly** and **provided by Datum** — you reference them from your own Project-scoped resources, but you rarely create or change them yourself. Some Platform-scoped resources (like the organizations and projects that define your account structure) *are* created by you, just not from within a Project.
+
+Examples of Platform-scoped resources:
+
+- [`GatewayClass`](/api/networking/gateway/gatewayclass) — a class of Gateways available across the platform. A Project-scoped `Gateway` references a `GatewayClass` by name.
+- [`Organization`](/api/resource-manager/organization) and [`Project`](/api/resource-manager/project) — the top-level containers that your Project-scoped resources ultimately live within.
+
+<Tip>
+  When a Project-scoped resource references another resource *by name only* (with no Project attached), that referenced resource is usually Platform-scoped — for example a `Gateway` naming its `GatewayClass`. Check the referenced resource's own Identity table to confirm its scope.
+</Tip>
+
+## How scope maps to your context
+
+The CLI always operates in an **active context** — an organization and, for most work, a project. Scope determines which part of that context a resource lives in:
+
+| Resource scope | Resolved by | What you're working in |
+| --- | --- | --- |
+| Project | your active **project** | resources inside one Project |
+| Platform | your active **organization** / the platform | resources shared across the platform |
+
+You set the active context once and let subsequent commands inherit it, or you override it per-command with flags:
+
+- `--project <name>` — target a specific Project for a Project-scoped resource, regardless of your active context.
+- `--organization <name>` — target a specific organization when resolving Platform-scoped or organization-level resources.
+
+For the full model — how the active context is chosen, cached, and switched — see [Contexts & scoping](/datumctl/contexts-and-scoping).
+
+<Warning>
+  If you run a command against a Project-scoped resource without an active Project (and without `--project`), the command has nothing to scope to and will not resolve. Set a context or pass `--project`. See [Contexts & scoping](/datumctl/contexts-and-scoping).
+</Warning>
+
+## What scope means for creating and listing
+
+**Creating.** When you `apply` or `create` a Project-scoped resource, it is placed in your active Project (or the one named with `--project`). You do not add a Project field to the manifest — the Project comes from your context. Platform-scoped resources are created without a Project; the ones Datum provides you will typically never create at all.
+
+**Listing.** `datumctl get <kind>` lists Project-scoped resources from your active Project only — switch Projects (or pass `--project`) to see a different Project's resources. For Platform-scoped kinds, `get` returns the platform-wide set that your organization can see.
+
+```bash
+# Project-scoped: lives in, and lists from, one Project
+datumctl apply -f dnszone.yaml --project my-project
+datumctl get dnszones --project my-project
+
+# Platform-scoped: shared across the platform, no Project needed
+datumctl get gatewayclasses
+```
+
+<Note>
+  Whether a kind is Project- or Platform-scoped is a property of the resource, not something you choose. Always check the **Identity** table on the resource's own page.
+</Note>
+
+## Related guides
+
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — the active context model and the `--project`/`--organization` flags in depth.
+- [Reading resources](/datumctl/resources/reading) — `get` and `describe` across scopes.
+- [Changing resources](/datumctl/resources/changing) — creating and editing resources.
+- [Safe changes & declarative config](/datumctl/resources/safe-changes) — diffing and dry-running before you write.
+- [Discovering resources & schemas](/datumctl/discovering-resources) — find which kinds exist and inspect their fields.
+- [Output formats & scripting](/datumctl/output-and-scripting) — machine-readable output for automation.
+
+<Warning>
+  The Datum Cloud API is currently **alpha** (`v1alpha1`; the Gateway API resources are served at the stable `v1`). Resources, fields, and scoping may change in backward-incompatible ways between releases.
+</Warning>

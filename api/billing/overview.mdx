@@ -1,0 +1,34 @@
+---
+title: "Billing"
+sidebarTitle: "Overview"
+description: "Billing on Datum Cloud — billing accounts, the projects bound to them, and the payment methods that fund service consumption."
+---
+
+Datum Cloud manages billing through the `billing.miloapis.com` API. A **billing account** is the entity within an organization responsible for paying for service consumption; you bind projects to it so their usage rolls up to a single payer, and you attach payment methods that fund the account. Billing accounts and payment methods are created with `datumctl apply -f` and inspected with `datumctl get` and `datumctl describe`.
+
+<Warning>
+  The Billing API is **alpha** (`v1alpha1`). Fields and behavior may change in backward-incompatible ways between releases.
+</Warning>
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="BillingAccount" icon="file-invoice-dollar" href="/api/billing/billingaccount">
+    A billing entity within an organization that is responsible for paying for service consumption.
+  </Card>
+  <Card title="BillingAccountBinding" icon="link" href="/api/billing/billingaccountbinding">
+    Links a project to a billing account, establishing billing responsibility for the project's resource consumption.
+  </Card>
+  <Card title="PaymentMethod" icon="credit-card" href="/api/billing/paymentmethod">
+    Associates a payment instrument with a billing account to fund it.
+  </Card>
+</CardGroup>
+
+<Tip>
+  Inspect the exact fields for any resource with `datumctl explain`, for example `datumctl explain billingaccounts.spec` or `datumctl explain paymentmethods.spec`.
+</Tip>
+
+## Learn more
+
+- [API resources overview](/api/overview) — the resource reference landing page across all Datum Cloud services.
+- [Changing resources](/datumctl/resources/changing) — how to apply, edit, and safely preview changes to these resources.

@@ -1,0 +1,83 @@
+---
+title: "Service"
+sidebarTitle: "Service"
+description: "Service is the Schema for the services API. It is the platform-owned identity record for a managed service offered on Datum."
+---
+
+<Note>
+  **Platform-provided resource.** Datum operates this resource; you typically reference or read it rather than create it. See [Platform resources](/api/platform/overview).
+</Note>
+
+<Note>
+  API resource reference for **Service**, part of the platform service catalog. See [Platform resources](/api/platform/overview) for the full catalog. To read or inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  This resource is part of the `v1alpha1` API and is subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `services.miloapis.com` |
+| Version | `v1alpha1` |
+| Kind | `Service` |
+| Scope | Platform |
+
+## Overview
+
+A `Service` is the platform-owned identity record for a managed capability a provider offers on Datum Cloud. It holds everything consumer-facing: the canonical name, display name, description, owning producer project, and lifecycle phase. Runtime concerns such as deployments, images, endpoints, and routing stay in the provider's own repository; this resource is identity only.
+
+The canonical identifier is `spec.serviceName`, a reverse-DNS name (for example, `compute.miloapis.com`) that appears on invoices, in the portal, and in every downstream reference. Once a service is Published, `serviceName` is locked: breaking changes ship as a new `Service` with a new `serviceName` and a coordinated migration rather than a silent mutation. Use a `Service` to register a capability so downstream governance resources (such as MeterDefinition and MonitoredResourceType) and consumers (quota, marketplace, entitlements) can reference it.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.serviceName` | string | Yes | Canonical reverse-DNS identifier (e.g., `compute.miloapis.com`). The cross-system join key used by billing exports and the portal. Immutable. |
+| `spec.displayName` | string | Yes | Human-readable name surfaced in the portal, marketplace, and on invoices. Editable over the service's lifetime. |
+| `spec.phase` | string | Yes | Provider-declared lifecycle state. Forward-only transitions: `Draft` → `Published` → `Deprecated` → `Retired`. |
+| `spec.owner` | Object | Yes | Identifies the producer project that publishes and owns the service. |
+| `spec.owner.producerProjectRef` | Object | Yes | Reference to the producer-project resource that owns the service. |
+| `spec.owner.producerProjectRef.name` | string | Yes | The `metadata.name` of the owning producer-project resource. |
+| `spec.description` | string | No | Plain-English explanation of what the service offers. Editable over the service's lifetime. |
+| `spec.enablementPolicy` | Object | No | Controls whether consumers can self-service enable the service or must wait for provider approval. |
+| `spec.enablementPolicy.mode` | string | Yes (within object) | Selects the enablement flow for this service. |
+| `spec.dependencies` | []Object | No | Services that must be enabled alongside this service; the platform auto-enables any listed dependency not already active in a consumer's project. |
+| `spec.dependencies[].serviceRef` | Object | Yes (within object) | Identifies the dependent service. |
+| `spec.dependencies[].serviceRef.name` | string | Yes (within object) | The `metadata.name` of the dependent service. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.conditions` | []Object | Latest available observations of the resource's state, including how the controller reflects the declared phase. |
+| `status.observedGeneration` | integer | The most recent generation observed by the controller. |
+| `status.publishedAt` | string | Time at which the controller first observed the resource in the Published phase; preserved across later transitions to Deprecated and Retired. |
+
+## Usage
+
+```yaml
+apiVersion: services.miloapis.com/v1alpha1
+kind: Service
+metadata:
+  name: compute
+spec:
+  serviceName: compute.miloapis.com
+  displayName: Compute
+  phase: Draft
+  owner:
+    producerProjectRef:
+      name: my-producer-project
+```
+
+```bash
+datumctl apply -f service.yaml --project my-project
+datumctl get services.services.miloapis.com --project my-project
+datumctl describe services.services.miloapis.com compute --project my-project
+```
+
+<Tip>
+  Run `datumctl explain services.services.miloapis.com --recursive` to see the full, live field tree for this resource.
+</Tip>

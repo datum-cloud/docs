@@ -1,0 +1,99 @@
+---
+title: "BillingAccount"
+sidebarTitle: "BillingAccount"
+description: "BillingAccount is the Schema for the billingaccounts API. It represents a billing entity within an organization that is responsible for paying for service consumption."
+---
+
+<Note>
+  API resource reference for **BillingAccount**, part of the [Billing service](/api/billing/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to inspect, see [Reading resources](/datumctl/resources/reading).
+</Note>
+
+<Warning>
+  This resource is part of the `v1alpha1` API and is subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `billing.miloapis.com` |
+| Version | `v1alpha1` |
+| Kind | `BillingAccount` |
+| Scope | Project |
+
+## Overview
+
+A `BillingAccount` represents the paying entity within an organization that is charged for service consumption. Use it to record who is billed, the currency invoices are issued in, the postal contact and address printed on invoices, the default payment method used to process charges, the invoicing schedule, and any tax registrations that apply to the account.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.currencyCode` | string | Yes | ISO 4217 currency code for this billing account. Immutable once the account transitions past the Provisioning phase. |
+| `spec.contactInfo` | Object | No | Billing contact and the postal address invoices are issued to. |
+| `spec.contactInfo.email` | string | Yes* | Primary billing contact email. Receives billing notifications and, when `invoiceEmails` is unset, also receives invoices and receipts. (*Required when `contactInfo` is set.) |
+| `spec.contactInfo.name` | string | No | Display name of the individual billing contact. Appears as the "ATTN:" line on invoices when `businessName` is also set. |
+| `spec.contactInfo.businessName` | string | No | Legal entity that pays. Populate for B2B accounts so invoices print the company name; maps onto the provider `Customer.name`. |
+| `spec.contactInfo.invoiceEmails` | []string | No | Recipients for invoices and receipts. First entry is primary, the rest are CC'd. Duplicates rejected; maximum 10 entries. |
+| `spec.contactInfo.address` | Object | No | Postal billing address. Appears on invoices and is surfaced to the provider controller for tax determination and address verification. |
+| `spec.contactInfo.address.country` | string | Yes* | ISO 3166-1 alpha-2 country code (e.g. `GB`, `US`). (*Required when `address` is set — tax and currency restrictions depend on it.) |
+| `spec.contactInfo.address.line1` | string | No | First line of the street address (typically number + street). |
+| `spec.contactInfo.address.line2` | string | No | Second line of the street address (apartment / suite / building). |
+| `spec.contactInfo.address.city` | string | No | Locality. |
+| `spec.contactInfo.address.region` | string | No | State, province, or county (free-form). |
+| `spec.contactInfo.address.postalCode` | string | No | Post / zip code. |
+| `spec.defaultPaymentMethodRef` | Object | No | References the `PaymentMethod` used by default for charge processing. Must reside in the same Project and be in the Active phase. |
+| `spec.defaultPaymentMethodRef.name` | string | Yes* | Name of the referenced `PaymentMethod`. (*Required when the reference is set.) |
+| `spec.paymentTerms` | Object | No | Invoicing schedule for this billing account. |
+| `spec.paymentTerms.invoiceFrequency` | string | No | How often invoices are generated. One of `Monthly`, `Quarterly`, `Annual`. |
+| `spec.paymentTerms.invoiceDayOfMonth` | integer | No | Day of the month invoices are generated. |
+| `spec.paymentTerms.netDays` | integer | No | Number of days after the invoice date that payment is due. |
+| `spec.taxIds` | []Object | No | Tax registrations attached to this account. An account can carry multiple entries. |
+| `spec.taxIds[].type` | string | Yes* | Tax registration scheme, following a `<jurisdiction>_<scheme>` convention (e.g. `gb_vat`, `eu_vat`, `us_ein`). (*Required per entry.) |
+| `spec.taxIds[].value` | string | Yes* | Registration number / identifier (e.g. `GB123456789`). (*Required per entry.) |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.phase` | string | Current lifecycle phase. One of `Provisioning`, `Ready`, `Suspended`, `Archived`. |
+| `status.linkedProjectsCount` | integer | Number of projects currently bound to this billing account. |
+| `status.conditions` | []Object | Latest available observations of the billing account's state. |
+| `status.observedGeneration` | integer | Most recent generation observed by the controller. |
+
+## Usage
+
+```yaml
+apiVersion: billing.miloapis.com/v1alpha1
+kind: BillingAccount
+metadata:
+  name: acme-billing
+spec:
+  currencyCode: GBP
+  contactInfo:
+    email: billing@acme.example
+    name: Jane Doe
+    businessName: Acme Ltd
+    address:
+      country: GB
+      line1: 1 High Street
+      city: London
+      postalCode: SW1A 1AA
+  paymentTerms:
+    invoiceFrequency: Monthly
+    invoiceDayOfMonth: 1
+    netDays: 30
+  taxIds:
+    - type: gb_vat
+      value: GB123456789
+```
+
+```bash
+datumctl apply -f billingaccount.yaml --project my-project
+datumctl get billingaccounts --project my-project
+datumctl describe billingaccount acme-billing --project my-project
+```
+
+<Tip>
+  Run `datumctl explain billingaccounts --recursive` to see the full, live field tree for this resource.
+</Tip>

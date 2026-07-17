@@ -1,0 +1,69 @@
+---
+title: "Domain"
+sidebarTitle: "Domain"
+description: "Domain represents a domain name in the Datum system."
+---
+
+<Note>
+  API resource reference for **Domain**, part of the [Networking service](/api/networking/overview). To create or change one, see [Changing resources](/datumctl/resources/changing); to read or inspect, see [Reading resources](/datumctl/resources/reading). For the underlying concept, see [Domains & DNS](/domain-dns/dns).
+</Note>
+
+<Warning>
+  The `networking.datumapis.com/v1alpha` API is **alpha** and subject to change. Fields and behavior may change in future releases.
+</Warning>
+
+## Identity
+
+| | |
+| --- | --- |
+| Group | `networking.datumapis.com` |
+| Version | `v1alpha` |
+| Kind | `Domain` |
+| Scope | Project |
+
+## Overview
+
+A `Domain` represents a fully qualified domain name (FQDN) that Datum Cloud manages on your behalf. You create a `Domain` to bring a domain under management so that Datum can track its registration and verification status and discover its authoritative nameservers. Each `Domain` lives in a Project.
+
+## Spec fields
+
+| Field | Type | Required | Description |
+| --- | --- | --- | --- |
+| `spec.domainName` | string | Yes | The fully qualified domain name (FQDN) to be managed. |
+| `spec.desiredRegistrationRefreshAttempt` | string | No | The desired time of the next registration refresh attempt. |
+
+## Status fields (read-only)
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `status.apex` | boolean | True when `spec.domainName` is the registered domain (eTLD+1). |
+| `status.conditions` | []Object | Conditions describing the current state of the Domain. |
+| `status.nameservers` | []Object | The authoritative NS for the effective domain name. If `apex` is true, taken from RDAP for the registered domain (eTLD+1); if false, taken from DNS delegation for the subdomain, falling back to apex NS if there is no cut. |
+| `status.registration` | Object | Registration information for the domain. |
+| `status.verification` | Object | Verification status of the domain. |
+
+## Usage
+
+```yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: Domain
+metadata:
+  name: example-com
+spec:
+  domainName: example.com
+```
+
+```bash
+# Create or update the Domain
+datumctl apply -f domain.yaml --project my-project
+
+# List Domains in the project
+datumctl get domains --project my-project
+
+# Inspect a single Domain
+datumctl describe domain example-com --project my-project
+```
+
+<Tip>
+  Run `datumctl explain domains --recursive` to see the full, live field tree for this resource.
+</Tip>
