@@ -1,0 +1,485 @@
+---
+title: "Load Balancer Failover with Datum Gateway"
+description: "Configure automatic failover between a primary and fallback backend for applications behind a Datum gateway using datumctl and Envoy Gateway Backend, BackendTLSPolicy, and BackendTrafficPolicy resources."
+---
+
+This guide describes how to configure **automatic failover between a primary and a fallback backend** for applications running behind a **Datum gateway** using `datumctl`. The configuration uses **Envoy Gateway `Backend`, `BackendTLSPolicy`, and `BackendTrafficPolicy`** resources and applies to **Windows, macOS, and Linux**.
+
+---
+
+## Overview
+
+Failover routes traffic to a fallback origin only after the primary origin starts failing, and returns traffic to the primary once it recovers.
+
+At a high level, this setup:
+
+1. Defines two **`Backend`** resources — a primary and a fallback origin
+2. Pairs each `Backend` with a **`BackendTLSPolicy`** so Envoy presents the correct SNI to the origin
+3. References both backends from an **`HTTPRoute`**, with the fallback `Backend` marked `fallback: true`
+4. Applies a **`BackendTrafficPolicy`** that configures passive (outlier-detection) health checking
+5. Verifies failover by forcing the primary to fail, then verifies automatic recovery
+
+---
+
+## Prerequisites
+
+- `datumctl` installed and authenticated
+- A valid **Project**
+- Existing:
+  - `Gateway`
+  - `HTTPRoute`
+- Two backend origins reachable over TLS on port 443 — a primary and a fallback — each with its own publicly resolvable hostname
+- Permission to create:
+  - `Backend`
+  - `BackendTLSPolicy`
+  - `BackendTrafficPolicy`
+
+Verify access:
+
+```bash
+datumctl get gateway
+datumctl get httproute
+```
+
+---
+
+## Critical Requirement: BackendTLSPolicy for FQDN Backends
+
+A `Backend` that targets an external FQDN **must** be paired with a `BackendTLSPolicy` that sets `spec.validation.hostname`.
+
+### Why This Matters
+
+- An FQDN `Backend`'s inline `spec.tls` block alone does **not** set outbound SNI
+- Origins that route by SNI (most shared-IP hosting platforms) reject connections with no or incorrect SNI
+- This fails as `upstream_reset_before_response_started{remote_connection_failure}` — it is **not** a certificate-trust error, and setting `insecureSkipVerify: true` will not fix it
+
+Origins that do not inspect SNI (single-tenant IPs, some test endpoints) will work without this, which can hide the problem until you move to a shared-IP host.
+
+---
+
+## Configuration Steps
+
+### Step 1: Set Variables
+
+#### Windows (PowerShell)
+
+```powershell
+$project          = "your-project-id"
+$namespace        = "default"
+$route            = "your-route-name"
+$gateway          = "your-gateway-name"
+$primaryHostname  = "primary.your-origin.example.com"
+$fallbackHostname = "fallback.your-origin.example.com"
+$primaryBackend   = "primary-backend"
+$fallbackBackend  = "fallback-backend"
+```
+
+#### macOS / Linux
+
+```bash
+project="your-project-id"
+namespace="default"
+route="your-route-name"
+gateway="your-gateway-name"
+primaryHostname="primary.your-origin.example.com"
+fallbackHostname="fallback.your-origin.example.com"
+primaryBackend="primary-backend"
+fallbackBackend="fallback-backend"
+```
+
+---
+
+### Step 2: Create the Primary and Fallback Backends
+
+Set `fallback: true` on the fallback `Backend` only. Envoy sends traffic to a `fallback: true` backend only once every non-fallback backend referenced by the same route is ejected.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: $primaryBackend
+spec:
+  endpoints:
+  - fqdn:
+      hostname: $primaryHostname
+      port: 443
+  fallback: false
+  tls:
+    wellKnownCACertificates: System
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: $fallbackBackend
+spec:
+  endpoints:
+  - fqdn:
+      hostname: $fallbackHostname
+      port: 443
+  fallback: true
+  tls:
+    wellKnownCACertificates: System
+"@ | datumctl apply --project $project --namespace $namespace -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: $primaryBackend
+spec:
+  endpoints:
+  - fqdn:
+      hostname: $primaryHostname
+      port: 443
+  fallback: false
+  tls:
+    wellKnownCACertificates: System
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: $fallbackBackend
+spec:
+  endpoints:
+  - fqdn:
+      hostname: $fallbackHostname
+      port: 443
+  fallback: true
+  tls:
+    wellKnownCACertificates: System
+EOF
+```
+
+---
+
+### Step 3: Attach a BackendTLSPolicy to Each Backend
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: ${primaryBackend}-tls
+spec:
+  targetRefs:
+  - group: gateway.envoyproxy.io
+    kind: Backend
+    name: $primaryBackend
+  validation:
+    hostname: $primaryHostname
+    wellKnownCACertificates: System
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: ${fallbackBackend}-tls
+spec:
+  targetRefs:
+  - group: gateway.envoyproxy.io
+    kind: Backend
+    name: $fallbackBackend
+  validation:
+    hostname: $fallbackHostname
+    wellKnownCACertificates: System
+"@ | datumctl apply --project $project --namespace $namespace -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: ${primaryBackend}-tls
+spec:
+  targetRefs:
+  - group: gateway.envoyproxy.io
+    kind: Backend
+    name: $primaryBackend
+  validation:
+    hostname: $primaryHostname
+    wellKnownCACertificates: System
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: ${fallbackBackend}-tls
+spec:
+  targetRefs:
+  - group: gateway.envoyproxy.io
+    kind: Backend
+    name: $fallbackBackend
+  validation:
+    hostname: $fallbackHostname
+    wellKnownCACertificates: System
+EOF
+```
+
+---
+
+### Step 4: Update the HTTPRoute to Reference Both Backends
+
+Add both backends to the route's `backendRefs`. Give them equal `weight` — the fallback's `fallback: true` flag, not the weight, is what keeps it out of rotation while the primary is healthy.
+
+> **Warning:** This manifest replaces the `HTTPRoute`'s entire `spec`. If your existing `HTTPRoute` has additional rules, matches, or filters, merge them into the manifest below instead of applying this as-is. Adjust `sectionName` to match the listener your route currently attaches to.
+
+> **Warning:** Do not add a `hostnames` field to the `HTTPRoute`. Hostname routing is controlled solely by the parent `Gateway`'s listener, and `spec.hostnames` on the route will be rejected by admission.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: $route
+spec:
+  parentRefs:
+  - name: $gateway
+    sectionName: default-https
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - group: gateway.envoyproxy.io
+      kind: Backend
+      name: $primaryBackend
+      port: 443
+      weight: 1
+    - group: gateway.envoyproxy.io
+      kind: Backend
+      name: $fallbackBackend
+      port: 443
+      weight: 1
+"@ | datumctl apply --project $project --namespace $namespace -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: $route
+spec:
+  parentRefs:
+  - name: $gateway
+    sectionName: default-https
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - group: gateway.envoyproxy.io
+      kind: Backend
+      name: $primaryBackend
+      port: 443
+      weight: 1
+    - group: gateway.envoyproxy.io
+      kind: Backend
+      name: $fallbackBackend
+      port: 443
+      weight: 1
+EOF
+```
+
+---
+
+### Step 5: Apply Passive Health Checking with a BackendTrafficPolicy
+
+> **Note:** Only passive (outlier-detection) health checking is supported. A `healthCheck.active` block is rejected by admission — active `/healthz` polling is not available on this platform.
+
+The thresholds below eject a backend after a single error and hold it out of rotation for 30 seconds. Tune `consecutive5XxErrors`, `consecutiveGatewayErrors`, and `interval` for production traffic (see Best Practices), but leave `maxEjectionPercent` at `100` — with a single primary backend, a lower value can prevent ejection from happening at all.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: ${route}-failover-policy
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: $route
+  healthCheck:
+    passive:
+      baseEjectionTime: 30s
+      consecutive5XxErrors: 1
+      consecutiveGatewayErrors: 1
+      consecutiveLocalOriginFailures: 1
+      interval: 30s
+      maxEjectionPercent: 100
+"@ | datumctl apply --project $project --namespace $namespace -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: ${route}-failover-policy
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: $route
+  healthCheck:
+    passive:
+      baseEjectionTime: 30s
+      consecutive5XxErrors: 1
+      consecutiveGatewayErrors: 1
+      consecutiveLocalOriginFailures: 1
+      interval: 30s
+      maxEjectionPercent: 100
+EOF
+```
+
+---
+
+## Verification
+
+### Primary Healthy
+
+```bash
+curl -I https://your-app.example.com
+```
+
+Expected response:
+
+```
+HTTP/1.1 200 OK
+```
+
+Traffic is served by the primary backend.
+
+---
+
+### Primary Failing
+
+> **Warning:** This test interrupts live traffic to the primary. Run it against a non-production hostname or during a maintenance window.
+
+Make the primary origin return a 5xx status (or take it offline). Passive health checking is re-evaluated on each `interval` (30 seconds in this example), not per request, so poll for at least that long:
+
+```bash
+for i in $(seq 1 10); do
+  curl -s -o /dev/null -w "%{http_code}\n" https://your-app.example.com
+  sleep 5
+done
+```
+
+Expected behavior:
+
+- Requests may still reach the failing primary for up to one `interval` after it starts failing
+- Once `consecutive5XxErrors`/`consecutiveGatewayErrors` is reached at the next interval, the primary is ejected for `baseEjectionTime`
+- Remaining requests return `200 OK`, served by the fallback backend
+
+---
+
+### Recovery
+
+Restore the primary origin to a healthy state and wait out `baseEjectionTime`:
+
+```bash
+sleep 30
+curl -I https://your-app.example.com
+```
+
+Expected response:
+
+```
+HTTP/1.1 200 OK
+```
+
+Traffic returns to the primary automatically — no manual re-enable step is required.
+
+---
+
+## Cleanup / Disable Failover
+
+### Windows (PowerShell)
+
+```powershell
+datumctl delete backendtrafficpolicy ${route}-failover-policy `
+  --project $project --namespace $namespace --ignore-not-found
+
+datumctl delete backendtlspolicy ${primaryBackend}-tls ${fallbackBackend}-tls `
+  --project $project --namespace $namespace --ignore-not-found
+
+datumctl delete backend $primaryBackend $fallbackBackend `
+  --project $project --namespace $namespace --ignore-not-found
+```
+
+### macOS / Linux
+
+```bash
+datumctl delete backendtrafficpolicy ${route}-failover-policy \
+  --project $project --namespace $namespace --ignore-not-found
+
+datumctl delete backendtlspolicy ${primaryBackend}-tls ${fallbackBackend}-tls \
+  --project $project --namespace $namespace --ignore-not-found
+
+datumctl delete backend $primaryBackend $fallbackBackend \
+  --project $project --namespace $namespace --ignore-not-found
+```
+
+> **Note:** Remove the fallback `backendRef` from the `HTTPRoute` as well if you no longer want it defined, or the route will be left pointing at a deleted `Backend`.
+
+---
+
+## Troubleshooting
+
+| Symptom | Root Cause | Resolution |
+|---------|------------|------------|
+| `upstream_reset_before_response_started{remote_connection_failure}` even though the origin is healthy | Missing `BackendTLSPolicy` — Envoy sent no or incorrect SNI | Add a `BackendTLSPolicy` targeting the `Backend` with `validation.hostname` set to the backend's FQDN |
+| `HTTPRoute` rejected by admission | `spec.hostnames` set on the `HTTPRoute` | Remove `hostnames` — hostname routing belongs to the `Gateway` listener |
+| `BackendTrafficPolicy` rejected by admission | `healthCheck.active` block included | Remove `active` — only `passive` (outlier detection) health checking is supported |
+| Traffic never shifts to the fallback backend | Fallback `Backend` missing `fallback: true`, or `BackendTrafficPolicy.spec.targetRefs` doesn't match the `HTTPRoute` | Set `fallback: true` on the fallback `Backend`; confirm the `targetRefs` name matches |
+| Fallback keeps serving traffic after the primary recovers | Still inside the `baseEjectionTime` window | Wait out the ejection window — Envoy re-admits the primary automatically once it passes health checks again |
+
+### Useful Debug Commands
+
+```bash
+datumctl get backend --project $project --namespace $namespace
+datumctl get backendtlspolicy --project $project --namespace $namespace
+datumctl get backendtrafficpolicy --project $project --namespace $namespace
+datumctl get httproute $route --project $project --namespace $namespace -o yaml
+```
+
+---
+
+## Best Practices
+
+- Set `consecutive5XxErrors` / `consecutiveGatewayErrors` above `1` in production to avoid ejecting on a single transient error
+- Keep `maxEjectionPercent` at `100` when there is only one primary backend — a lower value can block ejection entirely since there is only one host to eject from
+- Keep the fallback origin provisioned at production-equivalent capacity — it may receive 100% of traffic during an outage
+- Test failover on a recurring schedule, not only at initial setup
+- Monitor ejection and recovery events directly rather than relying on `Gateway` status conditions as the sole health signal
+
+---
+
+## Summary
+
+- Failover is expressed with two `Backend` resources — the fallback one set to `fallback: true`
+- FQDN backends require a paired `BackendTLSPolicy` setting `validation.hostname`, or SNI-sensitive origins will reset the connection
+- Only passive (outlier-detection) health checking is supported — `active` health checks are rejected by admission
+- The `HTTPRoute` cannot set `spec.hostnames` — hostname routing belongs to the `Gateway` listener
+- Recovery to the primary is automatic once `baseEjectionTime` elapses and it passes health checks again
