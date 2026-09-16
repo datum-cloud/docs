@@ -1,0 +1,137 @@
+---
+title: "DNS records"
+description: "Supported record types, how to write names and values, TTLs, and what each record status means."
+---
+
+Records are the contents of a zone: the entries that turn a name into an address, a mail route, or a piece of text. You can manage them from the Datum Cloud portal, from `datumctl`, or through the API.
+
+## Record sets
+
+Datum groups records the way DNS does. Every record with the same name and the same type forms one **record set**, and all of its values share a TTL.
+
+```
+www   A   300   203.0.113.10
+www   A   300   203.0.113.11
+```
+
+That's one record set — `www`, type `A` — with two values. Adding a second address adds a value to the existing set rather than creating a competing record, and resolvers return both.
+
+## Supported record types
+
+| Type | What it does | Value |
+|---|---|---|
+| `A` | Points a name at an IPv4 address | `203.0.113.10` |
+| `AAAA` | Points a name at an IPv6 address | `2001:db8::1` |
+| `CNAME` | Makes a name an alias for another hostname | A hostname |
+| `ALIAS` | Apex-safe alias: points at a hostname but answers with addresses. See [ALIAS records](/domain-dns/alias-records) | A hostname |
+| `MX` | Routes mail for the domain | A preference number and a mail exchange hostname |
+| `TXT` | Holds free text — SPF, DKIM, DMARC, and service verification tokens | A text string |
+| `NS` | Delegates a subdomain to other nameservers | A nameserver hostname |
+| `SRV` | Advertises the host and port for a service | Priority, weight, port, and target |
+| `CAA` | States which certificate authorities may issue for the domain | A flag, a tag, and a value |
+| `TLSA` | Binds a certificate or key to a name for DANE | Usage, selector, matching type, and certificate data |
+| `HTTPS` | Advertises connection parameters for HTTPS clients, such as HTTP/3 support | Priority, target, and parameters |
+| `SVCB` | The general form of `HTTPS`, for other protocols | Priority, target, and parameters |
+| `PTR` | Maps an address back to a name | A hostname |
+| `SOA` | The zone's authority record. Datum manages this one | Managed for you |
+
+The apex NS records and the SOA record are written by Datum. See [Records Datum manages for you](/domain-dns/dns-zones#records-datum-manages-for-you).
+
+## Write names
+
+Record names are relative to the zone. In a zone for `example.com`:
+
+| You want | You write |
+|---|---|
+| `www.example.com` | `www` |
+| `example.com` itself | `@` |
+| `api.staging.example.com` | `api.staging` |
+| Anything not otherwise matched | `*` |
+| `_dmarc.example.com` | `_dmarc` |
+
+The most common mistake is writing the full name. `www.example.com` inside a zone for `example.com` creates a record for `www.example.com.example.com`.
+
+Underscore labels like `_dmarc`, `_acme-challenge`, and DKIM selectors are ordinary names — write them as they appear in the instructions you were given, minus the zone.
+
+## Write values
+
+Values that name another host must be **absolute**: end them with a dot.
+
+```
+mail.example.com.      correct
+mail.example.com       ambiguous
+mail                   wrong
+```
+
+A missing trailing dot makes the value relative to the zone, so `mail.example.com` becomes `mail.example.com.example.com` and resolution fails. This applies to CNAME, ALIAS, NS, MX exchanges, SRV targets, and PTR values.
+
+Two rules cover almost every mistake:
+
+- **Names are relative.** `www`, not `www.example.com`.
+- **Targets are absolute.** `mail.example.com.`, with the dot.
+
+## Set TTLs
+
+The TTL is how long resolvers may cache an answer. Every record set has one.
+
+Leave it unset and the record uses `Auto`, which resolves to five minutes — short enough that mistakes are cheap to fix, long enough to be efficient for most sites.
+
+Set it explicitly when you have a reason:
+
+- **Before a planned change**, lower the TTL well in advance so the old answer expires quickly when you make the cut.
+- **After things settle**, raise it for records that rarely change.
+
+Datum doesn't round TTLs to preset options. A TTL of 240 seconds stays 240 seconds.
+
+## Rules DNS itself imposes
+
+A few limits come from DNS, not from Datum, and every provider enforces them:
+
+- **A CNAME can't share a name with other records.** If `www` is a CNAME, it can't also have an A record or a TXT record.
+- **The apex can't be a CNAME.** The apex already has SOA and NS records, so a CNAME there is illegal. Use an [ALIAS record](/domain-dns/alias-records) instead.
+- **Only one SOA per zone**, and Datum owns it.
+
+## Record status
+
+Each record set reports a status.
+
+| Status | What it means |
+|---|---|
+| Programmed | The record is live on Datum's nameservers. |
+| Pending | The write is in flight. This is normal for a few moments after any change. |
+| Conflict | Something else already occupies that name. Most often the name accidentally includes the zone — check for `www.example.com` where `www` was meant. |
+| Not owner | Another record set already owns that name and type. Change the record through whatever owns it, or remove that owner first. |
+| Error | Datum couldn't program the record. The record's detail view carries the message. |
+| Rejected | The value was refused as invalid for its type. |
+
+A record stuck at Pending for more than a moment is worth inspecting; the detail view for the record carries the underlying message.
+
+<Note>
+Programmed means Datum is serving the record. It doesn't mean the world can see it — that also needs the domain [delegated](/domain-dns/dns-zones#delegation) to Datum, and it needs any previously cached answer to expire.
+</Note>
+
+## Managing records from the terminal
+
+The [`datumctl` DNS plugin](/datumctl/plugins/dns#add-and-change-records) covers records in full, including entering multi-part values, bulk-applying a zone file, and filtering by status:
+
+```sh
+datumctl dns record create example.com www A 203.0.113.10
+datumctl dns record list example.com
+```
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="ALIAS records" icon="arrows-turn-right" href="/domain-dns/alias-records">
+    Point the apex at a hostname and still answer with addresses.
+  </Card>
+  <Card title="DNS zones" icon="layer-group" href="/domain-dns/dns-zones">
+    Zone status, delegation, and managed records.
+  </Card>
+  <Card title="Migrate a zone" icon="right-left" href="/domain-dns/migrate-dns">
+    Import records in bulk from another provider.
+  </Card>
+  <Card title="DNS setup for an ALB" icon="server" href="/alb/dns-setup">
+    A worked example with an apex ALIAS and a subdomain CNAME.
+  </Card>
+</CardGroup>

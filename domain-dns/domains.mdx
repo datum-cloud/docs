@@ -31,6 +31,18 @@ You can add and manage domains through the Datum Cloud portal as well as our pro
 
 Once you add a domain as a resource, you can verify ownership. Verified domains become available for use in other Datum services such as Proxy and DNS Zone Hosting.
 
+You prove ownership either by publishing a TXT record at whichever provider serves DNS for the domain today, or by serving a token over HTTP from the domain. Datum shows you the exact values to publish and re-checks on its own until it finds them.
+
 <Frame caption="Verify ownership by adding a DNS record">
   ![Domain Verification](/images/domain-verification.png)
 </Frame>
+
+For the full walkthrough, including what to do when verification doesn't complete, see [Verify domain ownership](/domain-dns/domain-verification).
+
+## Domains and DNS zones
+
+A domain and a DNS zone are related but separate. The domain tracks the name itself — where it's registered, which nameservers it uses, and whether you've proven you own it. A [DNS zone](/domain-dns/dns-zones) is Datum hosting the records for that name.
+
+Create a zone for a domain you aren't tracking yet and Datum adds the domain for you, then waits for it to be verified before provisioning anything. Deleting a zone leaves the domain in place, still tracked and still verified.
+
+See [DNS](/domain-dns/dns) for how the two fit together end to end.

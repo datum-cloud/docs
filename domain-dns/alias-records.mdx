@@ -1,0 +1,56 @@
+---
+title: "ALIAS records"
+description: "Point a hostname — including the zone apex — at another hostname while still returning A and AAAA answers. Other providers call this CNAME flattening."
+---
+
+An **ALIAS** record points a name at another hostname the way a CNAME does, but returns **A and AAAA answers** to clients instead of a CNAME. That makes it usable at the **zone apex**, where standard DNS forbids a CNAME.
+
+Different providers use different names for the same idea:
+
+- **Cloudflare** usually calls it **CNAME flattening**.
+- Other providers call it **ALIAS**, **ANAME**, or a **flattened CNAME**.
+
+## When to use an ALIAS record
+
+Use ALIAS when you want "point this name at that hostname" behavior but you can't or shouldn't use a CNAME. Most commonly:
+
+- At the **zone apex** (`example.com`), where standard DNS rules don't allow a CNAME.
+- When you're targeting a hostname whose addresses change — a CDN or a hosted service — but clients need to receive A and AAAA records.
+
+A Datum Application Load Balancer endpoint is a typical target. See [DNS setup for an Application Load Balancer](/alb/dns-setup).
+
+## Name and value
+
+**Name** — the hostname inside the zone you're creating the record for.
+
+- For the zone apex, use `@`, the zone-file notation for the zone root.
+- For a subdomain, use the label: `www` for `www.example.com`.
+
+**Value** — a target hostname, such as `myapp.hosting-provider.com.`
+
+- ALIAS values are hostnames, not IP addresses.
+- The target must ultimately resolve to A or AAAA records, directly or through further DNS indirection.
+- End the target with a dot. Without one it's treated as relative to your zone. See [Write values](/domain-dns/dns-records#write-values).
+
+## How it works
+
+ALIAS isn't a standardized DNS record type that recursive resolvers understand. The authoritative nameserver does the work instead:
+
+1. A client's resolver asks for `A` or `AAAA` for the ALIAS name, for example `example.com`.
+2. Datum resolves the ALIAS target — `myapp.hosting-provider.com` — to its current `A` and `AAAA` records.
+3. Datum returns those answers as if they'd been configured directly on the ALIAS name.
+
+The consequence worth remembering: clients don't see a CNAME in the response. They see A and AAAA records for the name they asked about.
+
+## ALIAS compared with CNAME
+
+| | CNAME | ALIAS |
+|---|---|---|
+| What the client receives | A CNAME, which the resolver then chases | A and AAAA records, synthesized by Datum |
+| Allowed at the apex | No | Yes |
+| Portable to other providers | Yes, it's a standard type | Not directly — every provider spells it differently |
+
+## Limitations
+
+- **Portability.** ALIAS and flattening behavior isn't uniform across providers. If you move DNS elsewhere, you'll need to translate the record into whatever that provider supports — and a BIND zone file can't carry it, because `ALIAS` isn't a standard type. See [Migrate a zone](/domain-dns/migrate-dns).
+- **Answer types.** ALIAS synthesizes A and AAAA answers. It isn't a general replacement for other record types, and it doesn't carry the target's MX, TXT, or other records over to your name.

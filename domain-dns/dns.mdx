@@ -1,86 +1,124 @@
 ---
 title: "DNS"
-description: "We offer authoritative DNS hosting for your domains that you can manage through the Datum Cloud portal as well as CLI."
+description: "Authoritative DNS hosting for your domains, managed from the Datum Cloud portal, datumctl, or the API."
 ---
 
 <Note>
 **Working with this resource via an AI agent?** Datum publishes a [DNS skill](/agents/skills/dns) that teaches agents the canonical patterns for this resource.
 </Note>
 
-We offer authoritative DNS hosting for your domains that you can manage through our portal as well as CLI.
+Datum hosts authoritative DNS for the domains you own. You create a zone for a domain, prove that you control that domain, point the domain at Datum's nameservers at your registrar, and manage records from the portal, `datumctl`, or the API.
 
-## Current features
+## What you get
 
-1. Zone Management – Add DNS zones for any domain and subdomain, whether they are hosted by Datum or externally, for broad visibility across all of your DNS zones.
-2. Global Authoritative DNS – Datum serves authoritative DNS through a globally distributed anycast system for performance and redundancy. To use Datum’s authoritative DNS, set up your domain in Datum Cloud ([cloud.datum.net](http://cloud.datum.net) or via _datumctl_) and point it to Datum’s nameservers:
-   - [ns1.datumdomains.net](http://ns1.datumdomains.net)
-   - [ns2.datumdomains.net](http://ns2.datumdomains.net)
-   - [ns3.datumdomains.net](http://ns3.datumdomains.net)
-   - [ns4.datumdomains.net](http://ns4.datumdomains.net)
-3. Bulk Import/Export – Import existing zone files (BIND format, screenshot from DNS provider, sync by querying for DNS records) or export current configurations.
-4. Record Operations – Add, edit, and delete modern DNS records: A, AAAA, CAA, NS, SRV, TXT, CNAME, MX, SOA, TLSA, SVCB, HTTPS.
-5. View Zone Details – Active nameserver assignments; record count and zone size; last modified timestamp.
-6. Audit Log – Track all zone and record changes with user attribution and timestamps.
-7. Project Scoped – Manage zones within individual projects with role-based access control.
+- **Global authoritative DNS.** Datum serves answers from a globally distributed anycast network for performance and redundancy.
+- **Zone management.** Add zones for any domain or subdomain, whether Datum hosts the DNS or another provider does, so you have one view of your DNS estate.
+- **Modern record types.** A, AAAA, ALIAS, CNAME, MX, NS, PTR, TXT, SRV, CAA, TLSA, HTTPS, SVCB, and SOA. See [DNS records](/domain-dns/dns-records).
+- **Apex ALIAS records.** Point the zone apex at a hostname and still return A and AAAA answers to clients. See [ALIAS records](/domain-dns/alias-records).
+- **Bulk import and export.** Import a BIND zone file, or snapshot what a domain resolves to today. Export a zone back out at any time. See [Migrate a zone](/domain-dns/migrate-dns).
+- **Audit log.** Every zone and record change is recorded with the user who made it and when. See [Activity logs](/platform/activity-logs).
+- **Project scoped.** Zones live in a project and follow that project's role-based access control.
 
-## DNS record types and behaviors
+## Datum's nameservers
 
-Most record types are standardized (A, AAAA, CNAME, etc.), but some DNS “record-like” features are provider-specific behaviors (for example, “CNAME flattening”).
+Datum serves your zones from:
 
-See ALIAS (“CNAME flattening”) for details.
+- `ns1.datumdomains.net`
+- `ns2.datumdomains.net`
+- `ns3.datumdomains.net`
+- `ns4.datumdomains.net`
 
-## Concepts and definitions
+Always delegate to the nameservers Datum assigns to your specific zone rather than typing this list from memory. The zone's detail page in the portal and `datumctl dns zone nameservers <domain>` both show the assigned set.
 
-1. **DNS Zone -** A DNS zone is a segment of the Domain Name System that contains the DNS records for one domain or subdomain, managed as a single administrative unit.
-2. **DNS Host -** A DNS host is the provider or server that stores and serves the DNS records for your domain, responding to queries from the internet. Some examples of DNS hosts are Datum, Cloudflare, Amazon Route 53, and GoDaddy.
-3. **Nameserver -** A nameserver is a specialized DNS server that tells the internet where to find a domain’s DNS Zone and routes queries to the correct host.
-4. **DNS Record -** A DNS record is an individual entry within a DNS zone that maps a domain name to a specific resource, such as an IP address, mail server, or another domain.
-5. **BIND Format -** BIND format is a standardized text format used to represent DNS zone files, listing all the records and settings that define a domain’s configuration.
-6. **Domain Connect -** Domain Connect is an open standard that allows web services and domain registrars to automatically configure DNS settings for users with simple authorization.
+## How DNS on Datum works
 
-## ALIAS / CNAME flattening
+<Steps>
+  <Step title="Create a zone">
+    Create a zone for the domain or subdomain you want Datum to serve, for example `example.com`. If the domain isn't tracked in your project yet, Datum adds it for you.
 
-### What is an ALIAS record?
+    A zone's domain name is fixed once the zone exists. To host a different name, create another zone.
+  </Step>
+  <Step title="Verify that you own the domain">
+    Datum doesn't serve DNS for a domain until you prove you control it. You publish a TXT record at your current DNS provider, or serve a token over HTTP from the domain.
 
-An **ALIAS** record is a provider-side feature that lets you point a hostname (including the **zone apex**, like `example.com`) at another hostname the way a CNAME does, while still returning **A/AAAA answers** to clients.
+    This is a gate, not a formality: no nameservers are assigned and no records are served until verification succeeds. See [Verify domain ownership](/domain-dns/domain-verification).
+  </Step>
+  <Step title="Datum provisions the zone">
+    Once the domain is verified, Datum provisions the zone, assigns its nameservers, and creates the zone's SOA record and its apex NS records for you. The zone is now live on Datum's nameservers, even though nothing on the internet is asking them yet.
+  </Step>
+  <Step title="Add your records">
+    Add the records the domain needs — web, mail, verification tokens for other services. Do this before you delegate, so the domain keeps working through the cutover. See [DNS records](/domain-dns/dns-records).
+  </Step>
+  <Step title="Delegate at your registrar">
+    Replace the domain's nameservers at your registrar with the ones Datum assigned. This is the moment the internet starts asking Datum for answers.
 
-Different providers use different names for the same idea:
+    Delegation happens at your registrar, not on Datum, so Datum can only observe it. See [Delegation](/domain-dns/dns-zones#delegation).
+  </Step>
+  <Step title="Records go live">
+    Resolvers pick up the new delegation as the old records expire from their caches. Allow for the parent zone's TTL before you treat a delegation change as broken.
+  </Step>
+</Steps>
 
-- **Cloudflare** commonly describes this as **“CNAME flattening”**
-- Other DNS providers may call it **ALIAS**, **ANAME**, or **flattened CNAME**
+## Domains and DNS zones
 
-### When to use ALIAS
+A **domain** and a **DNS zone** are two different things in Datum, and the difference matters.
 
-Use ALIAS when you want “point this name at that hostname” behavior but **you can’t (or shouldn’t) use CNAME**, most commonly:
+A [domain](/domain-dns/domains) is a record of a domain name you care about. It tracks registration details, the nameservers the name currently uses, and whether you've proven ownership — regardless of where the name is registered or who hosts its DNS. You can track a domain without Datum serving any DNS for it.
 
-- At the **zone apex** (`example.com`) where CNAME is not allowed by standard DNS rules.
-- When you want the convenience of targeting a hostname that may change IPs (CDNs, hosted services), but still need clients to receive A/AAAA records.
+A **DNS zone** is DNS hosting for one name. It holds the records Datum serves and the nameservers Datum assigns. A zone always has a domain behind it: create a zone for a name that isn't tracked yet and Datum adds the domain automatically, then waits for that domain to be verified before provisioning anything.
 
-### Expected name and value
+The practical consequences:
 
-- **Name**: the hostname inside the zone you’re creating the record for.
-  - For the zone apex, many DNS tools use `@` (BIND/zone-file notation) to mean “the zone root”.
-  - For a subdomain, use the label (for example `www` for `www.example.com`).
-- **Value**: a **target hostname (FQDN)**, like `myapp.hosting-provider.com`.
-  - ALIAS values should be **hostnames**, not IP addresses.
-  - The target hostname should ultimately resolve to **A and/or AAAA** records (directly or through other DNS indirection).
+- Verification belongs to the domain, not the zone. Verify a domain once and every zone for that name is unblocked.
+- A domain name can be hosted by only one zone at a time. A second zone for the same name reports that the domain is already claimed and stays unprovisioned.
+- Deleting a zone doesn't delete the domain. The domain stays tracked and verified.
 
-### How it works
+## Concepts
 
-ALIAS does **not** exist as a standardized DNS RRType that recursive resolvers understand everywhere. Instead, the DNS provider’s authoritative system does the work:
+**DNS zone** — The segment of the Domain Name System that holds the records for one domain or subdomain, managed as a single unit.
 
-1. A client’s recursive resolver asks for `A` and/or `AAAA` for the ALIAS name (for example `example.com`).
-2. Datum resolves the ALIAS target hostname (for example `myapp.hosting-provider.com`) to its current `A`/`AAAA` records.
-3. Datum returns the resulting `A`/`AAAA` answers **as if they were directly configured on the ALIAS name**.
+**DNS host** — The provider that stores and serves a domain's records, answering queries from the internet. Datum, Cloudflare, Amazon Route 53, and GoDaddy are all DNS hosts.
 
-Important consequence: clients typically **do not** see a CNAME in the response. They see `A`/`AAAA` records for the name they queried.
+**Nameserver** — A server that answers DNS queries for a zone. A domain's registrar publishes which nameservers are authoritative for it.
 
-### What to expect compared to CNAME
+**Registrar** — The company you registered the domain with. Delegation is changed at the registrar, not at the DNS host.
 
-- **CNAME**: returns a CNAME response and relies on the resolver to chase it.
-- **ALIAS / “CNAME flattening”**: returns `A`/`AAAA` directly (synthesized by the DNS provider).
+**DNS record** — One entry in a zone that maps a name to a resource: an IP address, a mail server, another hostname, or free text.
 
-### Notes and limitations
+**Record set** — Every record with the same name and type, treated as a unit. `www` with two A records is one record set with two values.
 
-- **Portability**: ALIAS/flattening is not uniform across providers. If you move DNS providers, you may need to translate this into whatever equivalent that provider supports.
-- **Answer types**: ALIAS is primarily about synthesizing `A`/`AAAA` answers. It is not a general replacement for other record types.
+**Zone apex** — The zone's own name, `example.com` rather than `www.example.com`. Written as `@` in zone files and in Datum's tools.
+
+**Delegation** — The parent zone's NS records that say which nameservers are authoritative for your domain. Set at your registrar.
+
+**TTL** — How long resolvers may cache an answer. Shorter TTLs propagate changes faster and cost more queries.
+
+**BIND format** — The standard text format for zone files. Datum imports and exports it.
+
+**Domain Connect** — An open standard that lets a web service configure DNS at a registrar on your behalf with a single authorization.
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Verify domain ownership" icon="shield-check" href="/domain-dns/domain-verification">
+    The gate every zone passes through before Datum serves it.
+  </Card>
+  <Card title="DNS zones" icon="layer-group" href="/domain-dns/dns-zones">
+    Zone lifecycle, statuses, nameservers, and the records Datum manages.
+  </Card>
+  <Card title="DNS records" icon="list" href="/domain-dns/dns-records">
+    Supported types, how to write names and values, TTLs, and record status.
+  </Card>
+  <Card title="ALIAS records" icon="arrows-turn-right" href="/domain-dns/alias-records">
+    Apex-safe CNAME behavior, also known as CNAME flattening.
+  </Card>
+  <Card title="Migrate a zone" icon="right-left" href="/domain-dns/migrate-dns">
+    Move DNS to Datum from another provider, or move it away.
+  </Card>
+  <Card title="DNS setup for an ALB" icon="server" href="/alb/dns-setup">
+    Point a domain at an Application Load Balancer endpoint.
+  </Card>
+  <Card title="datumctl DNS plugin" icon="terminal" href="/datumctl/plugins/dns">
+    Manage zones and records from your terminal.
+  </Card>
+</CardGroup>

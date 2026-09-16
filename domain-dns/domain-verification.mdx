@@ -1,0 +1,107 @@
+---
+title: "Verify domain ownership"
+description: "Prove that you control a domain before Datum serves DNS for it, using either a TXT record or an HTTP token."
+---
+
+Datum doesn't host DNS for a domain until you prove you control it. Verification is a gate on the whole zone: until the domain is verified, the zone has no nameservers assigned, holds no records, and answers nothing.
+
+<Warning>
+**A zone waiting on verification reports its status as `Rejected`.** Nothing was refused and you did nothing wrong — the status means Datum hasn't accepted the zone for provisioning yet, and waiting for verification is the ordinary reason. The message beside it says so:
+
+```
+Rejected — Waiting for domain ownership verification before provisioning DNS
+```
+
+Publish the verification record and the zone provisions itself. See [Zone status](/domain-dns/dns-zones#zone-status).
+</Warning>
+
+## Why Datum verifies domains
+
+Without a verification gate, anyone could create a zone for any name that happens to be spelled correctly and start serving real traffic for a domain someone else controls. Requiring proof of control means the only person who can host `example.com` on Datum is someone who can already change `example.com`.
+
+Verification also unlocks the domain for other Datum services that need a hostname you own, such as Application Load Balancers.
+
+## What gets verified
+
+Verification belongs to the **domain**, not to a zone. Verify `example.com` once and every zone you create for that name in the same project is unblocked. A domain tracked in a different project is a separate resource with its own token, so it's verified separately.
+
+A subdomain zone is verified against the subdomain. A zone for `staging.example.com` needs the verification token published under `staging.example.com`, not under `example.com`.
+
+The name must be a registrable domain. A bare public suffix such as `com` is rejected as not registrable, and verification never starts for it.
+
+## Choose a method
+
+You can prove control two ways. Datum checks DNS first, then HTTP if DNS hasn't succeeded, and **either one succeeding verifies the domain**. You don't need both.
+
+| Method | Prove it by | Best when |
+|---|---|---|
+| DNS | Publishing a TXT record at your current DNS provider | You control DNS for the domain. This is the usual choice. |
+| HTTP | Serving a token from a URL on the domain | You control the web server but not the DNS, or DNS changes are slow to get approved. |
+
+Datum generates a unique token for the domain and shows you the exact values to publish. Copy them from the domain's page in the portal rather than composing them yourself.
+
+### Verify with a TXT record
+
+Datum asks for a TXT record on a `_datum-custom-hostname` name under your domain, holding the token as its value:
+
+| Field | Value |
+|---|---|
+| Name | `_datum-custom-hostname.example.com` |
+| Type | `TXT` |
+| Value | The token Datum shows you |
+
+<Note>
+Add this record at whichever provider serves DNS for the domain **today**. If you're moving to Datum, that's still your old provider — Datum isn't authoritative for the domain until you delegate, so a verification record created inside your new Datum zone can't be seen from the internet yet.
+</Note>
+
+Many DNS providers append the zone name to whatever you type in the name field. In those interfaces, enter `_datum-custom-hostname` rather than the full name, or you'll end up with `_datum-custom-hostname.example.com.example.com`.
+
+### Verify with an HTTP token
+
+Datum fetches a URL on your domain and compares the response body to the token:
+
+| Field | Value |
+|---|---|
+| URL | `http://example.com/.well-known/datum-custom-hostname-challenge/<id>` |
+| Response | The token Datum shows you, and nothing else |
+
+Requirements:
+
+- The request must return **HTTP 200**. A 404 tells Datum the token isn't published yet.
+- The body must be exactly the token. Surrounding whitespace and a trailing newline are ignored; anything else is a mismatch.
+- Datum requests `http://`. A redirect to HTTPS is followed, so serving the token only over HTTPS is fine as long as the plain HTTP URL redirects there.
+- The request times out after a few seconds, so serve the token as a static response rather than generating it on demand.
+
+## What happens after you publish
+
+Datum re-checks on its own — every few seconds for the first few minutes, then about once a minute, then every five minutes. You don't need to trigger anything. Most domains verify within a minute or two of the record becoming visible, though a long TTL on a previous lookup can delay it.
+
+When verification succeeds:
+
+1. The domain is marked verified.
+2. Datum provisions the zone and assigns its nameservers.
+3. Datum creates the zone's SOA and apex NS records.
+4. The zone moves from `Rejected` through `Pending` to `OK`, and starts serving.
+
+Verification is a one-time check. Datum doesn't re-verify a domain it has already verified, so you can remove the TXT record or the HTTP token afterwards — though leaving the TXT record in place costs nothing and saves you from re-doing it if the domain is ever re-added.
+
+## Troubleshoot verification
+
+| What you see | What it means | What to do |
+|---|---|---|
+| Record not found | Datum's lookup returned no verification record or the token endpoint returned 404. | Confirm the record exists at the provider serving the domain today. Query it yourself: `dig TXT _datum-custom-hostname.example.com` or `curl` the token URL. |
+| Content mismatch | The record or response exists but doesn't hold the expected token. | Re-copy the token from the portal. Check for a doubled zone name in the record name, and for quotes or whitespace the provider added. |
+| Unexpected response | The token URL answered with something other than 200 or 404 — often a redirect loop, a login page, or a 403 from a WAF. | Make the token path publicly reachable without authentication. |
+| Nothing happens for a long time | The record isn't visible from the public internet yet. | Check the TTL on the name at your current provider, and confirm you published to the zone that's actually authoritative. |
+| The zone still reads `Rejected` after the domain is verified | Verification and provisioning are separate steps, and the zone is re-checked on its own schedule. | Give it a moment. If it persists, read the message beside the status — a different cause, such as the name already being claimed by another zone, produces the same word. See [Zone status](/domain-dns/dns-zones#zone-status). |
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Domains" icon="globe" href="/domain-dns/domains">
+    Tracking the domains you own, wherever they're registered.
+  </Card>
+  <Card title="DNS zones" icon="layer-group" href="/domain-dns/dns-zones">
+    What happens once the domain is verified.
+  </Card>
+</CardGroup>

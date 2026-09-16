@@ -9,6 +9,10 @@ This guide prepares a domain for use with a Datum Application Load Balancer by c
 This guide assumes your domain is already delegated to Datum nameservers. See [DNS](/domain-dns/dns) for nameserver details and ALIAS record behavior.
 </Note>
 
+<Warning>
+Datum does not provision a zone until you have verified that you own the domain. If the zone below stays unprogrammed, verification is the first thing to check — see [Verify domain ownership](/domain-dns/domain-verification).
+</Warning>
+
 ---
 
 ## Prerequisites
@@ -263,7 +267,7 @@ datumctl delete dnszone $ZONE \
 
 | Symptom | Root Cause | Resolution |
 |---------|------------|------------|
-| Zone stuck at `PROGRAMMED=False` | Domain not delegated to Datum nameservers | Update nameservers at your registrar |
+| Zone stuck at `PROGRAMMED=False` | Most often the domain has not been verified, which also shows the zone as `Rejected`. Delegation is unrelated — a zone programmes whether or not the registrar points at Datum. | Verify domain ownership, then wait for the zone to programme. See [Verify domain ownership](/domain-dns/domain-verification). |
 | `nslookup` / `dig` returns NXDOMAIN | Zone not yet propagated | Wait 1–2 minutes and retry |
 | ALIAS resolves to wrong address | `TARGET` missing trailing dot | Re-apply the record with a trailing dot on the target |
 | Record not appearing | `--validate=false` omitted | Re-apply with `--validate=false` |

@@ -1,0 +1,457 @@
+---
+title: "DNS Plugin"
+sidebarTitle: "DNS"
+description: "Install the datumctl dns plugin and manage Datum Cloud DNS zones and records from your terminal."
+---
+
+The `dns` plugin extends `datumctl` with commands for creating DNS zones, pointing your domain at Datum, and editing records — all from the terminal. Once you install it, `datumctl dns` behaves like any other `datumctl` command and inherits your current organization, project, and credentials.
+
+<Note>
+  The plugin is a preview release. The current published version is `v0.7.0-dev.1`, so expect commands, flags, and output to change before a stable release.
+</Note>
+
+For DNS concepts — zones, nameservers, record types, and ALIAS/CNAME flattening — see [DNS](/domain-dns/dns). For how plugins are installed, verified, and upgraded in general, see [Using plugins](/datumctl/plugins/using-plugins).
+
+## Install the plugin
+
+<Steps>
+  <Step title="Install from the official catalog">
+    The plugin ships in the official **datum** catalog, so no extra catalog registration is needed:
+
+    ```bash
+    datumctl plugin install dns
+    ```
+
+    This installs the version the catalog recommends. To pin a specific one instead, see [pinning a version](/datumctl/plugins/using-plugins#pinning-a-version).
+  </Step>
+
+  <Step title="Verify the install">
+    ```bash
+    datumctl dns version
+    ```
+
+    `version` runs entirely offline — no credentials, no project, and no API call — so it is the first command to run whenever something else fails.
+  </Step>
+
+  <Step title="Select a project">
+    Every other command acts on a project. Set a context once, or pass `--project` per command:
+
+    ```bash
+    datumctl ctx use <org-id>/<project-id>
+    ```
+
+    The plugin never guesses a project. See [Contexts & scoping](/datumctl/contexts-and-scoping) for how scope is resolved.
+  </Step>
+</Steps>
+
+Upgrade and remove the plugin with the usual commands:
+
+```bash
+datumctl plugin upgrade dns
+datumctl plugin remove dns
+```
+
+<Note>
+  If you build the plugin yourself and put a `datumctl-dns` binary on your `PATH`, `datumctl` blocks it until you run `datumctl plugin trust dns`. Trust is recorded against the binary's fingerprint, so rebuilding it means trusting it again.
+</Note>
+
+## Create a zone
+
+A zone holds the records for one domain. Create one by domain name:
+
+```bash
+datumctl dns zone create example.com
+```
+
+The command waits up to two minutes for Datum to assign nameservers, then prints them — a zone is not usable until it has them, and you cannot delegate the domain without knowing what they are. Change that with `--timeout`, or skip the wait entirely:
+
+```bash
+# Return as soon as the zone exists
+datumctl dns zone create example.com --no-wait
+
+# Attach a description
+datumctl dns zone create example.com --description "production apex"
+
+# Validate against the API server without creating anything
+datumctl dns zone create example.com --dry-run
+```
+
+<Warning>
+  A zone's domain name is immutable. There is no `zone update`, and moving to a different domain means creating a new zone.
+</Warning>
+
+## Point your domain at Datum
+
+Creating a zone does not make the domain resolve through Datum. Your registrar has to publish the nameservers Datum assigned to the zone.
+
+```bash
+datumctl dns zone nameservers example.com
+```
+
+```text
+Nameservers for example.com
+  ns1.datumdomains.net.   not set at registrar
+  ns2.datumdomains.net.   not set at registrar
+  ns3.datumdomains.net.   not set at registrar
+  ns4.datumdomains.net.   not set at registrar
+
+Delegation   Incomplete — 0 of 4 nameservers set at the registrar
+
+Set these nameservers at your domain registrar:
+  ns1.datumdomains.net.
+  ns2.datumdomains.net.
+  ns3.datumdomains.net.
+  ns4.datumdomains.net.
+
+Re-check with: datumctl dns zone nameservers example.com --check
+```
+
+Copy the printed nameservers into your registrar's control panel, then re-check:
+
+```bash
+datumctl dns zone nameservers example.com --check
+```
+
+Without `--check`, the command compares against what the control plane last reconciled. `--check` queries public DNS live, as a second and independent source of truth: it observes what the internet resolves right now rather than trusting stored state, which is what tells you whether delegation actually works. Use `--timeout` to change the per-query timeout.
+
+The command reports delegation as one of four states:
+
+| Delegation state | Meaning |
+| --- | --- |
+| `Complete` | Your registrar publishes every assigned nameserver. |
+| `Partial` | Your registrar publishes some of them — usually a half-finished edit. |
+| `Incomplete` | Your registrar publishes none of them. |
+| `Unknown` | There is nothing to compare against yet. |
+
+`Unknown` is not a failure, and the summary line says which of its three causes applies:
+
+- `no nameservers assigned yet` — the zone does not have its nameservers yet. This is normal for the first few minutes after you create a zone.
+- `the registrar's nameservers have not been checked yet` — the zone has a linked domain, but nobody has looked at what the registrar publishes.
+- `no linked domain to check the registrar against` — there is no domain object to compare against at all.
+
+None of the three is evidence about your registrar, so none of them means your delegation is wrong. For the same reason, individual nameservers are annotated `unknown` rather than `not set at registrar` while the state is `Unknown`.
+
+Registrar changes take time to propagate. Allow for the parent zone's TTL before you treat a change as failed.
+
+## List and inspect zones
+
+```bash
+# Every zone in the project — `datumctl dns zone` alone does the same
+datumctl dns zone list
+
+# Only the ones that are not working yet
+datumctl dns zone list --status error
+
+# Raw API objects
+datumctl dns zone list -o json
+```
+
+```text
+NAME              STATUS    RECORDS   NAMESERVERS                                                                                  DELEGATED   AGE
+example.com       OK        12        ns1.datumdomains.net., ns2.datumdomains.net., ns3.datumdomains.net., ns4.datumdomains.net.   yes         14d
+old.acme.io       OK        8         ns1.datumdomains.net., ns2.datumdomains.net., ns3.datumdomains.net., ns4.datumdomains.net.   no          21d
+staging.acme.io   Pending   2         —                                                                                            unknown     3m
+
+3 zones — 2 OK, 1 Pending, 0 Rejected, 0 Error
+```
+
+Filter with `--status ok|pending|error`, add `-o wide` for extra columns, and pass `--no-headers` to drop the header row.
+
+For one zone in detail — its status, its delegation, and what it contains — use `describe`:
+
+```bash
+datumctl dns zone describe example.com
+datumctl dns zone describe example.com -o yaml
+```
+
+## Delete a zone
+
+<Warning>
+  Deleting a zone deletes every record in it, and the domain stops resolving through Datum. The operator owns each record set through a controller `ownerReference`, so they are garbage-collected with the zone.
+</Warning>
+
+The confirmation asks for the zone name typed in full, and the command refuses to run non-interactively without `--yes`:
+
+```bash
+datumctl dns zone delete example.com
+
+# In a script
+datumctl dns zone delete example.com --yes
+
+# Validate the deletion without performing it
+datumctl dns zone delete example.com --dry-run
+```
+
+## Add and change records
+
+Give the zone, the name, the type, and one or more values. Names are relative to the zone: `www`, `*`, `_dmarc`, or `@` for the domain itself.
+
+`create` appends — the values already at that name stay, and an exact duplicate is refused:
+
+```bash
+datumctl dns record create example.com www A 203.0.113.10
+datumctl dns record create example.com www A 203.0.113.11 --ttl 5m
+```
+
+`set` overwrites — every value already at that name and type is removed and the ones you give take their place:
+
+```bash
+datumctl dns record set example.com www A 203.0.113.20
+
+# Two values at once
+datumctl dns record set example.com www A 203.0.113.20 203.0.113.21
+```
+
+`set` is the "change my A record" verb and `create` is the "add a second A record" verb. They are separate because one command cannot express both intents safely.
+
+Both accept `--dry-run` to validate and show the change without applying it, and `--wait` to block until the DNS backend has programmed the record (`--timeout` bounds the wait).
+
+Two rules catch most mistakes:
+
+- **Names are relative.** Use `www`, not `www.example.com`. Use `@` for the domain itself.
+- **Targets are absolute.** End every hostname inside a value with a dot: `mail.example.com.`, not `mail`.
+
+## Enter record values
+
+Flat types take their value positionally. Repeat the argument for several values:
+
+```bash
+datumctl dns record create example.com www A 203.0.113.10 203.0.113.11
+datumctl dns record set    example.com @   TXT "v=spf1 include:_spf.example.com ~all"
+datumctl dns record create example.com cdn CNAME lb.example.net.
+```
+
+Structured types are taught with named flags:
+
+```bash
+datumctl dns record create example.com @ MX --preference 10 --exchange mail.example.com.
+datumctl dns record create example.com _sip._tcp SRV --priority 10 --weight 5 --port 5060 --target sip.example.com.
+datumctl dns record create example.com @ CAA --flag 0 --tag issue --value letsencrypt.org
+datumctl dns record create example.com api HTTPS --priority 1 --target . --param alpn=h3,h2
+```
+
+| Type | Positional value | Named flags |
+| --- | --- | --- |
+| `A`, `AAAA` | `<ip>` | — |
+| `CNAME`, `ALIAS`, `NS`, `PTR` | `<hostname>` | — |
+| `TXT` | `<string>` | `--data` |
+| `MX` | `<preference> <exchange>` | `--preference`, `--exchange` |
+| `SRV` | `<priority> <weight> <port> <target>` | `--priority`, `--weight`, `--port`, `--target` |
+| `CAA` | `<flag> <tag> <value>` | `--flag`, `--tag`, `--value` |
+| `TLSA` | `<usage> <selector> <matchingType> <certData>` | `--usage`, `--selector`, `--matching-type`, `--cert-data` |
+| `HTTPS`, `SVCB` | `<priority> <target> [k=v ...]` | `--priority`, `--target`, `--param k=v` |
+| `SOA` | `<mname> <rname> <serial> <refresh> <retry> <expire> <minimum>`, or `<mname> <rname>` alone to accept the backend defaults | `--mname`, `--rname`, `--serial`, `--refresh`, `--retry`, `--expire`, `--minimum` |
+
+Both notations work for every type, so a value pasted out of a provider export or `dig` output needs no translation. Mixing the two notations for one value is an error, not a merge.
+
+```bash
+datumctl dns record create example.com _sip._tcp SRV "10 5 5060 sipserver.example.com."
+datumctl dns record create example.com --line "www 300 IN A 203.0.113.10"
+```
+
+For long TXT values that will not survive shell quoting, `--data` reads a file with `@path` or standard input with `-`:
+
+```bash
+datumctl dns record create example.com selector1._domainkey TXT --data @dkim.txt
+dig +short TXT _dmarc.example.com | datumctl dns record set example.com _dmarc TXT --data -
+```
+
+<Note>
+  Datum manages a few records for you — the zone's SOA, its apex NS records, and anything a Gateway creates. Editing or deleting one requires `--force`, and a platform-managed record you overwrite reverts.
+</Note>
+
+## Set a TTL
+
+`--ttl` takes seconds or a duration, and the units combine: `--ttl 300`, `--ttl 5m`, `--ttl 1h30m`. Omit it and the record uses `Auto`, which the backend resolves to 300 seconds. TTLs are stored as written and are not rounded onto a preset ladder.
+
+## List and inspect records
+
+Records are listed one row per value, with the name, type, TTL, value, and status:
+
+```bash
+# Everything in the zone
+datumctl dns record list example.com
+
+# Only the mail records
+datumctl dns record list example.com --type MX,TXT
+
+# Only one name
+datumctl dns record list example.com --name www
+
+# Only what is not working
+datumctl dns record list example.com --status conflict
+
+# Only what the platform manages
+datumctl dns record list example.com --managed
+```
+
+`--status` accepts `programmed`, `pending`, `conflict`, `not-owner`, `error`, and `rejected`; the first word alone also works, so `not` selects `Not owner`. `STATUS` is the per-owner-name condition, not the rolled-up one on the record set — the interesting outcomes only exist per name.
+
+`describe` shows the values at one name both in presentation format and broken out into named fields, along with the backend's own status message. Omit the type to see every type at that name:
+
+```bash
+datumctl dns record describe example.com www
+datumctl dns record describe example.com @ MX
+```
+
+<Note>
+  A semicolon starts a comment in zone-file syntax, so TXT values containing one display escaped — `v=DMARC1; p=none` reads back as `"v=DMARC1\; p=none"`. The stored value is unchanged.
+</Note>
+
+## Delete a record
+
+Pass a value to remove only that value, or leave it off to remove every value at that name and type. The prompt says how many, so the difference is never a surprise.
+
+```bash
+# One value
+datumctl dns record delete example.com www A 203.0.113.11
+
+# Every A record at that name
+datumctl dns record delete example.com www A
+
+# No prompt, for scripts
+datumctl dns record delete example.com www A --yes
+
+# Show what would be deleted without deleting it
+datumctl dns record delete example.com www A --dry-run
+```
+
+When the last value of a type leaves a zone, the record set holding it is deleted rather than left empty.
+
+## Import an existing zone
+
+Moving a domain in from another provider starts with the zone file you exported there:
+
+```bash
+# Load a zone file exported from another provider
+datumctl dns zone import example.com --file example.com.zone
+
+# Read from standard input
+cat example.com.zone | datumctl dns zone import example.com --file -
+
+# Replace each type present in the file rather than merging into it
+datumctl dns zone import example.com --file example.com.zone --replace
+
+# Check the import without writing anything
+datumctl dns zone import example.com --file example.com.zone --dry-run
+```
+
+If you do not have a zone file, snapshot what the domain resolves to today and import that:
+
+```bash
+datumctl dns zone import example.com --discover
+```
+
+Import groups records by type before writing, so each record type costs one API call however many records it holds. TTLs are taken from the file exactly as written. Use `--timeout` to bound how long `--discover` waits.
+
+## Export and apply a zone file
+
+`zone export` flattens every record set in the zone back into a BIND zone file:
+
+```bash
+# Print the zone to the terminal
+datumctl dns zone export example.com
+
+# Save it to a file
+datumctl dns zone export example.com --file example.com.zone
+```
+
+`record apply` is the declarative counterpart: it diffs a zone file against the live zone, prints what would change, and converges. Export, edit, and apply is a closed loop — exporting and re-applying an untouched file reports no changes, which makes `apply --dry-run` usable as a drift check.
+
+```bash
+# See the diff without touching anything
+datumctl dns record apply example.com -f example.com.zone --dry-run
+
+# Show and apply the difference
+datumctl dns record apply example.com -f example.com.zone
+
+# Make the zone exactly match the file
+datumctl dns record apply example.com -f example.com.zone --prune
+```
+
+By default `apply` only adds and updates. `--prune` also deletes the records the file does not mention. Platform-managed records are never pruned or modified, and what was skipped is always reported. There is no `--force` on `apply` — a zone file is not the place to say "yes, delete my delegation", so use `record delete --force` where the record is named explicitly.
+
+<Warning>
+  With `--prune`, the diff is computed from the zone as it was read. If another writer changes the zone while the command runs, the retry converges against the newer state and may delete a record the diff did not show. The dry run is a good description of the change, not an upper bound on it.
+</Warning>
+
+## Script the plugin
+
+Every command accepts `-o`:
+
+| Format | Use it for |
+| --- | --- |
+| `table` | The default, for reading at a terminal. |
+| `wide` | The table plus extra columns. |
+| `json`, `yaml` | Full API objects, for scripts. |
+| `name` | Bare identifiers, one per line, for pipelines. |
+
+```bash
+datumctl dns zone list -o name | xargs -n1 datumctl dns zone describe
+datumctl dns zone list -o json | jq -r '.items[].spec.domainName'
+datumctl dns record list example.com -o name
+```
+
+`record list -o json` and `-o yaml` emit the raw record set objects rather than the flattened rows, so a script never has to reconstruct them. `--no-headers` drops the header row from `table` and `wide`. Data goes to standard output and everything else to standard error, so `-o json > zones.json` is always clean.
+
+<Warning>
+  The table view is a presentation and its columns can change. Script against `-o json` or `-o name`.
+</Warning>
+
+Useful global flags: `--project`, `--org`, `-o`/`--output`, `-v`/`--verbose`, `-q`/`--quiet`, `-y`/`--yes`, and `--color auto|always|never`. For the wider scripting picture, see [Output formats & scripting](/datumctl/output-and-scripting).
+
+### Exit codes
+
+A bulk operation that partly fails never exits `0`.
+
+| Code | Name | Meaning |
+| --- | --- | --- |
+| 0 | — | Success |
+| 1 | `DNS_ERROR` | Unexpected failure |
+| 2 | `DNS_USAGE` | Bad flags, arguments, or record values |
+| 3 | `DNS_FORBIDDEN` | Not authorized, or DNS is not enabled for the project |
+| 4 | `DNS_NOT_FOUND` | Zone or record not found |
+| 5 | `DNS_CONFLICT` | Something else already owns that name |
+| 6 | `DNS_INVALID` | The server rejected the request |
+| 8 | `DNS_UNAVAILABLE` | Cannot reach the DNS API |
+| 9 | `DNS_ABORTED` | You declined a confirmation |
+
+Errors print a problem, an optional fix, and the exit status:
+
+```text
+Error: zone "nope.example" not found in project acme-prod
+Fix:   list the zones in this project:
+       datumctl dns zone list
+exit status 4   # DNS_NOT_FOUND
+```
+
+Add `--verbose` to see the underlying cause.
+
+## Troubleshoot
+
+| Problem | What to do |
+| --- | --- |
+| No project set | Run `datumctl ctx use <org>/<project>`, or pass `--project <name>`. The plugin never guesses a project. |
+| DNS is not enabled for the project | Run `datumctl services enable dns.networking.miloapis.com --wait`. Enabling a service can require approval by the service provider, so this is not always immediate. |
+| The domain does not resolve | Run `datumctl dns zone nameservers <domain> --check`. If delegation is `Incomplete` or `Partial`, fix it at your registrar. |
+| A record is stuck at `Pending` | This is normal right after a write. If it lasts, run `datumctl dns record describe <domain> <name>` for the server's message. |
+| `Conflict` | Another record occupies that name. Usually the name is not inside the zone — check for `www.example.com` where `www` was meant. |
+| `Not owner` | Another record set owns that name, and `describe` names it. Edit the record through that set, or delete the set first. |
+| The plugin will not run | Run `datumctl dns version`, which needs no credentials or network. If that works, the problem is authentication, context, or the API. |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="DNS" icon="globe" href="/domain-dns/dns">
+    Zones, nameservers, record types, and ALIAS/CNAME flattening explained.
+  </Card>
+  <Card title="Using plugins" icon="puzzle-piece" href="/datumctl/plugins/using-plugins">
+    How plugins are installed, verified, upgraded, and trusted.
+  </Card>
+  <Card title="Contexts & scoping" icon="crosshairs" href="/datumctl/contexts-and-scoping">
+    Control which organization and project the plugin acts on.
+  </Card>
+  <Card title="Output & scripting" icon="terminal" href="/datumctl/output-and-scripting">
+    Machine-readable output, structured errors, and CI patterns.
+  </Card>
+</CardGroup>

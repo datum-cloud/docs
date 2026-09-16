@@ -1,0 +1,137 @@
+---
+title: "DNS zones"
+description: "Create a DNS zone, understand what its status means, delegate it at your registrar, and learn which records Datum manages for you."
+---
+
+A DNS zone is Datum's hosting for one domain name. It holds the records Datum serves for that name and the nameservers that serve them.
+
+## What a zone covers
+
+A zone covers one name and everything below it that isn't delegated somewhere else. A zone for `example.com` serves `www.example.com`, `api.example.com`, and `a.b.c.example.com` — you add those as records inside the zone rather than as separate zones.
+
+You'd create a separate zone for a subdomain only when you want that subdomain managed independently, for example when `staging.example.com` is delegated to Datum while the apex stays at another provider. A subdomain zone is verified and delegated on its own.
+
+A domain name can be hosted by only one zone at a time. If you create a second zone for a name that's already hosted, it reports that the domain is already claimed and never provisions.
+
+<Warning>
+A zone's domain name is fixed when you create it. There's no rename — to host a different name, create a new zone.
+</Warning>
+
+## Create a zone
+
+Create a zone from the Datum Cloud portal, or from your terminal with the [`datumctl` DNS plugin](/datumctl/plugins/dns#create-a-zone):
+
+```sh
+datumctl dns zone create example.com
+```
+
+Creating a zone starts a sequence you mostly watch rather than drive:
+
+1. Datum records the zone and, if the domain isn't tracked in the project yet, adds it.
+2. Nothing else happens until the domain is verified. See [Verify domain ownership](/domain-dns/domain-verification).
+3. Once verified, Datum provisions the zone and assigns its nameservers.
+4. Datum creates the zone's SOA record and apex NS records.
+5. The zone starts serving. It's not yet reachable from the internet — that needs delegation.
+
+## Zone status
+
+A zone reports one status. It describes the zone on Datum's side only; whether the internet actually asks Datum for this domain is a separate question, answered by [delegation](#delegation).
+
+| Status | What it means | What to do |
+|---|---|---|
+| Rejected | Datum won't provision the zone yet. Despite the word, this is usually not a refusal — the ordinary cause is that the domain hasn't been verified. | Read the message next to the status. See [Rejected doesn't mean refused](#rejected-doesnt-mean-refused). |
+| Pending | The zone was accepted and is being provisioned. Nameservers are being assigned, or the zone's default records are still being written. | Wait. This normally clears in moments. |
+| OK | Nameservers are assigned and the zone's default records are in place. Datum answers queries for this zone. | Add your records, then delegate at your registrar. |
+| Error | Datum accepted the zone but couldn't finish programming it. | Read the message on the zone. |
+
+Every status carries a message from the platform explaining that particular zone's state. Read it — it's more specific than the status word.
+
+### Rejected doesn't mean refused
+
+A zone reads **Rejected** whenever Datum hasn't accepted it for provisioning, whatever the reason, and that outranks anything else the zone reports. The word sounds terminal. It usually isn't.
+
+By far the most common reason is that the domain isn't verified yet, which reads:
+
+```
+Rejected — Waiting for domain ownership verification before provisioning DNS
+```
+
+Nothing is wrong and nothing was refused. The zone is waiting for you to publish the verification record. See [Verify domain ownership](/domain-dns/domain-verification). Once the domain verifies, the zone provisions on its own and moves to OK.
+
+The other reasons a zone reads Rejected:
+
+- **The domain is already claimed by another zone.** A domain name can be hosted by only one zone at a time.
+- **The zone's class wasn't found.** This is a platform-side problem rather than something you can fix in the zone. Contact support.
+
+<Note>
+A zone at **OK** with no delegation is a perfectly normal state, and a useful one. It means Datum is ready and serving, and you can add and check every record before you move any live traffic.
+</Note>
+
+## Delegation
+
+Delegation is the link between your registrar and Datum. Your registrar publishes which nameservers are authoritative for your domain, and until that list points at Datum, resolvers never ask Datum anything — no matter how healthy the zone looks.
+
+To delegate:
+
+1. Look up the nameservers Datum assigned to the zone. The zone's page in the portal shows them, as does `datumctl dns zone nameservers example.com`.
+2. Sign in to your registrar and replace the domain's nameservers with the assigned set. See [Point your domain at Datum](/datumctl/plugins/dns#point-your-domain-at-datum) for checking delegation from the terminal.
+3. Save, then wait. Registrar changes take time to reach resolvers.
+
+Datum reports what it observes in public DNS for the domain:
+
+| Delegation state | Meaning |
+|---|---|
+| Complete | Your registrar publishes every assigned nameserver. |
+| Partial | Your registrar publishes some of them — usually a half-finished edit. |
+| Incomplete | Your registrar publishes none of them. |
+| Unknown | There's nothing to compare against yet — the zone has no assigned nameservers, or the registrar hasn't been checked. Normal for the first few minutes after you create a zone, and not a sign that anything is wrong. |
+
+<Tip>
+Allow for the parent zone's TTL before you treat a delegation change as failed. Top-level domains commonly cache delegations for a day or more, so a change that looks like it did nothing is often just not visible to you yet.
+</Tip>
+
+## Records Datum manages for you
+
+When a zone is provisioned, Datum creates two things every zone must have:
+
+**The SOA record** at the apex. It names the zone's primary nameserver and the responsible mailbox (`hostmaster.` at your domain), and carries the refresh, retry, and expiry timers other nameservers use.
+
+**The apex NS records**, one for each nameserver assigned to the zone. These are the zone's own statement of who serves it, and they need to agree with what your registrar publishes.
+
+Datum may also manage records created by another Datum service on your behalf — for example, records an Application Load Balancer creates for a custom hostname.
+
+These records behave differently from the ones you write:
+
+- They're created for you and kept in place. Delete the SOA or the apex NS records and Datum recreates them, because the zone is not valid without them.
+- Bulk operations leave them alone. `datumctl dns record apply` never modifies or prunes a managed record and reports what it skipped, so applying a zone file can't accidentally strip your nameservers.
+- Records owned by another Datum service revert if you edit them by hand. Change them through the service that created them instead.
+- On export, managed records are written out as ordinary records. If you import that file into another provider, they arrive as records you own — usually the wrong thing for SOA and NS, which the new provider will want to generate itself.
+
+Everything else in the zone is yours: you add, change, and delete it freely. See [DNS records](/domain-dns/dns-records).
+
+## Delete a zone
+
+<Warning>
+Deleting a zone deletes every record in it, and the domain stops resolving through Datum. If the domain is still delegated to Datum, it stops resolving at all.
+</Warning>
+
+Delete the delegation first if the domain is live: point the registrar at its new nameservers, wait for the change to propagate, and only then delete the zone.
+
+Deleting a zone doesn't delete the domain. The domain stays tracked and stays verified, so you can create a new zone for it later without repeating verification.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Verify domain ownership" icon="shield-check" href="/domain-dns/domain-verification">
+    The gate a zone passes before it's provisioned.
+  </Card>
+  <Card title="DNS records" icon="list" href="/domain-dns/dns-records">
+    Supported types, names, values, and TTLs.
+  </Card>
+  <Card title="Migrate a zone" icon="right-left" href="/domain-dns/migrate-dns">
+    Bring an existing zone in without downtime.
+  </Card>
+  <Card title="Activity logs" icon="clock-rotate-left" href="/platform/activity-logs">
+    Who changed which zone, and when.
+  </Card>
+</CardGroup>

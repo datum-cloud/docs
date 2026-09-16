@@ -1,0 +1,96 @@
+---
+title: "Migrate a zone"
+description: "Move DNS for a domain to Datum from another provider without downtime, and export a zone back out if you leave."
+---
+
+Moving DNS providers is a cutover, not an edit. The safe shape is always the same: build the new zone completely, check it while nothing depends on it, then switch delegation at the registrar in one step.
+
+## Move a zone to Datum
+
+<Steps>
+  <Step title="Lower the TTL on your current delegation">
+    Do this several days ahead if you can. If your current provider serves your records with a one-day TTL, resolvers keep answering from the old provider for up to a day after you switch. Lowering TTLs first shrinks that window to minutes.
+
+    This step happens at your current provider, not on Datum.
+  </Step>
+  <Step title="Export the zone from your current provider">
+    Most providers can export a BIND-format zone file. Take that export — it's the most faithful record of what you have.
+
+    If your provider can't export, Datum can snapshot what the domain resolves to today by querying it. That catches the common record types rather than everything, so compare the result against your provider's interface afterwards.
+  </Step>
+  <Step title="Create the zone on Datum and verify the domain">
+    Create the zone, then verify domain ownership by publishing the verification record **at your current provider** — Datum isn't authoritative for the domain yet, so it's the only place a verification record is visible from. See [Verify domain ownership](/domain-dns/domain-verification).
+
+    Wait for the zone to reach **OK** before importing.
+  </Step>
+  <Step title="Import your records">
+    [Import](/datumctl/plugins/dns#import-an-existing-zone) the zone file, or the discovered snapshot, into the new zone:
+
+    ```sh
+    datumctl dns zone import example.com --file example.com.zone
+    ```
+
+    Preview first with `--dry-run` if you want to see what a file will do before it writes anything.
+
+    Skip the SOA and NS records from your old provider. Datum writes its own, and the old ones name the wrong nameservers. See [Records Datum manages for you](/domain-dns/dns-zones#records-datum-manages-for-you).
+  </Step>
+  <Step title="Check the new zone before you cut over">
+    The zone is live on Datum's nameservers even though nothing is asking for it yet, which means you can test it properly. Query Datum's nameservers directly and compare the answers to what the domain returns today:
+
+    ```sh
+    dig @<nameserver-assigned-to-your-zone> example.com SOA
+    dig @<nameserver-assigned-to-your-zone> www.example.com A
+    dig @<nameserver-assigned-to-your-zone> example.com MX
+    ```
+
+    Pay particular attention to mail. A missing MX record or an SPF, DKIM, or DMARC TXT record won't show up as an error — mail just starts failing after the cutover.
+  </Step>
+  <Step title="Delegate at your registrar">
+    Replace the domain's nameservers at your registrar with the ones Datum assigned to the zone. This is the cutover. See [Delegation](/domain-dns/dns-zones#delegation).
+  </Step>
+  <Step title="Leave the old zone in place for a while">
+    Resolvers hold the old delegation until it expires from their caches, so both providers answer for a period. Keeping the old zone intact and correct during that window means nobody sees a broken answer either way.
+
+    Delete the old zone once the delegation state reads **Complete** and traffic has fully moved — a week is a common, comfortable margin.
+  </Step>
+</Steps>
+
+## Things that don't survive an import cleanly
+
+| What | Why | What to do |
+|---|---|---|
+| Apex CNAME records | Some providers accept an apex CNAME through a proprietary extension. Standard DNS doesn't. | Recreate it as an [ALIAS record](/domain-dns/alias-records). |
+| ALIAS, ANAME, or flattened CNAME records | Every provider spells this differently, and a BIND zone file can't represent it. | Recreate them as ALIAS records by hand. |
+| The old SOA and NS records | They name the old provider's nameservers. | Leave them out. Datum writes its own. |
+| Provider-specific record types | Redirect records, pointers to provider-hosted services, and similar extensions aren't DNS records. | Rebuild that behavior with a real service, such as an [Application Load Balancer](/alb/overview). |
+| TTLs | Imported exactly as written in the file, including any long TTLs you lowered for the migration. | Review TTLs after importing and raise or lower them deliberately. |
+
+## Move a zone away from Datum
+
+[Export the zone](/datumctl/plugins/dns#export-and-apply-a-zone-file) in BIND format, then import it at your new provider:
+
+```sh
+datumctl dns zone export example.com
+```
+
+Two caveats on the way out:
+
+- **ALIAS records can't be exported faithfully.** `ALIAS` isn't a standard record type, so other providers and BIND tooling reject those lines. Recreate them using whatever the new provider calls the same feature.
+- **Records Datum manages export as ordinary records.** The SOA and apex NS records appear in the file as if they were yours. Delete them before importing elsewhere — the new provider generates its own.
+
+Then follow the same shape in reverse: build the zone at the new provider, check it by querying its nameservers directly, change the delegation at your registrar, and only delete the Datum zone once traffic has moved.
+
+<Warning>
+Don't delete the Datum zone before the delegation change has propagated. While your registrar still points at Datum, deleting the zone stops the domain resolving.
+</Warning>
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="DNS zones" icon="layer-group" href="/domain-dns/dns-zones">
+    Zone status, delegation, and managed records.
+  </Card>
+  <Card title="DNS records" icon="list" href="/domain-dns/dns-records">
+    Names, values, TTLs, and supported types.
+  </Card>
+</CardGroup>
