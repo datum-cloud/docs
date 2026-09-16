@@ -73,19 +73,20 @@ img.nav-logo {
 }
 
 /* Tighter sidebar nav item padding */
-#navigation-items a {
-  padding-top: 3px !important;
-  padding-bottom: 3px !important;
+#navigation-items a,
+#navigation-items button {
+  padding-top: 1px !important;
+  padding-bottom: 1px !important;
 }
 
 /* Tighter sidebar group header bottom margin */
 #navigation-items .sidebar-group-header {
-  margin-bottom: 6px !important;
+  margin-bottom: 2px !important;
 }
 
 /* Spacing between section groups */
 #navigation-items > div {
-  margin-top: 28px !important;
+  margin-top: 10px !important;
 }
 
 /* Muted auto-generated footer text */
