@@ -1,0 +1,86 @@
+---
+title: "Deploying workloads"
+sidebarTitle: "Deploying workloads"
+description: "Deploy a container image as a workload with datumctl compute deploy, and check its health with datumctl compute workloads."
+---
+
+`datumctl compute deploy` takes a container image and runs it as a workload across one or more cities. It supports two ways of describing what to deploy — flags, or a manifest file for the declarative form — and both converge on the same underlying workload.
+
+```bash
+datumctl compute deploy api \
+  --image=ghcr.io/acme/api:1.4.2 \
+  --city=DFW,IAD \
+  --min=2 \
+  --port=8080
+```
+
+<Warning>
+  `--image` must point to an image produced by `datumctl compute build`, not a standard OCI image from `docker build` — see [Building images](/datumctl/compute/building-images). Compute boots workloads as unikernels, which requires the packaged filesystem and startup metadata `compute build` adds during packaging.
+</Warning>
+
+If a workload named `api` doesn't exist yet, this creates it with one placement (`default`) spanning both cities, each running at least 2 instances. Run the same command again with a new `--image` and it updates the existing workload instead — `deploy` is create-or-update, the same idempotent shape as `datumctl apply` elsewhere in the CLI.
+
+## Flags at a glance
+
+| Flag | Meaning |
+|------|---------|
+| `--image` | Container image to deploy, required with the flags path. |
+| `--city` | One or more city codes to deploy to, comma-separated (`DFW,IAD`). |
+| `--min` | Minimum instances per city (default `1`). |
+| `--instance-type` | Instance type (default `datumcloud/d1-standard-2`). |
+| `--port` | Port to expose on the workload, optional. |
+| `-y`/`--yes` | Skip the confirmation prompt — needed in scripts and CI. |
+
+<Note>
+  `deploy` needs a network to attach the workload to. If none exists yet in the project, it offers to create a minimal one, with IP addresses assigned automatically, on your behalf — pass `-y` to accept that automatically in a non-interactive run.
+</Note>
+
+## Watching the rollout
+
+`deploy` waits and prints progress as instances come up, the same view `datumctl compute rollout` shows on demand — see [Operations](/datumctl/compute/scaling-and-operations). Ctrl-C detaches from the watch without canceling anything; the rollout keeps going in the background; run `datumctl compute rollout api` any time to reattach.
+
+## Deploying from a manifest
+
+A flag-based deploy writes a `workload.yaml` in the current directory after it succeeds — the same `Workload` resource the flags produced, expressed as YAML. Point `-f` at a manifest to deploy from it instead of flags:
+
+```bash
+datumctl compute deploy -f workload.yaml
+```
+
+This path shows a human-readable diff of what would change before touching anything, then asks for confirmation (skip it with `-y`):
+
+```bash
+datumctl compute deploy -f workload.yaml -y
+```
+
+<Tip>
+  A manifest is the only way to reach configuration the flags don't expose — a second placement, additional ports, or environment variables. Edit the generated `workload.yaml` (or write one from scratch) and apply it with `-f`.
+</Tip>
+
+## Checking workload health
+
+`datumctl compute workloads` lists every workload in the project, with per-city ready counts rolled into a single health summary:
+
+```bash
+# List everything
+datumctl compute workloads
+
+# Only workloads that are degraded right now
+datumctl compute workloads --health=degraded
+
+# Only workloads with a placement in one city
+datumctl compute workloads --city=DFW
+```
+
+Health is one of `available`, `degraded`, `progressing`, or `unknown`. For the full picture on a single workload — its container spec, scale settings, and per-city ready/desired counts together — use `describe`:
+
+```bash
+datumctl compute workloads describe api
+```
+
+## Next steps
+
+- `datumctl compute deploy --help` and `datumctl compute workloads --help` for the full flag reference.
+- [Operations](/datumctl/compute/scaling-and-operations) — restart, watch a rollout, and inspect individual instances.
+- [Destroying workloads](/datumctl/compute/destroying-workloads) — tear a workload down when you're done with it.
+- [Building images](/datumctl/compute/building-images) — build and publish the image you're deploying here.
