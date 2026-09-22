@@ -1,9 +1,11 @@
 ---
 title: "Application Load Balancer skill"
-description: "Teach agents to manage WAF, auth, and traffic policies on Datum's Application Load Balancer — attaching policies to Gateways and HTTPRoutes via datumctl."
+description: "Teach agents to create and manage Datum Application Load Balancers with datumctl — hostnames, routes and origins, traffic protection, and the policies the CLI does not cover."
 ---
 
-The Application Load Balancer skill helps agents manage traffic protection and security policies in Datum Cloud. It covers the three policy types that attach to [Application Load Balancer](/alb/overview) resources via `targetRefs`: `TrafficProtectionPolicy` (WAF), `SecurityPolicy` (auth/authz), and `BackendTrafficPolicy` (rate limiting, circuit breakers, compression).
+The Application Load Balancer skill teaches agents to work with an [Application Load Balancer](/alb/overview) as a product rather than as the objects it is stored in: create one, get the hostname to point DNS at, attach custom hostnames, add routes and the origins behind them, and configure traffic protection and authentication — all through `datumctl alb`.
+
+It also covers the policies the CLI does not wrap, for when you need WAF rule exclusions, rate limiting, circuit breaking or OIDC: `TrafficProtectionPolicy`, `SecurityPolicy` and `BackendTrafficPolicy`, attached via `targetRefs`.
 
 ## Install
 
@@ -31,20 +33,21 @@ Once installed, the skill activates automatically when you ask an agent to work 
 
 ## Capabilities
 
-- Deploy a Web Application Firewall (TrafficProtectionPolicy) with OWASP Core Rule Set enforcement
-- Configure WAF detection (`Observe`) and blocking (`Enforce`) modes
-- Attach authentication and authorization policies (SecurityPolicy) to gateways and routes
-- Manage circuit breakers, compression, rate limiting, and fault injection (BackendTrafficPolicy)
-- List, inspect, and update policies across a project
-- Preview changes before applying with `datumctl diff`
-- Delete policies safely
-- Check permissions before acting
+- Create a load balancer and get the generated hostname to point DNS at
+- Attach custom hostnames and follow their verification, DNS and certificate progress
+- Add routes and the origins behind them, by URL or by network service
+- Configure traffic protection (WAF), request headers and basic authentication
+- Read access logs for one load balancer
+- Attach the advanced policies the CLI does not cover: WAF rule exclusions, rate limiting, circuit breaking, OIDC
+- Preview every change before applying it
+
+It also teaches the three ways this API's status misleads a naive reader — conditions that report on several hostnames without naming one, a condition that is true when something is wrong, and two reasons set true to mean "does not apply" — so an agent does not report a problem that is not there, or miss one that is.
 
 ## How it relates to other Datum surfaces
 
-- **Product docs:** [Application Load Balancer](/alb/overview) — the human-facing reference for WAF and traffic policies
-- **Datum MCP:** [Datum MCP](/datum-mcp) — for agents that need to act on Gateways and HTTPRoutes during a session
-- **`datumctl`:** [datumctl overview](/datumctl/overview) — `get`, `describe`, `apply`, `diff`, `delete` commands the skill teaches agents to use
+- **Product docs:** [Application Load Balancer](/alb/overview) — the human-facing reference for what an ALB is made of
+- **Datum MCP:** [Datum MCP](/datum-mcp) — for agents that need to read and write Datum resources during a session
+- **`datumctl`:** [datumctl overview](/datumctl/overview) — the `datumctl alb` commands the skill teaches agents to use, plus `apply`, `diff` and `delete` for the advanced policies
 
 ## View the full skill
 
