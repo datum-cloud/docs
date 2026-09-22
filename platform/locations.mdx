@@ -7,6 +7,20 @@ Datum’s infrastructure footprint is organized into points of presence (PoPs) t
 
 Each Region represents a specific geographic and network boundary, while each AZ provides independent capacity within that Region. This structure supports predictable latency, fault isolation, and regulatory alignment.
 
+## Why a region is a real place
+
+Some clouds hide location behind a single global network, which is simple but leaves you unable to answer basic questions: which city is my traffic and data actually passing through? What laws apply to it? How far away is it from my users?
+
+Datum takes the opposite approach: every Region and Availability Zone corresponds to an actual, named place, not an abstract label. When you deploy into `us-east-1`, that's a real facility in Ashburn, Virginia — not a logical construct spread invisibly across a continent. This gives you three things:
+
+- **Predictable latency** — Regions are grouped by real network distance, so you can reason about how fast your app will respond to users in a given area.
+- **Data sovereignty and compliance** — because each Region maps to a specific country or jurisdiction, it's straightforward to keep data and workloads where regulations require.
+- **Real choice and control** — you pick where things run based on your own requirements (proximity to users, legal residency, avoiding a single point of failure), the same way you would if you were choosing between physical data centers, rather than accepting one big undifferentiated "everywhere."
+
+Most customers pick a primary Region close to their users or required jurisdiction, then spread work across multiple Availability Zones in that Region for resilience. Some go further and deploy across multiple Regions entirely for extra redundancy or to serve users in more than one part of the world.
+
+## Naming convention
+
 Similar to the large public clouds, Datum uses a country-anchored naming format with the following elements:
 
 | **Field** | **Description** |
@@ -15,6 +29,8 @@ Similar to the large public clouds, Datum uses a country-anchored naming format 
 | Cardinal Direction | Directional indicator within the country: north, south, east, west, or central. |
 | Number | Region index within that location. |
 | Count | Availability Zone identifier: a, b, c, etc. |
+
+Anchoring to a two-letter country code, rather than a continent, means a region name never leaves you guessing which country it's in — for example, an "east" region is always clearly in a specific country, so you won't confuse a US region with a Canadian one the way you might with a broader label like "North America."
 
 For example, here is how we describe the first region and availability zone in the eastern US.
 
