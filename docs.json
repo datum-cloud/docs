@@ -69,13 +69,23 @@
           {
             "group": "Platform",
             "pages": [
-              "platform/setup",
-              "platform/service-accounts",
-              "platform/metrics-export",
-              "platform/activity-logs",
-              "platform/project-suspension",
-              "platform/secrets",
-              "platform/locations"
+              {
+                "group": "Setup",
+                "pages": [
+                  "platform/setup",
+                  "platform/service-accounts",
+                  "platform/locations"
+                ]
+              },
+              {
+                "group": "Operations",
+                "pages": [
+                  "platform/metrics-export",
+                  "platform/activity-logs",
+                  "platform/project-suspension",
+                  "platform/secrets"
+                ]
+              }
             ]
           },
           {
@@ -275,7 +285,7 @@
     "timestamp": true
   },
   "interaction": {
-    "drilldown": true
+    "drilldown": false
   },
   "footer": {
     "socials": {
