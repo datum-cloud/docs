@@ -1,0 +1,158 @@
+---
+title: "Placement and scaling"
+description: "Choose the locations your workload runs in, set how many Instances run in each, and understand how Datum rolls out changes."
+---
+
+A workload's placements decide where its Instances run and how many run in each location. This page shows how to choose locations, change the number of Instances, and roll out changes safely.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Before you begin
+
+- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
+
+## Locations
+
+Compute runs in the following locations:
+
+| Location | City | City code | Runtime classes |
+| --- | --- | --- | --- |
+| `us-central-1` | Dallas | `DFW` | `general-purpose`, `unikernel` |
+| `us-east-1` | Ashburn | `IAD` | `general-purpose`, `unikernel` |
+| `us-west-1` | San Jose | `SJC` | `general-purpose`, `unikernel` |
+
+If you name a location where Compute isn't offered to your project, Datum rejects the request, and the error lists the locations that you can use. For more information about Datum locations and region codes, see [Locations](/platform/locations).
+
+## Choose locations
+
+`datumctl compute deploy` accepts exactly one of the following flags:
+
+- `--location`: one or more location names, separated by commas, such as `--location=us-central-1,us-east-1`.
+- `--city`: every location in one or more cities, such as `--city=DFW,IAD`.
+- `--location-selector`: every location whose labels match a selector, such as `--location-selector='topology.datum.net/region=us-east-1'`.
+
+For example, the following command runs two Instances in Dallas and two in Ashburn:
+
+```bash
+datumctl compute deploy api \
+  --image=ghcr.io/example/api:1.4.2 \
+  --runtime-class=general-purpose \
+  --location=us-central-1,us-east-1 \
+  --min=2
+```
+
+The flags put all locations in a single placement named `default`. On an existing workload, a flag-based deploy replaces every placement and other settings. For more information, see [Update a workload](/compute/manage-workloads#update-a-workload).
+
+### Choose locations in a manifest
+
+In a manifest, each entry in `spec.placements` has a `name`, a `scaleSettings` block, and exactly one of the following fields:
+
+- `locations`: a list of location names.
+- `locationSelector`: a label selector on location labels. Use `topology.datum.net/city-code` to select by city code, or `topology.datum.net/region` to select by region. Datum reevaluates the selector when Datum adds or removes a location.
+
+A workload can have more than one placement, for example to run a different number of Instances in different locations. The following manifest runs two Instances in Dallas and one Instance in each of Ashburn and San Jose:
+
+```yaml
+apiVersion: compute.datumapis.com/v1alpha
+kind: Workload
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      runtime:
+        class: general-purpose
+        resources:
+          instanceType: datumcloud/d1-standard-2
+        sandbox:
+          containers:
+            - name: api
+              image: ghcr.io/example/api:1.4.2
+              ports:
+                - name: http
+                  port: 8080
+      networkInterfaces:
+        - network:
+            name: default
+  placements:
+    - name: dallas
+      locations:
+        - name: us-central-1
+      scaleSettings:
+        minReplicas: 2
+    - name: coasts
+      locationSelector:
+        matchExpressions:
+          - key: topology.datum.net/city-code
+            operator: In
+            values: ["IAD", "SJC"]
+      scaleSettings:
+        minReplicas: 1
+```
+
+If a selector matches no location where Compute is offered, Datum rejects the workload when you apply it.
+
+## Set the number of Instances
+
+`minReplicas` is the number of Instances that Datum runs in each location of a placement. A placement with `minReplicas: 2` across two locations runs four Instances. The value must be between 1 and 1,000.
+
+To change the number of Instances for every placement of a workload, run the following command:
+
+```bash
+datumctl compute scale WORKLOAD_NAME --min=COUNT
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: the name of your workload.
+- `COUNT`: the number of Instances to run in each location.
+
+To set different counts for different placements, edit `scaleSettings.minReplicas` for each placement in the manifest and apply it with `datumctl compute deploy -f workload.yaml`.
+
+Each Instance counts against your project's compute quota. If a new Instance doesn't start because the quota is used up, it reports `QuotaExceeded`. For more information, see [Limits and quotas](/compute/limits-and-quotas).
+
+Workloads don't scale automatically, and they can't scale to zero. The number of Instances stays at `minReplicas` until you change it. Don't set `scaleSettings.maxReplicas` or `scaleSettings.metrics`, because autoscaling isn't supported.
+
+## How rollouts work
+
+When you change a workload's template, such as its image, command, or environment variables, Datum rolls out the change to every location. In each location, Datum does the following:
+
+1. Deletes one Instance, starting with the highest-numbered one.
+2. Creates a replacement from the new template.
+3. Waits until the replacement is ready before it moves on to the next Instance.
+
+Datum replaces Instances instead of updating them in place, so each location has one fewer ready Instance while its replacement starts. If a location runs only one Instance, that location has no ready Instance during the rollout. To keep serving during rollouts, run at least two Instances in each location.
+
+If a replacement Instance never becomes ready, the rollout in that location stops and waits. The remaining old Instances keep running.
+
+To watch a rollout, run the following command:
+
+```bash
+datumctl compute rollout WORKLOAD_NAME
+```
+
+Replace `WORKLOAD_NAME` with the name of your workload.
+
+The command shows each placement and location with the phase `Pending`, `Updating`, `Done`, or `Blocked`. A location is `Blocked` when it makes no progress for more than 30 seconds, and the command prints the reason. To stop watching, press Control+C. The rollout continues.
+
+## Restart Instances
+
+A restart replaces every Instance with the same template, one at a time in each location, in the same way as a rollout. Restart a workload to pick up a changed ConfigMap or Secret, or to recover from a bad state.
+
+To restart a workload, run the following command:
+
+```bash
+datumctl compute restart WORKLOAD_NAME
+```
+
+Replace `WORKLOAD_NAME` with the name of your workload.
+
+`restart` replaces every Instance of the workload in every location.
+
+## What's next
+
+- To route each request to the nearest location, see [Publish a workload](/compute/publish-workloads).
+- To check status and fix problems, see [Manage and troubleshoot workloads](/compute/manage-workloads).
+- For command details, see [Operations](/datumctl/compute/scaling-and-operations).

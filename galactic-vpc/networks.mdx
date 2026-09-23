@@ -1,0 +1,182 @@
+---
+title: "Networks"
+description: "Create a Galactic VPC network, attach a Compute workload to it, and understand how Instances get private IPv6 addresses."
+---
+
+A network is a private IPv6 network in your project. Every Compute workload attaches to exactly one network, and each of its Instances gets a private address on it. This page shows how to create a network, attach workloads, and find Instance addresses.
+
+<Note>
+  Galactic VPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## Before you begin
+
+- Install `datumctl`, log in, and select a project. For more information, see the [datumctl quickstart](/datumctl/quickstart).
+- To create, change, or delete networks, you need the **Network Admin** role in the project. The same role lets you attach workloads to a network.
+
+## The default network
+
+You don't need to create a network before your first deploy. When you run `datumctl compute deploy` without `--network`, the command attaches the workload to a network named `default`. If the network doesn't exist, the command offers to create it. In scripts, pass `--yes` to create it without a prompt.
+
+Datum doesn't create the `default` network when it creates a project. If you apply a workload with `datumctl apply`, the network must already exist. `datumctl compute deploy -f` offers to create a missing network, as the flag-based deploy does.
+
+## Create a network
+
+To create a network, follow these steps:
+
+1. Save the following manifest as `network.yaml`:
+
+   ```yaml
+   apiVersion: networking.datumapis.com/v1alpha
+   kind: Network
+   metadata:
+     name: backend
+   spec:
+     ipam:
+       mode: Auto
+   ```
+
+   `spec.ipam.mode: Auto` tells Datum to assign the network's address space. `ipam.mode` is the only field that you need to set.
+
+2. To create the network, run the following command:
+
+   ```bash
+   datumctl apply -f network.yaml
+   ```
+
+3. To check that the network is ready, run the following command:
+
+   ```bash
+   datumctl get networks
+   ```
+
+   When the network is ready, the `IPV6PREFIX` column shows the private IPv6 prefix that Datum assigned, and the `READY` column shows `True`.
+
+A network has two optional settings: `spec.ipFamilies` defaults to `[IPv6]`, and `spec.mtu` defaults to `1440`. Keep the defaults unless you have a reason to change them. Datum rejects a network that doesn't include IPv6, and a larger MTU can cause connections between locations to stall.
+
+## Attach a workload to a network
+
+A workload chooses its network when you create it. You can't move a workload to a different network later.
+
+To attach a workload with `datumctl`, pass `--network` when you create it:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME \
+  --image=IMAGE \
+  --location=LOCATION \
+  --network=NETWORK_NAME
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: a name for your workload.
+- `IMAGE`: the full image reference, including the registry host.
+- `LOCATION`: one or more locations, separated by commas.
+- `NETWORK_NAME`: the name of the network, such as `backend`.
+
+To attach a workload in a manifest, set `network.name` in the workload's only entry under `spec.template.spec.networkInterfaces`. The following workload runs in Dallas and Ashburn on the `backend` network:
+
+```yaml
+apiVersion: compute.datumapis.com/v1alpha
+kind: Workload
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      runtime:
+        class: general-purpose
+        resources:
+          instanceType: datumcloud/d1-standard-2
+        sandbox:
+          containers:
+            - name: api
+              image: ghcr.io/example/api:1.4.2
+              ports:
+                - name: http
+                  port: 8080
+      networkInterfaces:
+        - network:
+            name: backend
+  placements:
+    - name: dallas
+      locations:
+        - name: us-central-1
+      scaleSettings:
+        minReplicas: 1
+    - name: ashburn
+      locations:
+        - name: us-east-1
+      scaleSettings:
+        minReplicas: 1
+```
+
+If the network doesn't exist, the workload reports `NetworkNotFound` and no Instances start. If you don't have permission to use the network, Datum rejects the workload with `permission to use the network was denied`.
+
+## How Instances get addresses
+
+Datum assigns addresses in the following way:
+
+- Each network gets its own private IPv6 prefix from the unique local range `fd00::/8`. Prefixes don't overlap between networks or projects.
+- Each Instance's network interface gets a block of addresses from that prefix. Its primary address is the Instance's private IPv6 address.
+- The interface is named `eth0` inside the Instance, and it has IPv6 addresses only.
+
+To find your Instances' addresses, run the following command:
+
+```bash
+datumctl compute instances --workload=WORKLOAD_NAME
+```
+
+Replace `WORKLOAD_NAME` with the name of your workload.
+
+The `INTERNAL IP` column shows each Instance's primary private IPv6 address. For all the addresses on an Instance's interface, run `datumctl compute instances describe INSTANCE_NAME`.
+
+## Connect to other Instances
+
+Instances on the same network use their private IPv6 addresses to reach each other. Keep the following points in mind:
+
+- Make your app listen on IPv6 (`::`). An app that listens only on `0.0.0.0` accepts IPv4 connections only, and Instances don't have IPv4 addresses.
+- In a URL, put an IPv6 address in square brackets, such as `http://[fd20:4a3b:91c2:1::1:0:2]:8080/`.
+- Private DNS names aren't available. To tell an app about its peers, pass their addresses in environment variables or a ConfigMap.
+
+## Keep addresses after scale-down
+
+By default, an Instance keeps its address when Datum replaces it during a rollout or restart, but Datum releases the address when it removes the Instance, such as when you scale down or delete the workload.
+
+To keep addresses reserved even after scale-down, set `reclaimPolicy: Retain` on the network interface when you create the workload:
+
+```yaml
+networkInterfaces:
+  - network:
+      name: backend
+    reclaimPolicy: Retain
+```
+
+Retained addresses stay reserved even when you scale down. You can't change `reclaimPolicy` after you create the workload.
+
+## Delete a network
+
+Before you delete a network, delete the workloads that are attached to it. To delete a network, run the following command:
+
+```bash
+datumctl delete network NETWORK_NAME
+```
+
+Replace `NETWORK_NAME` with the name of the network.
+
+If Instances still hold addresses on the network, the network stays in deletion and reports `RangeOccupied` until they're gone.
+
+## Limitations
+
+In addition to the [networking limitations that apply to all of Compute](/compute/limits-and-quotas#networking), networks have the following limitations:
+
+- Each workload attaches to exactly one network through one network interface, and it can't move to another network.
+- Instance addresses aren't reachable from the internet. To serve traffic publicly, [publish the workload](/compute/publish-workloads) on a URL.
+- Don't rely on the `networkPolicy` field of a network interface to restrict traffic.
+- You can't choose a network's address ranges or create your own subnets.
+- Networks carry Compute traffic only in the locations where Compute runs: `us-central-1`, `us-east-1`, and `us-west-1`.
+
+## What's next
+
+- To serve a workload on a public HTTPS URL, see [Publish a workload](/compute/publish-workloads).
+- To run Instances in more locations, see [Placement and scaling](/compute/placement-and-scaling).

@@ -1,0 +1,148 @@
+---
+title: "Run a container image"
+sidebarTitle: "Container images"
+description: "Run a standard Linux container image on general-purpose Instances, each isolated in its own lightweight virtual machine."
+---
+
+The `general-purpose` runtime class runs standard Linux container images without changes. Each Instance runs in its own lightweight virtual machine with its own kernel, so the image gets the compatibility of a container and the isolation of a virtual machine.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Before you begin
+
+- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
+- Push your image to a registry that Compute can reach, or use a public image.
+
+## Image requirements
+
+A container image runs on `general-purpose` Instances if it meets the following requirements:
+
+- **The image reference includes a registry host:** Use `docker.io/library/redis:7` or `ghcr.io/example/api:1.4.2`, not `redis:7`. Datum rejects references without a registry host.
+- **The app listens on IPv6:** Instances have IPv6 addresses only. An app that listens only on an IPv4 address, such as `0.0.0.0`, is unreachable. Configure it to listen on `::` (all IPv6 addresses), for example `[::]:8080`.
+- **The app serves plain HTTP if you publish it:** Datum terminates TLS for public URLs and connects to your Instances over plain HTTP. For more information, see [Publish a workload](/compute/publish-workloads).
+- **Private images have credentials:** To pull from a private registry, add registry credentials to the workload. For more information, see [Use images from a private registry](/compute/configuration#use-images-from-a-private-registry).
+
+You don't need `datumctl compute build` for `general-purpose` workloads. Build and push your image with the tools that you already use.
+
+## Deploy a container image
+
+To deploy an image and publish it on a public URL, run the following command:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME \
+  --image=IMAGE \
+  --runtime-class=general-purpose \
+  --location=LOCATION \
+  --http-port=PORT
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: a name for your workload.
+- `IMAGE`: the full image reference, including the registry host.
+- `LOCATION`: one or more locations, separated by commas, such as `us-central-1,us-east-1`.
+- `PORT`: the port that your container serves HTTP on. To run the workload without a public URL, omit `--http-port`.
+
+Always pass `--runtime-class=general-purpose` when you create the workload. Without it, Datum uses the `unikernel` class, and a standard image doesn't boot.
+
+## Deploy from a manifest
+
+Use a manifest when you need settings that the `deploy` flags don't expose, such as a custom command, environment variables, or volumes. A flag-based deploy saves its result to `workload.yaml`, which you can edit as a starting point. Each flag-based deploy overwrites `workload.yaml` in the current directory, so keep edited manifests under another name.
+
+The following manifest runs Redis in Dallas with a custom command:
+
+```yaml
+apiVersion: compute.datumapis.com/v1alpha
+kind: Workload
+metadata:
+  name: cache
+spec:
+  template:
+    spec:
+      runtime:
+        class: general-purpose
+        resources:
+          instanceType: datumcloud/d1-standard-2
+        sandbox:
+          containers:
+            - name: redis
+              image: docker.io/library/redis:7
+              command: ["redis-server"]
+              args: ["--bind", "::", "--protected-mode", "no"]
+              ports:
+                - name: redis
+                  port: 6379
+      networkInterfaces:
+        - network:
+            name: default
+  placements:
+    - name: dallas
+      locations:
+        - name: us-central-1
+      scaleSettings:
+        minReplicas: 1
+```
+
+The arguments make Redis listen on IPv6 and accept connections from other Instances on the network without a password. Set a password for anything beyond testing.
+
+The manifest sets the following fields. Paths are relative to `spec.template.spec`.
+
+- `runtime.class`: the runtime class. Set it to `general-purpose`.
+- `runtime.resources.instanceType`: the Instance size. `datumcloud/d1-standard-2` (1 vCPU, 2 GiB) is the only type.
+- `sandbox.containers[].command` and `args`: override the image's entrypoint and command, in the same way as in Kubernetes.
+- `sandbox.containers[].ports`: the ports the container listens on. A port on its own doesn't make the workload reachable from the internet.
+- `networkInterfaces`: the network the Instances attach to. Every workload needs exactly one network interface.
+
+To apply the manifest, run the following command:
+
+```bash
+datumctl compute deploy -f cache.yaml
+```
+
+The command shows what changes, asks for confirmation, and then waits for the rollout. You can also apply the manifest with `datumctl apply -f cache.yaml`, which doesn't wait for the rollout.
+
+## Control Linux capabilities
+
+Every container starts with all Linux capabilities dropped. When a container doesn't set a security context, Datum applies the class default and writes it into the workload, so `datumctl get workload cache -o yaml` shows exactly what runs for the `cache` workload. The default does the following:
+
+- Adds back `CHOWN`, `DAC_OVERRIDE`, `FOWNER`, `FSETID`, `KILL`, `NET_BIND_SERVICE`, `SETFCAP`, `SETGID`, `SETPCAP`, and `SETUID`.
+- Sets `allowPrivilegeEscalation` to `false`.
+- Sets `seccompProfile.type` to `RuntimeDefault`.
+
+The default set is enough for common images such as NGINX, PostgreSQL, and images that switch users at startup.
+
+If your container needs a different set, set `securityContext.capabilities` on the container. The following example grants only `NET_BIND_SERVICE` and `NET_ADMIN`:
+
+```yaml
+containers:
+  - name: app
+    image: ghcr.io/example/app:1.0
+    securityContext:
+      capabilities:
+        add:
+          - NET_BIND_SERVICE
+          - NET_ADMIN
+```
+
+Keep the following rules in mind:
+
+- A `capabilities` list that you set replaces the class default. The default isn't merged in, so list every capability your container needs.
+- Use capability names without the `CAP_` prefix. `ALL` isn't accepted in `add`.
+- `general-purpose` Instances can add any Linux capability, including `SYS_ADMIN`, because the capability applies only inside the Instance's own virtual machine.
+- `allowPrivilegeEscalation` and `seccompProfile` default independently of `capabilities`. `seccompProfile.type` accepts `RuntimeDefault` or `Unconfined`.
+- Datum applies the default when you create a workload. A later change to the class default doesn't affect existing workloads.
+
+## Limitations
+
+In addition to the [limitations that apply to all of Compute](/compute/limits-and-quotas#limitations), the `general-purpose` runtime class has the following limitations:
+
+- Instances take several seconds to start, mostly spent booting a kernel and pulling the image.
+- Host namespaces, host ports, host paths, and privileged host access aren't available.
+
+## What's next
+
+- To set environment variables and use ConfigMaps and Secrets, see [Configure a workload](/compute/configuration).
+- To choose where to run and how many Instances to run, see [Placement and scaling](/compute/placement-and-scaling).
+- To serve the workload on a public URL, see [Publish a workload](/compute/publish-workloads).

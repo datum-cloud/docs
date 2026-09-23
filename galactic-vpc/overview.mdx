@@ -1,13 +1,43 @@
 ---
 title: "Galactic VPC"
 sidebarTitle: "Overview"
-description: "Datum is developing a global, virtual backbone service called Galactic VPC for traffic routing and connections."
+description: "Galactic VPC gives your project private IPv6 networks that span every Datum location your workloads run in."
 ---
 
-## Datum’s virtual backbone service
+Galactic VPC is Datum's private networking for your workloads. You create a *network* in your project, attach [Compute](/compute/overview) workloads to it, and each Instance receives a private IPv6 address on that network. One network spans every location that your workloads run in, so you don't create a separate network for each region.
 
-Datum is working to provide a global, virtual backbone service we call “Galactic VPC”. Soon, you’ll be able to create your own Galactic VPC and use it for traffic routing and connections.
+<Note>
+  Galactic VPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
 
-Galactic uses Segment Routing over IPv6 (SRv6) to apply advanced policy and traffic control to packets. Network devices process these instructions to forward packets along a specific path. Each instruction is an IPv6 address called a Segment Identifier (SID).
+Galactic VPC runs on Datum's global IPv6 backbone. Datum plans the addresses, carries the traffic, and keeps each network separate from every other network.
 
-Using this capability, Datum can program traffic paths using the native IPv6 data plane built into all modern routers and kernels, without the need for MPLS. You can read more about SRv6 in [RFC 8986](https://www.rfc-editor.org/rfc/rfc8986.html).
+## How it works
+
+The following list describes how networks and Instances fit together:
+
+- **Networks belong to a project:** You create networks with the `Network` resource. `datumctl compute deploy` creates a network named `default` for you the first time you deploy.
+- **Every workload attaches to one network:** A workload names its network when you create it, and all of its Instances in every location attach to that network.
+- **Addresses are private IPv6:** Each network gets its own private IPv6 prefix from the unique local address range. Each Instance gets an address from that prefix. The addresses aren't reachable from the internet.
+- **Networks are isolated:** Instances on one network are separate from other networks in your project and from other customers' networks.
+- **Public traffic arrives through a URL:** To serve a workload on the internet, you publish it on a Datum-managed HTTPS URL. Datum's edge forwards each request to an Instance over the private network. For more information, see [Publish a workload](/compute/publish-workloads).
+
+## Features
+
+Galactic VPC provides the following features:
+
+- **One network across locations:** A network is a single project-wide resource. Every workload that names it, in any location, attaches to the same network, and each Instance gets a private IPv6 address on it.
+- **Automatic addressing:** Datum assigns address space to each network and an address to each Instance. You don't plan subnets.
+- **Stable addresses when you need them:** Instances keep their addresses when Datum replaces them, and a workload can keep addresses reserved when it scales down.
+- **Declarative:** Networks are Kubernetes-style resources that you manage with `datumctl`, manifests, or GitOps tooling.
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Networks" icon="network-wired" href="/galactic-vpc/networks">
+    Create a network, attach a workload, and find Instance addresses.
+  </Card>
+  <Card title="Compute" icon="microchip" href="/compute/overview">
+    Run workloads that attach to your networks.
+  </Card>
+</CardGroup>

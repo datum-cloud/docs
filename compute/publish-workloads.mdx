@@ -1,0 +1,142 @@
+---
+title: "Publish a workload"
+description: "Serve a workload on a Datum-managed HTTPS URL, and add your own domain."
+---
+
+Instances have private IPv6 addresses only, so the internet can't reach them directly. To serve a workload publicly, you publish it on a Datum-managed HTTPS URL. Datum terminates TLS at its edge, sends each request to the nearest location with a healthy Instance, and connects to your Instances over plain HTTP on your private network.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Before you begin
+
+- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
+- Make sure that you have permission to create networking resources in the project, in addition to compute resources. The **Network Admin** role includes the permissions that publishing needs. The **Gateway Admin** role alone isn't enough.
+- Make sure that your app serves plain HTTP, not HTTPS, on the port that you publish, and listens on IPv6.
+
+## Publish a workload with datumctl
+
+To publish a workload, run `datumctl compute deploy` with `--http-port`:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME \
+  --image=IMAGE \
+  --location=LOCATION \
+  --http-port=PORT
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: the name of your workload.
+- `IMAGE`: the full image reference, including the registry host.
+- `LOCATION`: one or more locations, separated by commas.
+- `PORT`: the port that your container serves HTTP on, such as `8080`.
+
+`--http-port` works when you create a workload and when you update one that you deployed with flags.
+
+<Warning>
+  A flag-based `datumctl compute deploy` replaces the workload's whole template and placements with what the flags describe. It removes environment variables, volumes, registry credentials, custom commands, and extra placements that you set in a manifest, and it sets the Instance count to the `--min` value, which defaults to `1`. To publish a workload that you manage with a manifest, see [Publish a workload you manage with manifests](#publish-a-workload-you-manage-with-manifests).
+</Warning>
+
+The command declares the port on the container, waits for the rollout, and then prints the publishing progress and the URL as the last line of output:
+
+```text
+Publishing...
+  Backends     2 healthy across us-central-1, us-east-1
+  Edge         programmed
+  Certificate  issued
+
+  https://stark-raven-b7k2m.datumproxy.net
+```
+
+Your hostname is different.
+
+A new hostname can take a few minutes to resolve. If a request fails with a name resolution error, wait and try again.
+
+If you press Control+C while the command publishes, publishing continues in the background.
+
+## Find a workload's URL
+
+To see the URL of every workload in your project, run the following command:
+
+```bash
+datumctl compute workloads
+```
+
+The URL is in the `URL` column.
+
+To see the URL and the health of the Instances behind it in each location, run the following command:
+
+```bash
+datumctl compute workloads describe WORKLOAD_NAME
+```
+
+If you have `jq` installed, you can read the URL in a script. Run the following command:
+
+```bash
+datumctl compute workloads -o json | jq -r '.[] | select(.name=="WORKLOAD_NAME") | .url'
+```
+
+Replace `WORKLOAD_NAME` with the name of your workload.
+
+## Change or remove the URL
+
+A workload keeps its URL when you redeploy it. If you run `datumctl compute deploy` without `--http-port`, the workload keeps its current port and URL.
+
+To change or remove the URL, do one of the following:
+
+- To serve on a different port, run `datumctl compute deploy` again with the new `--http-port` value. The URL stays the same.
+- To stop serving the workload publicly, run `datumctl compute deploy` with `--no-http`. The URL stops responding.
+
+Datum generates the hostname when it creates the URL. If you remove the URL and publish again, the workload gets a new hostname.
+
+`datumctl compute destroy` deletes the workload and its URL.
+
+## Use a custom domain
+
+You can serve a published workload on your own domain, such as `api.example.com`, in addition to its generated hostname. The URL is an `HTTPProxy` resource named after the workload, the same resource behind an [Application Load Balancer](/alb/overview).
+
+To add a custom domain, follow these steps:
+
+1. Add and verify your domain in Datum. For more information, see [Domains](/domain-dns/domains).
+2. To open the workload's `HTTPProxy` for editing, run the following command:
+
+   ```bash
+   datumctl edit httpproxy WORKLOAD_NAME
+   ```
+
+   Replace `WORKLOAD_NAME` with the name of your workload.
+
+3. Add your hostname to `spec.hostnames`, and then save and close the file:
+
+   ```yaml
+   spec:
+     hostnames:
+       - api.example.com
+   ```
+
+4. Point your hostname at the workload's generated hostname with a `CNAME` record. If Datum hosts your DNS, see [DNS setup for Application Load Balancer](/alb/dns-setup).
+
+`datumctl compute deploy` keeps custom hostnames when it updates a workload. `datumctl compute destroy` removes the URL, including its custom hostnames, but keeps your domain resources.
+
+## Publish a workload you manage with manifests
+
+A workload manifest can't declare a public URL, and `datumctl compute deploy -f` doesn't create or remove one. To give a manifest-managed workload a URL, follow these steps:
+
+1. Create the workload with `datumctl compute deploy` and `--http-port`, as described in [Publish a workload with datumctl](#publish-a-workload-with-datumctl). The command saves the workload to `workload.yaml` in the current directory.
+2. Rename `workload.yaml`, and make your changes in the renamed file. Keep the container port that you published.
+3. To apply later changes, run `datumctl compute deploy -f FILE`, where `FILE` is the path to your manifest. The workload keeps its URL.
+
+## Limitations
+
+In addition to the [limitations that apply to all of Compute](/compute/limits-and-quotas#limitations), public URLs have the following limitations:
+
+- Clients always connect over HTTPS. Datum connects to your Instances over plain HTTP, and TLS between Datum and your Instances isn't supported.
+- `datumctl compute deploy` publishes one URL for each workload, on one port.
+
+## What's next
+
+- To run in more locations so that more users reach a nearby Instance, see [Placement and scaling](/compute/placement-and-scaling).
+- To learn more about `HTTPProxy` routing and options, see [Application Load Balancer](/alb/overview).
+- To learn how Instances connect privately, see [Networks](/galactic-vpc/networks).

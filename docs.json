@@ -89,6 +89,21 @@
             ]
           },
           {
+            "group": "Compute",
+            "pages": [
+              "compute/overview",
+              "compute/quickstart",
+              "compute/runtime-classes",
+              "compute/containers",
+              "compute/unikernels",
+              "compute/configuration",
+              "compute/placement-and-scaling",
+              "compute/publish-workloads",
+              "compute/manage-workloads",
+              "compute/limits-and-quotas"
+            ]
+          },
+          {
             "group": "ALB",
             "pages": [
               "alb/overview",
@@ -112,7 +127,8 @@
           {
             "group": "Galactic VPC",
             "pages": [
-              "galactic-vpc/overview"
+              "galactic-vpc/overview",
+              "galactic-vpc/networks"
             ]
           },
           {

@@ -1,0 +1,159 @@
+---
+title: "Manage and troubleshoot workloads"
+sidebarTitle: "Manage and troubleshoot"
+description: "Check the status of workloads and Instances, update and delete workloads, and fix common problems."
+---
+
+This page shows how to check on a running workload, change it, delete it, and find out why an Instance isn't running.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Before you begin
+
+- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
+
+## Check workload status
+
+To list the workloads in your project, run the following command:
+
+```bash
+datumctl compute workloads
+```
+
+The `HEALTH` column shows `Available`, `Degraded`, `Unavailable`, or `Unknown`. The `READY` column shows how many Instances are ready out of how many the workload wants, and `UP-TO-DATE` shows how many run the latest template.
+
+To filter the list, add `--health` with a health value in lowercase, such as `--health=degraded`, or `--location` with a location, such as `--location=us-central-1`.
+
+To see the configuration, URL, and per-location health of one workload, run the following command:
+
+```bash
+datumctl compute workloads describe WORKLOAD_NAME
+```
+
+Replace `WORKLOAD_NAME` with the name of your workload.
+
+The workload's `Available` condition also has a reason, which you can see with `datumctl get workloads`. When a workload isn't available, the reason points to the cause, and the Instance has the details.
+
+## Check Instances
+
+To list the Instances of a workload, run the following command:
+
+```bash
+datumctl compute instances --workload=WORKLOAD_NAME
+```
+
+To list Instances in one location, add `--location` with a location, such as `--location=us-central-1`. To add the instance type column, add `-o wide`.
+
+The `STATUS` column describes each Instance in plain language:
+
+| Status | Meaning |
+| --- | --- |
+| `Available` | The Instance is running. |
+| `Starting` | Datum is starting the Instance. |
+| `Pending (quota exceeded)` | Your project doesn't have enough compute quota for the Instance. |
+| `Pending (REASON)` | The Instance is waiting on something else, named by `REASON`. |
+| `Failed (image unavailable)` | Datum couldn't pull the image. |
+| `Failed (crashing)` | The program starts and then exits, repeatedly. |
+| `Failed (configuration error)` | Datum refused the Instance's configuration before the program ran. |
+
+To see an Instance's conditions, network addresses, and a plain-language explanation of any failure, run the following command:
+
+```bash
+datumctl compute instances describe INSTANCE_NAME
+```
+
+Replace `INSTANCE_NAME` with a name from the `NAME` column of `datumctl compute instances`.
+
+## Update a workload
+
+To change the image or placement of a workload that you deployed with flags, run `datumctl compute deploy` again with the same name and the new values. For example, the following command deploys a new image version:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME --image=IMAGE --location=LOCATION --min=COUNT
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: the name of your workload.
+- `IMAGE`: the new image reference.
+- `LOCATION`: the locations that the workload runs in.
+- `COUNT`: the number of Instances to run in each location.
+
+<Warning>
+  A flag-based `datumctl compute deploy` replaces the workload's whole template and placements with what the flags describe. It removes environment variables, volumes, registry credentials, custom commands, and extra placements that you set in a manifest, and it sets the Instance count to the `--min` value, which defaults to `1`. Once you manage a workload with a manifest, update it with `datumctl compute deploy -f FILE`.
+</Warning>
+
+To update a workload from a manifest, edit the manifest and run `datumctl compute deploy -f FILE`, where `FILE` is the path to your manifest. The command shows the changes and asks for confirmation before it applies them.
+
+Datum rolls out template changes one Instance at a time in each location. For more information, see [How rollouts work](/compute/placement-and-scaling#how-rollouts-work). To restart Instances without changing the template, see [Restart Instances](/compute/placement-and-scaling#restart-instances).
+
+You can't change the following settings after you create a workload:
+
+- The workload name
+- The runtime class
+- The network, and the network interface's `name`, `ipFamilies`, `addresses`, and `reclaimPolicy`
+
+To change one of these settings, deploy a new workload with a different name, and then delete the old one.
+
+## Delete a workload
+
+Deleting a workload also deletes its Instances and its URL.
+
+<Warning>
+  You can't undo the deletion. Anything that an Instance stored on its own filesystem is lost.
+</Warning>
+
+To delete a workload, follow these steps:
+
+1. Run the following command:
+
+   ```bash
+   datumctl compute destroy WORKLOAD_NAME
+   ```
+
+   Replace `WORKLOAD_NAME` with the name of your workload.
+
+2. Review the summary of placements, locations, Instances, and URLs that the command prints.
+3. Enter `y` to confirm. The command prints `workload/WORKLOAD_NAME deleted.`
+
+To skip the confirmation in scripts, add `-y`.
+
+If you delete a workload with `datumctl delete workload`, Datum deletes the workload and its Instances, but not a URL that `datumctl compute deploy` created. Use `datumctl compute destroy` to remove both.
+
+## Troubleshoot common problems
+
+The following table lists common errors and states, what they mean, and how to fix them. Errors that Datum returns when you apply a workload appear in the command output. Reasons appear in `datumctl get workloads`, `datumctl get instances`, and `datumctl compute instances describe`.
+
+| Error or reason | Meaning | What to do |
+| --- | --- | --- |
+| `must include a registry` | The image reference has no registry host. | Use a full reference, such as `docker.io/library/redis:7`. |
+| `... are not supported by the "CLASS" runtime class` | The workload uses a feature that its runtime class doesn't offer, such as `envFrom` or added capabilities on `unikernel`. | Remove the feature, or deploy a new workload with a class that offers it. See [Choose a runtime class](/compute/runtime-classes). |
+| `resources: Forbidden: not implemented` | The workload sets CPU or memory for a container. | Remove `resources`, and set `runtime.resources.instanceType` to `datumcloud/d1-standard-2`. |
+| `permission to use the network was denied` | You don't have permission to attach workloads to the network. | Ask a project administrator for the **Network Admin** role. |
+| `permission to get ... was denied` | You can't read a ConfigMap or Secret that the workload references. | Ask for read access to the object, or reference another object. |
+| `volume must be attached at least 1 time` | The workload declares a volume that no container mounts. | Add a `volumeAttachments` entry with a `mountPath`, or remove the volume. |
+| `NetworkNotFound` | The network named in `networkInterfaces` doesn't exist. | Create the network. See [Networks](/galactic-vpc/networks). |
+| `RuntimeClassNotServed` | A location in the placement doesn't serve the workload's runtime class. | Choose another location, or deploy a new workload with a class that the location serves. |
+| `NoMatchingLocations` | A placement's selector matches no location. | Fix the selector, or list locations by name. |
+| `QuotaExceeded` or `QuotaNotGranted` | Your project's compute quota is used up. | Run fewer Instances, delete unused workloads, or ask for more quota. See [Limits and quotas](/compute/limits-and-quotas). |
+| `QuotaNoBudget`, or another reason that starts with `Quota` | Compute quota isn't set up correctly for your project. | Contact [support@datum.net](mailto:support@datum.net). Datum fixes this. |
+| `ReferencedDataNotReady` with `SourceNotFound` | A referenced ConfigMap or Secret doesn't exist. | Create the object, or fix its name in the workload. |
+| `ReferencedDataNotReady` with `SourceTooLarge` | A referenced ConfigMap or Secret is larger than 256 KiB, or all of them together exceed 1 MiB. | Make the objects smaller. |
+| `ReferencedDataNotReady` with `SourceUnauthorized` | Datum can't read a referenced ConfigMap or Secret. | Check that the object is in the same project, and contact support if the problem continues. |
+| `ImageUnavailable` | Datum couldn't pull the image. | Check the image reference and tag. For a private registry, check the `imagePullSecrets` Secret. |
+| `InstanceCrashing` | The program starts and exits repeatedly. | Check the command, arguments, environment variables, and mounted files. For a `unikernel` workload, rebuild with `datumctl compute build --analyze`. |
+| `ConfigurationError` | Datum refused the configuration before the program ran. | Check the environment variables and volume references. |
+| The Instance stays `Starting` for more than a few minutes | The first image pull can take a while. A program that exits at startup can also stay in this state. | Check the image and configuration. For a `unikernel` workload, run `datumctl compute build --analyze`. If the problem continues, contact support. |
+| The Instance is `Available`, but the URL returns an error | The app isn't reachable on the published port. | Make sure that the app listens on IPv6 (`::`), serves plain HTTP, and uses the port that you passed to `--http-port`. |
+| `curl` can't resolve the URL's hostname | The new hostname hasn't propagated yet. | Wait a few minutes and try again. |
+
+To see a history of changes to your workloads, use `datumctl activity`. For more information, see [Querying activity](/datumctl/activity/overview).
+
+If you can't resolve a problem, contact [support@datum.net](mailto:support@datum.net) with the workload name, the project ID, and the output of `datumctl compute instances describe INSTANCE_NAME`.
+
+## What's next
+
+- To check quota and review limitations, see [Limits and quotas](/compute/limits-and-quotas).
+- For command details, see [Deploying workloads](/datumctl/compute/deploying-workloads), [Operations](/datumctl/compute/scaling-and-operations), and [Destroying workloads](/datumctl/compute/destroying-workloads).
