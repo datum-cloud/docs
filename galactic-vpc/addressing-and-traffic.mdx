@@ -46,7 +46,7 @@ A network carries private traffic between Instances. The following table describ
 | Lookups by name | Not in the preview | Private DNS names for Instances are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities). Use IPv6 addresses in the preview. |
 | Firewall filtering | Not in the preview | Firewall rules to filter traffic between Instances on a network are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities). |
 
-The workload API accepts a `networkPolicy` field on each network interface, but the field has no effect. Don't rely on it to restrict traffic. To limit who can reach a service, check credentials in your app, or put services that must stay apart on different networks.
+The workload API accepts a `networkPolicy` field on each network interface, but the field has no effect. Don't rely on it to restrict traffic. To limit who can reach a service, check credentials in your app, or put services that must stay apart on different networks. Firewall rules for networks are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
 
 ## Connect to other Instances
 

@@ -16,7 +16,7 @@ In addition to the [networking limitations that apply to all of Compute](/comput
 
 - Each workload attaches to exactly one network through one network interface, and it can't move to another network.
 - Instance addresses aren't reachable from the internet. To serve traffic publicly, attach an [ALB](/alb/overview) to the workload.
-- The `networkPolicy` field of a network interface has no effect. Don't rely on it to restrict traffic.
+- The `networkPolicy` field of a network interface has no effect. Don't rely on it to restrict traffic. Firewall rules are a planned capability.
 - You can't choose a network's address ranges or create your own subnets.
 - Networks carry Compute traffic only in the locations where Compute runs: `us-central-1`, `us-east-1`, and `us-west-1`.
 
