@@ -119,13 +119,6 @@
             ]
           },
           {
-            "group": "Domains & DNS",
-            "pages": [
-              "domain-dns/domains",
-              "domain-dns/dns"
-            ]
-          },
-          {
             "group": "Compute",
             "pages": [
               "compute/overview",
@@ -138,6 +131,13 @@
               "compute/publish-workloads",
               "compute/manage-workloads",
               "compute/limits-and-quotas"
+            ]
+          },
+          {
+            "group": "Domains & DNS",
+            "pages": [
+              "domain-dns/domains",
+              "domain-dns/dns"
             ]
           },
           {
