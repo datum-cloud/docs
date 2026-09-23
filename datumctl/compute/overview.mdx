@@ -1,0 +1,143 @@
+---
+title: "Compute"
+sidebarTitle: "Overview"
+description: "Deploy and manage containerized workloads on Datum Cloud with the datumctl compute plugin."
+---
+
+<Note>
+  Compute is coming soon and is not yet generally available.
+</Note>
+
+`datumctl compute` deploys a container image as a **workload** running across one or more Datum Cloud cities, then gives you the day-to-day commands to scale, restart, and tear it down. It is a first-party plugin rather than a built-in command — install it once and its commands behave exactly like the rest of the CLI.
+
+```bash
+datumctl plugin install compute
+datumctl compute --help
+```
+
+<Info>
+  New to plugins? [Using plugins](/datumctl/plugins/using-plugins) covers installation, upgrades, and how a plugin inherits your active context and credentials. Not installed `datumctl` itself yet? Start with the [Quickstart](/datumctl/quickstart).
+</Info>
+
+## Core concepts
+
+A handful of terms recur across every `compute` command:
+
+| Term | Meaning |
+|------|---------|
+| **Workload** | The thing you deploy — a container image plus its runtime configuration (ports, env, instance type) and one or more placements. |
+| **Placement** | A named group of cities and a scale policy (minimum replica count) within a workload. `deploy` from flags creates a single placement named `default`. |
+| **City** | A short code identifying a Datum Cloud location a workload can run in, for example `DFW` or `IAD`. |
+| **Instance** | One running copy of a workload's container in one city. A placement with `--min=2` across two cities produces four instances. |
+
+`compute` is project-scoped: every command reads `--project` (or your active context's project, injected automatically — see [Contexts & scoping](/datumctl/contexts-and-scoping)). There is no organization-level view and no `--namespace` flag; all compute resources live in the project's `default` namespace.
+
+## Requesting access
+
+Compute is a gated service. The first time you run a command that needs it, `datumctl` checks whether your project is entitled to use Compute:
+
+<CardGroup cols={2}>
+  <Card title="Not requested" icon="circle-question">
+    No request has been made yet. On an interactive terminal, the gate offers to submit one for you.
+  </Card>
+  <Card title="Pending approval" icon="hourglass-half">
+    A request is awaiting a manual decision by the service provider. Latency is unbounded.
+  </Card>
+  <Card title="Active" icon="circle-check">
+    The project is entitled — every `compute` command runs normally.
+  </Card>
+  <Card title="Denied / Revoked" icon="circle-xmark">
+    The provider rejected the request (or later revoked it). Recovery is submitting a new request.
+  </Card>
+</CardGroup>
+
+### The automatic gate
+
+Run any gated command — `deploy`, `workloads`, `instances`, and so on — without access, and on a TTY `datumctl` prompts you inline:
+
+```bash
+datumctl compute deploy api --image=ghcr.io/acme/api:1.4.2 --city=DFW --min=1
+```
+
+`datumctl` checks if Compute is enabled for the project, and — if not — asks whether to request access; on confirmation, it submits the request and waits briefly to see whether the platform approves it immediately or the request needs manual review.
+
+Decline, and nothing is submitted — run `datumctl compute access request` yourself whenever you're ready. In a non-interactive shell (CI, a script, or a piped command), the gate never prompts; it fails immediately and tells you which command to run.
+
+### Checking and requesting access explicitly
+
+Use `datumctl compute access` to check the current state directly, and `access request` for more control over submitting one than the automatic prompt gives you:
+
+```bash
+# Show the current access state
+datumctl compute access
+
+# Submit a request with a justification, useful for the provider's review
+datumctl compute access request --message="Onboarding the api service"
+
+# Submit and block until the platform's first decision (or --timeout elapses)
+datumctl compute access request --wait
+
+# A denied or revoked request is terminal — --renew deletes it and submits fresh
+datumctl compute access request --renew
+```
+
+`datumctl compute access` prints the state, the platform's explanation, and — when there's a next step — the exact command to run:
+
+```text
+Service:  Compute (compute.datumapis.com)
+Project:  acme-prod
+Status:   Not requested
+          This service is not enabled for this project.
+
+Request access with: datumctl compute access request
+```
+
+Add `-o json` or `-o yaml` to script against the state instead of parsing prose.
+
+## Checking quota
+
+Once active, `datumctl compute quota` shows how much of your project's compute allotment is used:
+
+```bash
+datumctl compute quota
+```
+
+```text
+Quota for project acme-prod
+
+RESOURCE    UNIT        LIMIT   USED   AVAILABLE   USAGE
+Workloads   workloads   10      3      7           [######--------------]  30%
+Instances   instances   50      12     38           [#####---------------]  24%
+vCPUs       vCPUs       32      8      24           [#####---------------]  25%
+Memory      MiB         65536   16384  49152        [#####---------------]  25%
+```
+
+Pass `--constrained` to show only the resource types that are currently at their limit — the fastest way to check whether a stalled rollout is a quota problem:
+
+```bash
+datumctl compute quota --constrained
+```
+
+## Find your way around
+
+<CardGroup cols={2}>
+  <Card title="Building images" icon="cube" href="/datumctl/compute/building-images">
+    Turn a Dockerfile into an image Compute can run, and check compatibility before you deploy.
+  </Card>
+  <Card title="Deploying workloads" icon="rocket" href="/datumctl/compute/deploying-workloads">
+    Deploy a workload from flags or a manifest, and read back its health across cities.
+  </Card>
+  <Card title="Operations" icon="gauge" href="/datumctl/compute/scaling-and-operations">
+    Roll restarts, watch a rollout, and debug individual instances.
+  </Card>
+  <Card title="Destroying workloads" icon="trash" href="/datumctl/compute/destroying-workloads">
+    Tear down a workload and every instance it created.
+  </Card>
+</CardGroup>
+
+## Related
+
+- `datumctl compute --help` and `datumctl compute <command> --help` for the full flag reference.
+- [Using plugins](/datumctl/plugins/using-plugins) — how the `compute` plugin is installed, upgraded, and trusted.
+- [Contexts & scoping](/datumctl/contexts-and-scoping) — how the project a `compute` command runs against is resolved.
+- [Output formats & scripting](/datumctl/output-and-scripting) — `-o json`/`-o yaml` patterns that apply across `compute` subcommands.
