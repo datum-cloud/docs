@@ -12,7 +12,16 @@ A network is a private IPv6 network in your project. Every Compute workload atta
 ## Before you begin
 
 - Install `datumctl`, log in, and select a project. For more information, see the [datumctl quickstart](/datumctl/quickstart).
-- To create, change, or delete networks, you need the **Network Admin** role in the project. The same role lets you attach workloads to a network.
+- To create, change, or delete networks, you need the **Network Admin** role in the project. The same role lets you attach workloads to a network. For more information, see [Permissions](#permissions).
+
+## How networks, locations, and Instances relate
+
+A network belongs to a project, not to a location. The following list describes how a network relates to your workloads and their Instances:
+
+- **One network, many locations:** You don't create a network for each location. When a workload runs Instances in a location, Datum gives the network address space in that location and assigns each Instance an address from it.
+- **One network for each workload:** All of a workload's Instances, in every placement, attach to the same network. You choose the network when you create the workload.
+- **Many workloads on one network:** Several workloads can name the same network. For example, a frontend workload and a backend workload can share a network.
+- **Isolated networks:** Each network is separate from every other network, including other networks in the same project.
 
 ## The default network
 
@@ -115,11 +124,15 @@ If the network doesn't exist, the workload reports `NetworkNotFound` and no Inst
 
 ## How Instances get addresses
 
-Datum assigns addresses in the following way:
+Datum assigns all addresses. You don't choose address ranges or plan subnets. The following table describes each level of the address plan:
 
-- Each network gets its own private IPv6 prefix from the unique local range `fd00::/8`. Prefixes don't overlap between networks or projects.
-- Each Instance's network interface gets a block of addresses from that prefix. Its primary address is the Instance's private IPv6 address.
-- The interface is named `eth0` inside the Instance, and it has IPv6 addresses only.
+| Level | Address space | Details |
+| --- | --- | --- |
+| Network | A `/48` IPv6 prefix | Datum assigns the prefix from the unique local range `fd00::/8` when you create the network. Prefixes don't overlap between networks or projects. The `IPV6PREFIX` column of `datumctl get networks` shows the prefix. |
+| Location | A `/64` from the network's prefix | Datum assigns one to each location where Instances on the network run. |
+| Instance | A `/96` block from the location's `/64` | Each Instance's network interface owns the whole block. The block's primary address is the Instance's private IPv6 address. |
+
+Inside the Instance, the interface is named `eth0`, and it has IPv6 addresses only. Unique local addresses are private: they aren't routable on the internet.
 
 To find your Instances' addresses, run the following command:
 
@@ -131,9 +144,25 @@ Replace `WORKLOAD_NAME` with the name of your workload.
 
 The `INTERNAL IP` column shows each Instance's primary private IPv6 address. For all the addresses on an Instance's interface, run `datumctl compute instances describe INSTANCE_NAME`.
 
+## What traffic a network carries
+
+A network carries private traffic between Instances. The following table describes which kinds of traffic are possible:
+
+| Traffic | Available | Details |
+| --- | --- | --- |
+| Between Instances on the same network in the same location | Yes | Instances use their private IPv6 addresses. Any Instance can connect to any port on another Instance in the same network and location. |
+| Between Instances on the same network in different locations | Not guaranteed | A network spans locations, but Datum doesn't yet guarantee private connectivity between locations. Don't depend on it for production traffic. |
+| Between different networks | No | Networks are isolated from each other. |
+| Inbound from the internet | Through a published URL only | Instance addresses aren't reachable from the internet. To serve HTTP or HTTPS traffic, [publish the workload](/compute/publish-workloads) on a Datum-managed URL. Raw TCP and UDP can't be exposed. |
+| Outbound to the internet | No | You can't turn on outbound internet access for a network. Outbound connections aren't reliable, and IPv4 destinations are unreachable. Don't depend on calling external APIs or package registries from an Instance. Image pulls aren't affected, because Datum pulls images outside the Instance. |
+| Lookups by name | No | Private DNS names for Instances aren't available. Use IPv6 addresses. |
+| Firewall filtering | No | Datum doesn't filter traffic between Instances on a network. |
+
+The workload API accepts a `networkPolicy` field on each network interface, but the field has no effect. Don't rely on it to restrict traffic. To limit who can reach a service, check credentials in your app, or put services that must stay apart on different networks.
+
 ## Connect to other Instances
 
-Instances on the same network use their private IPv6 addresses to reach each other. Keep the following points in mind:
+To connect from one Instance to another on the same network, use the peer's private IPv6 address. Keep the following points in mind:
 
 - Make your app listen on IPv6 (`::`). An app that listens only on `0.0.0.0` accepts IPv4 connections only, and Instances don't have IPv4 addresses.
 - In a URL, put an IPv6 address in square brackets, such as `http://[fd20:4a3b:91c2:1::1:0:2]:8080/`.
@@ -166,15 +195,40 @@ Replace `NETWORK_NAME` with the name of the network.
 
 If Instances still hold addresses on the network, the network stays in deletion and reports `RangeOccupied` until they're gone.
 
+## Permissions
+
+Networks use the following roles and permissions:
+
+| Task | What you need |
+| --- | --- |
+| View networks | The **Network Viewer** role or the **Network Admin** role. |
+| Create, change, or delete a network | The **Network Admin** role. |
+| Attach a workload to a network | The `networking.datumapis.com/networks.use` permission on the network, in addition to permission to create the workload. The **Network Admin** role includes `networks.use`. Datum checks the permission when you create the workload. |
+| Publish a workload on a URL | The **Network Admin** role. For more information, see [Publish a workload](/compute/publish-workloads). |
+
 ## Limitations
 
 In addition to the [networking limitations that apply to all of Compute](/compute/limits-and-quotas#networking), networks have the following limitations:
 
 - Each workload attaches to exactly one network through one network interface, and it can't move to another network.
 - Instance addresses aren't reachable from the internet. To serve traffic publicly, [publish the workload](/compute/publish-workloads) on a URL.
-- Don't rely on the `networkPolicy` field of a network interface to restrict traffic.
+- The `networkPolicy` field of a network interface has no effect. Don't rely on it to restrict traffic.
 - You can't choose a network's address ranges or create your own subnets.
 - Networks carry Compute traffic only in the locations where Compute runs: `us-central-1`, `us-east-1`, and `us-west-1`.
+
+## Planned capabilities
+
+Datum is working on the following networking capabilities:
+
+- **Outbound internet access:** Per-network control of internet access from Instances, starting with IPv6 destinations, and visibility into the address that the traffic leaves from.
+- **IPv4 destinations:** Access to internet services that have only IPv4 addresses, from Instances that have only IPv6 addresses.
+- **Firewall rules:** Security groups that control the traffic to and from your Instances.
+- **Private DNS:** Private DNS names, so Instances can find each other without IP addresses.
+- **Networks in the portal:** Viewing and managing networks in the Datum Cloud portal.
+
+<Note>
+  Plans can change. This list isn't a commitment to deliver any feature or to meet any timeline.
+</Note>
 
 ## What's next
 
