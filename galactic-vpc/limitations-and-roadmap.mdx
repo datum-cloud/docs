@@ -1,0 +1,41 @@
+---
+title: "Networking limitations and roadmap"
+sidebarTitle: "Limitations and roadmap"
+description: "Review the limitations of Galactic VPC networks and the networking capabilities that Datum is working on."
+---
+
+This page lists what Galactic VPC networks can't do and the networking capabilities that Datum is working on.
+
+<Note>
+  Galactic VPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## Limitations
+
+In addition to the [networking limitations that apply to all of Compute](/compute/limits-and-quotas#networking), networks have the following limitations:
+
+- Each workload attaches to exactly one network through one network interface, and it can't move to another network.
+- Instance addresses aren't reachable from the internet. To serve traffic publicly, [publish the workload](/compute/publish-workloads) on a URL.
+- The `networkPolicy` field of a network interface has no effect. Don't rely on it to restrict traffic.
+- You can't choose a network's address ranges or create your own subnets.
+- Networks carry Compute traffic only in the locations where Compute runs: `us-central-1`, `us-east-1`, and `us-west-1`.
+
+## Planned capabilities
+
+Datum is working on the following networking capabilities:
+
+- **Outbound internet access:** Per-network control of internet access from Instances, starting with IPv6 destinations, and visibility into the address that the traffic leaves from.
+- **IPv4 destinations:** Access to internet services that have only IPv4 addresses, from Instances that have only IPv6 addresses.
+- **Firewall rules:** Security groups that control the traffic to and from your Instances.
+- **Private DNS:** Private DNS names, so Instances can find each other without IP addresses.
+- **Networks in the portal:** Viewing and managing networks in the Datum Cloud portal.
+
+<Note>
+  Plans can change. This list isn't a commitment to deliver any feature or to meet any timeline.
+</Note>
+
+## What's next
+
+- To learn which traffic a network carries, see [Network addressing and traffic](/galactic-vpc/addressing-and-traffic).
+- To serve a workload on a public HTTPS URL, see [Publish a workload](/compute/publish-workloads).
+- To run Instances in more locations, see [Placement and scaling](/compute/placement-and-scaling).

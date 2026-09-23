@@ -134,7 +134,7 @@ The following table lists common errors and states, what they mean, and how to f
 | `permission to use the network was denied` | You don't have permission to attach workloads to the network. | Ask a project administrator for the **Network Admin** role. |
 | `permission to get ... was denied` | You can't read a ConfigMap or Secret that the workload references. | Ask for read access to the object, or reference another object. |
 | `volume must be attached at least 1 time` | The workload declares a volume that no container mounts. | Add a `volumeAttachments` entry with a `mountPath`, or remove the volume. |
-| `NetworkNotFound` | The network named in `networkInterfaces` doesn't exist. | Create the network. See [Networks](/galactic-vpc/networks). |
+| `NetworkNotFound` | The network named in `networkInterfaces` doesn't exist. | Create the network. See [Create and manage networks](/galactic-vpc/networks). |
 | `RuntimeClassNotServed` | A location in the placement doesn't serve the workload's runtime class. | Choose another location, or deploy a new workload with a class that the location serves. |
 | `NoMatchingLocations` | A placement's selector matches no location. | Fix the selector, or list locations by name. |
 | `QuotaExceeded` or `QuotaNotGranted` | Your project's compute quota is used up. | Run fewer Instances, delete unused workloads, or ask for more quota. See [Limits and quotas](/compute/limits-and-quotas). |

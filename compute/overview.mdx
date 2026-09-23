@@ -22,7 +22,7 @@ Compute is a good fit if you want to:
 
 You create a *workload*. A workload holds a template for the Instances you want (image, command, environment variables, and ports) and one or more *placements* that say where to run them and how many to run in each location.
 
-For each location in a placement, Datum starts the requested number of Instances there. Every Instance attaches to a [network](/galactic-vpc/networks) in your project and receives a private IPv6 address. To reach a workload from the internet, you publish it on a Datum-managed HTTPS URL.
+For each location in a placement, Datum starts the requested number of Instances there. Every Instance attaches to a [network](/galactic-vpc/overview) in your project and receives a private IPv6 address. To reach a workload from the internet, you publish it on a Datum-managed HTTPS URL.
 
 The following diagram shows a workload with one placement in two locations:
 
@@ -92,7 +92,7 @@ If you don't name a runtime class, Datum uses `unikernel`. For a detailed compar
   <Card title="Limits and quotas" icon="gauge" href="/compute/limits-and-quotas">
     Request access, check quota, and review limitations.
   </Card>
-  <Card title="Networks" icon="network-wired" href="/galactic-vpc/networks">
+  <Card title="Galactic VPC" icon="network-wired" href="/galactic-vpc/overview">
     Create private networks and attach workloads to them.
   </Card>
 </CardGroup>

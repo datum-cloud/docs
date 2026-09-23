@@ -128,7 +128,9 @@
             "group": "Galactic VPC",
             "pages": [
               "galactic-vpc/overview",
-              "galactic-vpc/networks"
+              "galactic-vpc/networks",
+              "galactic-vpc/addressing-and-traffic",
+              "galactic-vpc/limitations-and-roadmap"
             ]
           },
           {
