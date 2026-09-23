@@ -41,10 +41,10 @@ A network carries private traffic between Instances. The following table describ
 | Between Instances on the same network in the same location | Yes | Instances use their private IPv6 addresses. Any Instance can connect to any port on another Instance in the same network and location. |
 | Between Instances on the same network in different locations | Not guaranteed | A network spans locations, but Datum doesn't guarantee private connectivity between locations. Don't depend on it for production traffic. |
 | Between different networks | No | Networks are isolated from each other. |
-| Inbound from the internet | Through a published URL only | Instance addresses aren't reachable from the internet. To serve HTTP or HTTPS traffic, [publish the workload](/compute/publish-workloads) on a Datum-managed URL. Raw TCP and UDP can't be exposed. |
-| Outbound to the internet | No | You can't turn on outbound internet access for a network. Outbound connections aren't reliable, and IPv4 destinations are unreachable. Don't depend on calling external APIs or package registries from an Instance. Image pulls aren't affected, because Datum pulls images outside the Instance. |
-| Lookups by name | No | Private DNS names for Instances aren't available. Use IPv6 addresses. |
-| Firewall filtering | No | Datum doesn't filter traffic between Instances on a network. |
+| Inbound from the internet | Through Datum's ALB | Instance addresses aren't reachable from the internet directly. Public HTTP and HTTPS traffic reaches Instances through Datum's [Application Load Balancer](/alb/overview). Raw TCP and UDP exposure is a preview limitation. |
+| Outbound to the internet | Not in the preview | Outbound internet access is on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities), starting with IPv6 destinations, and IPv4 destinations are also planned. During the preview, don't depend on calling external APIs or package registries from an Instance. Image pulls aren't affected, because Datum pulls images outside the Instance. |
+| Lookups by name | Not in the preview | Private DNS names for Instances are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities). Use IPv6 addresses in the preview. |
+| Firewall filtering | Not in the preview | Firewall rules to filter traffic between Instances on a network are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities). |
 
 The workload API accepts a `networkPolicy` field on each network interface, but the field has no effect. Don't rely on it to restrict traffic. To limit who can reach a service, check credentials in your app, or put services that must stay apart on different networks.
 
@@ -54,10 +54,10 @@ To connect from one Instance to another on the same network, use the peer's priv
 
 - Make your app listen on IPv6 (`::`). An app that listens only on `0.0.0.0` accepts IPv4 connections only, and Instances don't have IPv4 addresses.
 - In a URL, put an IPv6 address in square brackets, such as `http://[fd20:4a3b:91c2:1::1:0:2]:8080/`.
-- Private DNS names aren't available. To tell an app about its peers, pass their addresses in environment variables or a ConfigMap.
+- Private DNS names aren't available in the preview. To tell an app about its peers, pass their addresses in environment variables or a ConfigMap.
 
 ## What's next
 
 - To create a network and attach a workload to it, see [Create and manage networks](/galactic-vpc/networks).
-- To serve a workload on a public HTTPS URL, see [Publish a workload](/compute/publish-workloads).
+- To serve a workload publicly through Datum's ALB, see [Publish a workload](/compute/publish-workloads).
 - To review what networks can't do, see [Networking limitations and roadmap](/galactic-vpc/limitations-and-roadmap).

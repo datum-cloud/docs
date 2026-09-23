@@ -91,12 +91,12 @@ The following table lists fixed limits:
 | Networks for each workload | 1 |
 | Size of each referenced ConfigMap or Secret | 256 KiB |
 | Total size of referenced ConfigMaps and Secrets for a workload in one location | 1 MiB |
-| Public URLs for each workload with `datumctl compute deploy` | 1, on one port |
+| ALBs attached to each workload with `datumctl compute deploy` | 1, on one port |
 | Unikernel image size | The unpacked image must fit in the Instance's 2 GiB of memory, along with the app. |
 
 ## Limitations
 
-The Compute preview has the following limitations. For limitations of each runtime class, see [Run a container image](/compute/containers#limitations) and [Build and deploy a unikernel](/compute/unikernels#limitations). For limitations of public URLs, see [Publish a workload](/compute/publish-workloads#limitations).
+The Compute preview has the following limitations. For limitations of each runtime class, see [Run a container image](/compute/containers#limitations) and [Build and deploy a unikernel](/compute/unikernels#limitations). For limitations of the ALB, see [Publish a workload](/compute/publish-workloads#limitations).
 
 ### Runtime and sizing
 
@@ -115,11 +115,11 @@ The Compute preview has the following limitations. For limitations of each runti
 
 ### Networking
 
-- Instances have private IPv6 addresses only. Private IPv4 addresses and public IP addresses aren't available.
-- Instances can't reliably make outbound connections to the internet, and IPv4 destinations are unreachable. Image pulls aren't affected.
-- Private DNS names for Instances aren't available.
-- Traffic filtering between Instances on a network isn't available.
-- Public access is HTTP and HTTPS only, through a Datum-managed URL. Raw TCP and UDP can't be exposed.
+- During the preview, Instances have private IPv6 addresses only. Private IPv4 addresses and public IP addresses are a preview limitation.
+- Outbound internet access and IPv4 destinations are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities). Image pulls aren't affected.
+- Private DNS names for Instances are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
+- Firewall rules to filter traffic between Instances on a network are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
+- Public access is HTTP and HTTPS only, served through Datum's [ALB](/alb/overview). Raw TCP and UDP exposure is a preview limitation.
 
 For more information about networking, see [Networking limitations and roadmap](/galactic-vpc/limitations-and-roadmap). To learn which networking capabilities Datum is working on, see [Planned capabilities](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
 

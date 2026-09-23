@@ -146,10 +146,10 @@ Networks use the following roles and permissions:
 | View networks | The **Network Viewer** role or the **Network Admin** role. |
 | Create, change, or delete a network | The **Network Admin** role. |
 | Attach a workload to a network | The `networking.datumapis.com/networks.use` permission on the network, in addition to permission to create the workload. The **Network Admin** role includes `networks.use`. Datum checks the permission when you create the workload. |
-| Publish a workload on a URL | The **Network Admin** role. For more information, see [Publish a workload](/compute/publish-workloads). |
+| Attach an ALB to a workload | The **Network Admin** role. For more information, see [Publish a workload](/compute/publish-workloads). |
 
 ## What's next
 
 - To learn how Instances get addresses and which traffic a network carries, see [Network addressing and traffic](/galactic-vpc/addressing-and-traffic).
 - To review what networks can't do, see [Networking limitations and roadmap](/galactic-vpc/limitations-and-roadmap).
-- To serve a workload on a public HTTPS URL, see [Publish a workload](/compute/publish-workloads).
+- To serve a workload publicly through Datum's ALB, see [Publish a workload](/compute/publish-workloads).

@@ -21,7 +21,7 @@ A network belongs to a project, not to a location. The following list describes 
 - **Many workloads on one network:** Several workloads can name the same network. For example, a frontend workload and a backend workload can share a network.
 - **Addresses are private IPv6:** Each network gets its own private IPv6 prefix from the unique local address range. Each Instance gets an address from that prefix. The addresses aren't reachable from the internet. For more information, see [Network addressing and traffic](/galactic-vpc/addressing-and-traffic).
 - **Networks are isolated:** Each network is separate from every other network, including other networks in the same project and other customers' networks.
-- **Public traffic arrives through a URL:** To serve a workload on the internet, you publish it on a Datum-managed HTTPS URL. Datum's edge forwards each request to an Instance over the private network. For more information, see [Publish a workload](/compute/publish-workloads).
+- **Public traffic arrives through Datum's ALB:** To serve a workload on the internet, attach Datum's [Application Load Balancer](/alb/overview) to it. The ALB forwards each request to an Instance over the private network. For more information, see [Publish a workload](/compute/publish-workloads).
 
 ## The default network
 

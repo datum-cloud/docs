@@ -1,16 +1,16 @@
 ---
 title: "Destroying workloads"
 sidebarTitle: "Destroying workloads"
-description: "Delete a workload, every Instance it created, and its URLs with datumctl compute destroy."
+description: "Delete a workload, every Instance it created, and its ALB with datumctl compute destroy."
 ---
 
-`datumctl compute destroy` removes a workload, its URLs, and every Instance that it created in every location:
+`datumctl compute destroy` removes a workload, its ALB, and every Instance that it created in every location:
 
 ```bash
 datumctl compute destroy api
 ```
 
-Before it deletes anything, the command prints a summary of the number of placements, the locations, the total minimum replicas, and the workload's URLs, and then asks for confirmation. Custom domains attached to a URL stop serving the workload, but Datum keeps the domain resources. To skip the prompt in scripts and CI, pass `-y` or `--yes`:
+Before it deletes anything, the command prints a summary of the number of placements, the locations, the total minimum replicas, and the ALB's hostnames, and then asks for confirmation. Custom domains attached to the ALB stop serving the workload, but Datum keeps the domain resources. To skip the prompt in scripts and CI, pass `-y` or `--yes`:
 
 ```bash
 datumctl compute destroy api -y

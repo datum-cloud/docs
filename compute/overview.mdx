@@ -4,7 +4,7 @@ sidebarTitle: "Overview"
 description: "Run your apps as isolated Instances in Datum Cloud locations, from a standard container image or a fast-starting unikernel."
 ---
 
-Datum Cloud Compute runs your app close to your users. You describe what to run and where, and Datum starts isolated Instances in the locations you choose, connects them to a private network, and can put them behind a public HTTPS URL.
+Datum Cloud Compute runs your app close to your users. You describe what to run and where, and Datum starts isolated Instances in the locations you choose, connects them to a private network, and can serve them publicly through Datum's Application Load Balancer (ALB).
 
 <Note>
   Compute is in preview, and the `v1alpha` API can change. Your project needs approved access to Compute before you can deploy, and Datum reviews access requests manually. For details, see [Limits and quotas](/compute/limits-and-quotas).
@@ -22,7 +22,7 @@ Compute is a good fit if you want to:
 
 You create a *workload*. A workload holds a template for the Instances you want (image, command, environment variables, and ports) and one or more *placements* that say where to run them and how many to run in each location.
 
-For each location in a placement, Datum starts the requested number of Instances there. Every Instance attaches to a [network](/galactic-vpc/overview) in your project and receives a private IPv6 address. To reach a workload from the internet, you publish it on a Datum-managed HTTPS URL.
+For each location in a placement, Datum starts the requested number of Instances there. Every Instance attaches to a [network](/galactic-vpc/overview) in your project and receives a private IPv6 address. To reach a workload from the internet, attach Datum's [Application Load Balancer (ALB)](/alb/overview) to it.
 
 The following diagram shows a workload with one placement in two locations:
 
@@ -46,7 +46,7 @@ Each Instance reports its own status, and the workload summarizes the status of 
 | Instance | One running copy of your workload in one location. Each Instance has 1 vCPU and 2 GiB of memory. |
 | Runtime class | The execution tier for a workload's Instances: `general-purpose` or `unikernel`. You choose it when you create the workload. |
 | Network | The private network your Instances attach to. `datumctl compute deploy` uses a network named `default`. |
-| URL | A Datum-managed HTTPS address that sends internet traffic to your workload's Instances. |
+| ALB | Datum's [Application Load Balancer](/alb/overview), which serves public HTTP and HTTPS traffic to your workload's Instances. |
 
 ## Runtime classes
 
@@ -66,7 +66,7 @@ If you don't name a runtime class, Datum uses `unikernel`. For a detailed compar
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/compute/quickstart">
-    Deploy a container and reach it at a public HTTPS URL.
+    Deploy a container and reach it through Datum's ALB.
   </Card>
   <Card title="Choose a runtime class" icon="scale-balanced" href="/compute/runtime-classes">
     Compare the general-purpose and unikernel tiers.
@@ -84,7 +84,7 @@ If you don't name a runtime class, Datum uses `unikernel`. For a detailed compar
     Choose locations, set Instance counts, and roll out changes.
   </Card>
   <Card title="Publish a workload" icon="globe" href="/compute/publish-workloads">
-    Serve a workload on a public HTTPS URL or your own domain.
+    Serve a workload with Datum's ALB, on a generated or custom hostname.
   </Card>
   <Card title="Manage and troubleshoot" icon="stethoscope" href="/compute/manage-workloads">
     Check status, update, restart, and delete workloads.

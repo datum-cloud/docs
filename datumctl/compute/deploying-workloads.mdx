@@ -1,7 +1,7 @@
 ---
 title: "Deploying workloads"
 sidebarTitle: "Deploying workloads"
-description: "Deploy a container image as a workload with datumctl compute deploy, publish it on an HTTPS URL, and check its health with datumctl compute workloads."
+description: "Deploy a container image as a workload with datumctl compute deploy, attach Datum's ALB to it, and check its health with datumctl compute workloads."
 ---
 
 `datumctl compute deploy` takes a container image and runs it as a workload across one or more locations. It supports two ways of describing what to deploy — flags, or a manifest file for the declarative form — and both converge on the same underlying workload.
@@ -18,7 +18,7 @@ datumctl compute deploy api \
   A new workload without `--runtime-class` runs on the `unikernel` runtime class. For that class, `--image` must point to an image produced by `datumctl compute build`, not a standard OCI image from `docker build` — see [Building images](/datumctl/compute/building-images). To run a standard container image unchanged, add `--runtime-class=general-purpose` — see [Choose a runtime class](/compute/runtime-classes).
 </Warning>
 
-If a workload named `api` doesn't exist, this command creates it with one placement named `default` that spans both locations, runs at least two Instances in each location, and publishes the workload on a Datum-managed HTTPS URL. If you run the same command again with a new `--image`, it updates the existing workload. Like `datumctl apply`, `deploy` creates or updates.
+If a workload named `api` doesn't exist, this command creates it with one placement named `default` that spans both locations, runs at least two Instances in each location, and attaches Datum's ALB to it. If you run the same command again with a new `--image`, it updates the existing workload. Like `datumctl apply`, `deploy` creates or updates.
 
 ## Flags at a glance
 
@@ -32,8 +32,8 @@ If a workload named `api` doesn't exist, this command creates it with one placem
 | `--instance-type` | Instance type (default `datumcloud/d1-standard-2`). |
 | `--runtime-class` | `general-purpose` or `unikernel`. Defaults to `unikernel`, and can't be changed after the workload is created. |
 | `--network` | Network a new workload attaches to (default `default`). Can't be changed after the workload is created. |
-| `--http-port` | Port the container serves plain HTTP on. Publishes the workload on a Datum-managed HTTPS URL. |
-| `--no-http` | Remove the workload's URL. |
+| `--http-port` | Port the container serves plain HTTP on. Attaches Datum's ALB to the workload. |
+| `--no-http` | Remove the workload's ALB. |
 | `--build` | Build and push the image from a directory (default `.`) before deploying — see [Building images](/datumctl/compute/building-images). |
 | `-f`/`--file` | Deploy from a manifest instead of flags. |
 | `-y`/`--yes` | Skip the confirmation prompts — needed in scripts and CI. |
@@ -44,9 +44,9 @@ Pass exactly one of `--location`, `--city`, or `--location-selector`. The `--por
   `deploy` needs a network to attach the workload to. If none exists yet in the project, it offers to create a minimal one, with IP addresses assigned automatically, on your behalf — pass `-y` to accept that automatically in a non-interactive run.
 </Note>
 
-## Publishing a URL
+## Attaching an ALB
 
-`--http-port` declares the port your container serves plain HTTP on, and publishes the workload on a Datum-managed HTTPS URL. Datum terminates TLS, so don't serve HTTPS on that port. After the rollout, `deploy` prints the progress of publishing and then the URL, on its own line, as the last line of output:
+`--http-port` declares the port your container serves plain HTTP on, and attaches Datum's ALB to the workload. Datum terminates TLS, so don't serve HTTPS on that port. After the rollout, `deploy` prints the progress of publishing and then the ALB's hostname, on its own line, as the last line of output:
 
 ```text
 Publishing...
@@ -57,7 +57,7 @@ Publishing...
   https://stark-raven-b7k2m.datumproxy.net
 ```
 
-Redeploying without `--http-port` keeps the workload's current port and URL. To remove the URL, pass `--no-http`. Without an HTTP port, the workload isn't reachable from the internet. For custom domains and publishing workloads you manage with manifests, see [Publish a workload](/compute/publish-workloads).
+Redeploying without `--http-port` keeps the workload's current port and its ALB. To remove the ALB, pass `--no-http`. Without an HTTP port, the workload isn't reachable from the internet. For custom domains and publishing workloads you manage with manifests, see [Publish a workload](/compute/publish-workloads).
 
 ## Watching the rollout
 
@@ -81,7 +81,7 @@ datumctl compute deploy -f workload.yaml -y
   A manifest is the only way to reach configuration the flags don't expose — a second placement, additional ports, or environment variables. Edit the generated `workload.yaml` (or write one from scratch) and apply it with `-f`.
 </Tip>
 
-A manifest deploy doesn't create or remove a URL. You can't combine `-f` with `--http-port`, `--no-http`, `--runtime-class`, `--network`, or `--build`. Set the runtime class and network in the manifest instead.
+A manifest deploy doesn't create or remove an ALB. You can't combine `-f` with `--http-port`, `--no-http`, `--runtime-class`, `--network`, or `--build`. Set the runtime class and network in the manifest instead.
 
 <Warning>
   A flag-based `deploy` replaces the workload's whole template and placements with what the flags describe. It removes environment variables, volumes, registry credentials, custom commands, and extra placements that you set in a manifest, and it sets the Instance count to the `--min` value, which defaults to `1`. Once you manage a workload with a manifest, update it with `datumctl compute deploy -f workload.yaml`. Each flag-based deploy also overwrites `workload.yaml` in the current directory, so keep edited manifests under another name.
@@ -102,7 +102,7 @@ datumctl compute workloads --health=degraded
 datumctl compute workloads --location=us-central-1
 ```
 
-The `HEALTH` column shows `Available`, `Degraded`, `Unavailable`, or `Unknown`. The `--health` flag takes the lowercase form, such as `--health=degraded`. The `URL` column shows each workload's URL. For the full picture on a single workload — its container spec, scale settings, URL, and per-location ready/desired counts together — use `describe`:
+The `HEALTH` column shows `Available`, `Degraded`, `Unavailable`, or `Unknown`. The `--health` flag takes the lowercase form, such as `--health=degraded`. The `URL` column shows each workload's ALB hostname. For the full picture on a single workload — its container spec, scale settings, ALB hostname, and per-location ready/desired counts together — use `describe`:
 
 ```bash
 datumctl compute workloads describe api

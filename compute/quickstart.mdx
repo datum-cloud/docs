@@ -1,10 +1,10 @@
 ---
 title: "Compute quickstart"
 sidebarTitle: "Quickstart"
-description: "Deploy a public container image to Dallas and reach it at a Datum-managed HTTPS URL, then clean up."
+description: "Deploy a public container image to Dallas and reach it through Datum's ALB, then clean up."
 ---
 
-In this quickstart, you deploy a small web server from a public container image to the Dallas location, reach it at a public HTTPS URL, and then delete it.
+In this quickstart, you deploy a small web server from a public container image to the Dallas location, reach it through Datum's Application Load Balancer (ALB), and then delete it.
 
 The quickstart uses the `general-purpose` runtime class, which runs standard container images without changes, and the public `docker.io/traefik/whoami` image, which replies to each request with details about the request.
 
@@ -79,7 +79,7 @@ Complete these steps once for each project that runs Compute workloads. Other Co
     - `--image`: the container image to run. Compute requires the registry host in the image reference, such as `docker.io`.
     - `--runtime-class=general-purpose`: runs the image as a standard container in a lightweight virtual machine. Without this flag, Datum uses the `unikernel` class, which needs a specially packaged image.
     - `--location=us-central-1`: runs one Instance in Dallas.
-    - `--http-port=80`: publishes port `80` of the container on a Datum-managed HTTPS URL.
+    - `--http-port=80`: attaches Datum's [ALB](/alb/overview) to the workload and publishes port `80` of the container on it.
 
     The command asks you two questions:
 
@@ -119,7 +119,7 @@ Complete these steps once for each project that runs Compute workloads. Other Co
 
     The rollout table adds a row each time the location's progress changes, so your rows can differ. `DURATION` is how long the rollout took.
 
-    The last line is your workload's URL. Your hostname is different. The command also saves the workload definition to `workload.yaml` in the current directory.
+    The last line is the hostname of the ALB that `--http-port` attached to the workload. Your hostname is different. The command also saves the workload definition to `workload.yaml` in the current directory.
   </Step>
 
   <Step title="Send a request">
@@ -182,7 +182,7 @@ Complete these steps once for each project that runs Compute workloads. Other Co
 
 To avoid using your project's compute quota, delete the resources that you created by following these steps:
 
-1. To delete the workload, its Instance, and its URL, run the following command:
+1. To delete the workload, its Instance, and its ALB, run the following command:
 
    ```bash
    datumctl compute destroy hello

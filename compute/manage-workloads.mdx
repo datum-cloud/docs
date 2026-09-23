@@ -26,7 +26,7 @@ The `HEALTH` column shows `Available`, `Degraded`, `Unavailable`, or `Unknown`. 
 
 To filter the list, add `--health` with a health value in lowercase, such as `--health=degraded`, or `--location` with a location, such as `--location=us-central-1`.
 
-To see the configuration, URL, and per-location health of one workload, run the following command:
+To see the configuration, ALB hostname, and per-location health of one workload, run the following command:
 
 ```bash
 datumctl compute workloads describe WORKLOAD_NAME
@@ -99,7 +99,7 @@ To change one of these settings, deploy a new workload with a different name, an
 
 ## Delete a workload
 
-Deleting a workload also deletes its Instances and its URL.
+Deleting a workload with `datumctl compute destroy` also deletes its Instances and its ALB.
 
 <Warning>
   You can't undo the deletion. Anything that an Instance stored on its own filesystem is lost.
@@ -115,12 +115,12 @@ To delete a workload, follow these steps:
 
    Replace `WORKLOAD_NAME` with the name of your workload.
 
-2. Review the summary of placements, locations, Instances, and URLs that the command prints.
+2. Review the summary of placements, locations, Instances, and the ALB's hostnames that the command prints.
 3. Enter `y` to confirm. The command prints `workload/WORKLOAD_NAME deleted.`
 
 To skip the confirmation in scripts, add `-y`.
 
-If you delete a workload with `datumctl delete workload`, Datum deletes the workload and its Instances, but not a URL that `datumctl compute deploy` created. Use `datumctl compute destroy` to remove both.
+If you delete a workload with `datumctl delete workload`, Datum deletes the workload and its Instances, but leaves in place any ALB that `datumctl compute deploy` created. Use `datumctl compute destroy` to remove both.
 
 ## Troubleshoot common problems
 
@@ -146,8 +146,8 @@ The following table lists common errors and states, what they mean, and how to f
 | `InstanceCrashing` | The program starts and exits repeatedly. | Check the command, arguments, environment variables, and mounted files. For a `unikernel` workload, rebuild with `datumctl compute build --analyze`. |
 | `ConfigurationError` | Datum refused the configuration before the program ran. | Check the environment variables and volume references. |
 | The Instance stays `Starting` for more than a few minutes | The first image pull can take a while. A program that exits at startup can also stay in this state. | Check the image and configuration. For a `unikernel` workload, run `datumctl compute build --analyze`. If the problem continues, contact support. |
-| The Instance is `Available`, but the URL returns an error | The app isn't reachable on the published port. | Make sure that the app listens on IPv6 (`::`), serves plain HTTP, and uses the port that you passed to `--http-port`. |
-| `curl` can't resolve the URL's hostname | The new hostname hasn't propagated yet. | Wait a few minutes and try again. |
+| The Instance is `Available`, but the ALB's hostname returns an error | The app isn't reachable on the published port. | Make sure that the app listens on IPv6 (`::`), serves plain HTTP, and uses the port that you passed to `--http-port`. |
+| `curl` can't resolve the ALB's hostname | The new hostname hasn't propagated. | Wait a few minutes and try again. |
 
 To see a history of changes to your workloads, use `datumctl activity`. For more information, see [Querying activity](/datumctl/activity/overview).
 
