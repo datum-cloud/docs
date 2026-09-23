@@ -151,7 +151,7 @@ A network carries private traffic between Instances. The following table describ
 | Traffic | Available | Details |
 | --- | --- | --- |
 | Between Instances on the same network in the same location | Yes | Instances use their private IPv6 addresses. Any Instance can connect to any port on another Instance in the same network and location. |
-| Between Instances on the same network in different locations | Not guaranteed | A network spans locations, but Datum doesn't yet guarantee private connectivity between locations. Don't depend on it for production traffic. |
+| Between Instances on the same network in different locations | Not guaranteed | A network spans locations, but Datum doesn't guarantee private connectivity between locations. Don't depend on it for production traffic. |
 | Between different networks | No | Networks are isolated from each other. |
 | Inbound from the internet | Through a published URL only | Instance addresses aren't reachable from the internet. To serve HTTP or HTTPS traffic, [publish the workload](/compute/publish-workloads) on a Datum-managed URL. Raw TCP and UDP can't be exposed. |
 | Outbound to the internet | No | You can't turn on outbound internet access for a network. Outbound connections aren't reliable, and IPv4 destinations are unreachable. Don't depend on calling external APIs or package registries from an Instance. Image pulls aren't affected, because Datum pulls images outside the Instance. |
