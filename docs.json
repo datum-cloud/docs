@@ -89,18 +89,12 @@
             ]
           },
           {
-            "group": "Compute",
+            "group": "Galactic VPC",
             "pages": [
-              "compute/overview",
-              "compute/quickstart",
-              "compute/runtime-classes",
-              "compute/containers",
-              "compute/unikernels",
-              "compute/configuration",
-              "compute/placement-and-scaling",
-              "compute/publish-workloads",
-              "compute/manage-workloads",
-              "compute/limits-and-quotas"
+              "galactic-vpc/overview",
+              "galactic-vpc/networks",
+              "galactic-vpc/addressing-and-traffic",
+              "galactic-vpc/limitations-and-roadmap"
             ]
           },
           {
@@ -125,19 +119,25 @@
             ]
           },
           {
-            "group": "Galactic VPC",
-            "pages": [
-              "galactic-vpc/overview",
-              "galactic-vpc/networks",
-              "galactic-vpc/addressing-and-traffic",
-              "galactic-vpc/limitations-and-roadmap"
-            ]
-          },
-          {
             "group": "Domains & DNS",
             "pages": [
               "domain-dns/domains",
               "domain-dns/dns"
+            ]
+          },
+          {
+            "group": "Compute",
+            "pages": [
+              "compute/overview",
+              "compute/quickstart",
+              "compute/runtime-classes",
+              "compute/containers",
+              "compute/unikernels",
+              "compute/configuration",
+              "compute/placement-and-scaling",
+              "compute/publish-workloads",
+              "compute/manage-workloads",
+              "compute/limits-and-quotas"
             ]
           },
           {
