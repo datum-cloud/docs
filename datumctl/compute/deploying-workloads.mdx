@@ -34,11 +34,19 @@ If a workload named `api` doesn't exist, this command creates it with one placem
 | `--network` | Network a new workload attaches to (default `default`). Can't be changed after the workload is created. |
 | `--http-port` | Port the container serves plain HTTP on. Attaches Datum's ALB to the workload. |
 | `--no-http` | Remove the workload's ALB. |
+| `--env` | Set an environment variable as `KEY=VALUE`, or remove one as `KEY-`. Repeat the flag for each variable. Values can contain commas. |
+| `--env-from-configmap` | Import every key of a ConfigMap as environment variables, as `NAME` or `NAME:PREFIX_`. `NAME-` removes the import. Repeatable. |
+| `--env-from-secret` | Import every key of a Secret as environment variables, as `NAME` or `NAME:PREFIX_`. `NAME-` removes the import. Repeatable. |
+| `--configmap` | Mount a ConfigMap as files, as `NAME:/mount/path`. `NAME-` removes the mount. Repeatable. |
+| `--secret` | Mount a Secret as files, as `NAME:/mount/path`. `NAME-` removes the mount. Repeatable. |
+| `--label` | Set a label on the workload and its Instances as `key=value`, or remove one as `key-`. Repeatable. Changing a label replaces the workload's Instances. |
 | `--build` | Build and push the image from a directory (default `.`) before deploying — see [Building images](/datumctl/compute/building-images). |
 | `-f`/`--file` | Deploy from a manifest instead of flags. |
 | `-y`/`--yes` | Skip the confirmation prompts — needed in scripts and CI. |
 
 Pass exactly one of `--location`, `--city`, or `--location-selector`. The `--port` flag isn't supported. Use `--http-port` instead.
+
+Environment variables, ConfigMap and Secret imports, mounts, and labels carry forward. A redeploy that doesn't name one keeps the value that the workload already has, so an image update doesn't drop your configuration. To remove one, add a trailing `-`, for example `--env LOG_LEVEL-`. To set a single variable from one key of a Secret, use a manifest. These flags require compute plugin v0.10.7 or later, and you can't combine them with `-f`.
 
 <Note>
   `deploy` needs a network to attach the workload to. If none exists yet in the project, it offers to create a minimal one, with IP addresses assigned automatically, on your behalf — pass `-y` to accept that automatically in a non-interactive run.
@@ -78,13 +86,13 @@ datumctl compute deploy -f workload.yaml -y
 ```
 
 <Tip>
-  A manifest is the only way to reach configuration the flags don't expose — a second placement, additional ports, or environment variables. Edit the generated `workload.yaml` (or write one from scratch) and apply it with `-f`.
+  A manifest is the only way to reach configuration the flags don't expose — a second placement, additional ports, a custom command, or a variable set from one key of a Secret. Edit the generated `workload.yaml` (or write one from scratch) and apply it with `-f`.
 </Tip>
 
 A manifest deploy doesn't create or remove an ALB. You can't combine `-f` with `--http-port`, `--no-http`, `--runtime-class`, `--network`, or `--build`. Set the runtime class and network in the manifest instead.
 
 <Warning>
-  A flag-based `deploy` replaces the workload's whole template and placements with what the flags describe. It removes environment variables, volumes, registry credentials, custom commands, and extra placements that you set in a manifest, and it sets the Instance count to the `--min` value, which defaults to `1`. Once you manage a workload with a manifest, update it with `datumctl compute deploy -f workload.yaml`. Each flag-based deploy also overwrites `workload.yaml` in the current directory, so keep edited manifests under another name.
+  A flag-based `deploy` replaces the workload's whole template and placements with what the flags describe. It keeps environment variables, ConfigMap and Secret imports and mounts, and labels, but it removes registry credentials, custom commands, and extra placements that you set in a manifest, and it sets the Instance count to the `--min` value, which defaults to `1`. Once you manage a workload with a manifest, update it with `datumctl compute deploy -f workload.yaml`. Each flag-based deploy also overwrites `workload.yaml` in the current directory, so keep edited manifests under another name.
 </Warning>
 
 ## Checking workload health

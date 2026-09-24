@@ -1,12 +1,12 @@
 ---
 title: "Compute quickstart"
 sidebarTitle: "Quickstart"
-description: "Deploy Grafana to Dallas, reach it through Datum's ALB, log in from your browser, and then clean up."
+description: "Deploy draw.io to Dallas with one command, open it through Datum's ALB, draw a diagram in your browser, and then clean up."
 ---
 
-In this quickstart, you deploy [Grafana](https://grafana.com/oss/grafana/), the open source dashboard and visualization app, to the Dallas location. You reach it through Datum's Application Load Balancer (ALB), log in from your browser, and then delete it.
+In this quickstart, you deploy [draw.io](https://www.drawio.com/), the open source diagramming app, to the Dallas location with one command. You open it in your browser through Datum's Application Load Balancer (ALB), draw a diagram, and then delete the workload.
 
-The quickstart uses the `general-purpose` runtime class, which runs standard container images without changes, and the official `docker.io/grafana/grafana` image. Grafana fits in one Instance (1 vCPU and 2 GiB of memory), listens on IPv6, and starts without outbound internet access, so it runs on Compute without changes.
+The quickstart uses the `general-purpose` runtime class, which runs standard container images without changes, and the official `docker.io/jgraph/drawio` image. The app fits in one Instance (1 vCPU and 2 GiB of memory), listens on IPv6, and starts without outbound internet access. It has no accounts and stores nothing on the Instance, because your diagrams stay in your browser until you save them to your device. You don't set a password or edit any files.
 
 <Note>
   Compute is in preview, and the `v1alpha` API can change. Your project needs approved access to Compute before you can deploy, and Datum reviews access requests manually.
@@ -17,7 +17,7 @@ The quickstart uses the `general-purpose` runtime class, which runs standard con
 - Create a Datum Cloud account, an organization, and a project. For more information, see [Account setup](/platform/setup).
 - Install `datumctl` and run `datumctl login`. For more information, see the [datumctl quickstart](/datumctl/quickstart).
 - Make sure that you have permission to create compute and networking resources in the project, for example, through the **Compute Admin** and **Network Admin** roles.
-- Install a text editor, a web browser, and `curl`.
+- Install a web browser and `curl`.
 
 ## Set up your project
 
@@ -46,7 +46,7 @@ Complete these steps once for each project that runs Compute workloads. Other Co
     datumctl plugin install compute
     ```
 
-    For more information about plugins, see [Using plugins](/datumctl/plugins/using-plugins).
+    If you installed the plugin earlier, run `datumctl plugin upgrade compute` instead to get the latest release. For more information about plugins, see [Using plugins](/datumctl/plugins/using-plugins).
   </Step>
 
   <Step title="Request access to Compute">
@@ -60,126 +60,68 @@ Complete these steps once for each project that runs Compute workloads. Other Co
   </Step>
 </Steps>
 
-## Deploy and use Grafana
+## Deploy and use draw.io
 
 <Steps>
-  <Step title="Deploy Grafana">
-    To deploy Grafana to Dallas (`us-central-1`) and publish it on a public URL, run the following command:
+  <Step title="Deploy draw.io">
+    To deploy draw.io to Dallas (`us-central-1`) and publish it on a public URL, run the following command:
 
     ```bash
-    datumctl compute deploy grafana \
-      --image=docker.io/grafana/grafana:13.2.2 \
+    datumctl compute deploy drawio \
+      --image=docker.io/jgraph/drawio:31.4.6 \
       --runtime-class=general-purpose \
       --location=us-central-1 \
-      --http-port=3000
+      --http-port=8080
     ```
 
     The flags do the following:
 
-    - `--image`: the container image to run, pinned to a Grafana release. Compute requires the registry host in the image reference, such as `docker.io`.
+    - `--image`: the container image to run, pinned to a draw.io release. Compute requires the registry host in the image reference, such as `docker.io`.
     - `--runtime-class=general-purpose`: runs the image as a standard container in a lightweight virtual machine. Without this flag, Datum uses the `unikernel` class, which needs a specially packaged image.
     - `--location=us-central-1`: runs one Instance in Dallas.
-    - `--http-port=3000`: attaches Datum's [ALB](/alb/overview) to the workload and publishes port `3000`, where Grafana serves HTTP. Grafana listens on all IPv4 and IPv6 addresses, which matters because Instances have private IPv6 addresses only.
+    - `--http-port=8080`: attaches Datum's [ALB](/alb/overview) to the workload and publishes port `8080`, where draw.io serves HTTP. The app listens on all IPv4 and IPv6 addresses, which matters because Instances have private IPv6 addresses only.
 
     The command asks you two questions:
 
     1. The first time you deploy in a project, the command asks whether to create a network named `default`. Enter `y`.
     2. The command prints a plan and asks `Apply? (Y/n)`. Enter `y`.
 
-    The command then creates the workload, waits for the Instance to start, and publishes the URL. The first deploy can take a few minutes. The output is similar to the following:
+    The command then creates the workload, waits for the Instance to start, and publishes the URL. The output is similar to the following:
 
     ```text
-    Resolving workload "grafana" in project PROJECT_ID...
+    Resolving workload "drawio" in project PROJECT_ID...
       Network "default" does not exist in project PROJECT_ID.
       Create it now? (Y/n): y
       network/default created
       Placement "default": locations=[us-central-1], min=1
       Runtime class:       general-purpose
       Network:             default
-      HTTP service:        port 3000 → Datum-managed URL
+      HTTP service:        port 8080 → Datum-managed URL
                            Datum terminates TLS; serve plain HTTP on this port.
     Apply? (Y/n): y
-      workload/grafana created
+      workload/drawio created
     Saved workload.yaml
     Waiting for rollout. Ctrl-C to detach (rollout continues in background).
 
       PLACEMENT  LOCATION      UPDATED  READY  OLD  PHASE
-      default    us-central-1  0        0      0    Pending
-      default    us-central-1  1        0      0    Updating
+      default    us-central-1  0        0      1    Pending
       default    us-central-1  1        1      0    Done
-    Rollout complete in DURATION.
+    Rollout complete in 22s.
 
     Publishing...
       Backends     1 healthy across us-central-1
       Edge         programmed
       Certificate  issued
 
-      https://stark-raven-b7k2m.datumproxy.net
+      https://peril-oven-p53hn.datumproxy.net
     ```
 
-    The rollout table adds a row each time the location's progress changes, so your rows can differ. `DURATION` is how long the rollout took.
+    The rollout table adds a row each time the location's progress changes, so your rows and the rollout time can differ.
 
-    The last line is the hostname of the ALB that `--http-port` attached to the workload. Your hostname is different. The command also saves the workload definition to `workload.yaml` in the current directory.
-
-    Grafana starts with a default administrator account whose user name and password are both `admin`. Anyone who finds the URL can try them, so set your own password in the next step before you share the URL.
+    The last line is the hostname of the ALB that `--http-port` attached to the workload. Your hostname is different. The command also saves the workload definition to `workload.yaml` in the current directory. You don't need the file for this quickstart.
   </Step>
 
-  <Step title="Set the administrator password">
-    The `datumctl compute deploy` flags don't set environment variables, so you set Grafana's `GF_SECURITY_ADMIN_PASSWORD` variable in a workload manifest. A password set this way also comes back if Datum replaces the Instance. To set the password, follow these steps:
-
-    1. Copy the saved workload definition to a new file, so that a later flag-based deploy doesn't overwrite your changes:
-
-       ```bash
-       cp workload.yaml grafana.yaml
-       ```
-
-    2. Open `grafana.yaml` in a text editor, and add an `env` list to the `app` container, as in the following example:
-
-       ```yaml
-               sandbox:
-                 containers:
-                 - image: docker.io/grafana/grafana:13.2.2
-                   name: app
-                   env:
-                   - name: GF_SECURITY_ADMIN_PASSWORD
-                     value: ADMIN_PASSWORD
-                   ports:
-                   - name: http
-                     port: 3000
-                     protocol: TCP
-       ```
-
-       Replace `ADMIN_PASSWORD` with a strong password. Keep the rest of the file as it is.
-
-    3. To update the workload from the manifest, run the following command:
-
-       ```bash
-       datumctl compute deploy -f grafana.yaml
-       ```
-
-    4. When the command asks `Apply? (Y/n)`, enter `y`. The command replaces the Instance with one that has the new password, and waits for the rollout. The output is similar to the following:
-
-       ```text
-       No changes detected.
-       Apply? (Y/n): y
-         workload/grafana updated
-       Waiting for rollout. Ctrl-C to detach (rollout continues in background).
-
-         PLACEMENT  LOCATION      UPDATED  READY  OLD  PHASE
-         default    us-central-1  0        1      1    Pending
-         default    us-central-1  1        0      0    Updating
-         default    us-central-1  1        1      0    Done
-       Rollout complete in DURATION.
-       ```
-
-       Your rollout rows can differ. The `No changes detected.` line appears because the summary compares only the image and the placements. The command still applies the new variable. The workload keeps its ALB and its hostname.
-
-    The password is stored in plain text in `grafana.yaml` and in the workload. For a long-lived deployment, store it in a Secret instead. For more information, see [Configure a workload](/compute/configuration).
-
-    From now on, update the workload with `datumctl compute deploy -f grafana.yaml`. A flag-based deploy replaces the whole template, removes the password variable, and puts the default `admin` password back the next time Datum replaces the Instance.
-  </Step>
-
-  <Step title="Check that Grafana is available">
+  <Step title="Check that draw.io is available">
     To list the workloads in your project, run the following command:
 
     ```bash
@@ -189,8 +131,8 @@ Complete these steps once for each project that runs Compute workloads. Other Co
     The output is similar to the following:
 
     ```text
-    NAME      LOCATIONS      HEALTH      READY   UP-TO-DATE   PLACEMENTS   IMAGE                    AGE   URL
-    grafana   us-central-1   Available   1/1     1/1          default      grafana/grafana:13.2.2   4m    https://stark-raven-b7k2m.datumproxy.net
+    NAME     LOCATIONS      HEALTH      READY   UP-TO-DATE   PLACEMENTS   IMAGE                  AGE   URL
+    drawio   us-central-1   Available   1/1     1/1          default      jgraph/drawio:31.4.6   2m    https://peril-oven-p53hn.datumproxy.net
 
     1 workloads — 1 Available, 0 Degraded, 0 Unavailable, 0 Unknown
     ```
@@ -198,63 +140,56 @@ Complete these steps once for each project that runs Compute workloads. Other Co
     Continue when `HEALTH` is `Available` and `READY` is `1/1`. The `URL` column shows the ALB hostname from the deploy output.
   </Step>
 
-  <Step title="Open Grafana in your browser">
-    In your web browser, go to the URL from the last line of the deploy output, such as `https://stark-raven-b7k2m.datumproxy.net`. Datum's ALB serves Grafana over HTTPS, and Grafana shows its login page.
+  <Step title="Open draw.io in your browser">
+    In your web browser, go to the URL from the last line of the deploy output, such as `https://peril-oven-p53hn.datumproxy.net`. Datum's ALB serves draw.io over HTTPS, and the app opens a blank diagram named **Untitled Diagram**.
 
     If the browser can't find the site, wait a minute and try again. A new hostname can take a few minutes to resolve.
 
-    To check Grafana from the command line as well, run the following command:
+    To check draw.io from the command line as well, run the following command:
 
     ```bash
-    curl WORKLOAD_URL/api/health
+    curl -s WORKLOAD_URL | grep -o '<title>.*</title>'
     ```
 
     Replace `WORKLOAD_URL` with the URL from the last line of the deploy output.
 
-    The output is similar to the following:
+    The output is the following:
 
     ```text
-    {
-      "database": "ok",
-      "version": "13.2.2",
-      "commit": "COMMIT"
-    }
+    <title>Flowchart Maker &amp; Online Diagram Software</title>
     ```
-
-    `COMMIT` is the Git commit that the Grafana release was built from.
   </Step>
 
-  <Step title="Log in to Grafana">
-    To log in, follow these steps:
+  <Step title="Draw a diagram">
+    To draw a diagram and save it to your computer, follow these steps:
 
-    1. On the Grafana login page, enter `admin` as the user name.
-    2. Enter the password that you set in `grafana.yaml`.
-    3. Click **Log in**. Grafana opens its home page.
+    1. In the **General** shape panel, click the rectangle. The editor adds a rectangle to the diagram.
+    2. Double-click the rectangle, and enter a label, such as `Hello from Datum`.
+    3. Click an empty part of the diagram to finish editing.
+    4. Click **File** > **Export as** > **PNG...**.
+    5. Click **Export**.
+    6. Click **Save**. Your browser downloads `Untitled Diagram.drawio.png`.
 
-    Grafana doesn't ask you to change the password, because you replaced the default password. You can now explore Grafana, for example, by adding a data source and building a dashboard.
-
-    <Warning>
-      Instances have no persistent disks. Grafana keeps dashboards, data sources, users, and settings on the Instance's local disk, so you lose them when the Instance restarts or Datum replaces it, including when you update the workload. Don't keep work in this Grafana that you want to keep.
-    </Warning>
+    The editor runs in your browser. The Instance only serves the app's files, so your diagrams aren't lost when Datum restarts or replaces the Instance. Anyone who has the URL can open the editor, but each person's diagrams stay in their own browser.
   </Step>
 
   <Step title="Optional: See the Instance">
     To list the workload's Instances, run the following command:
 
     ```bash
-    datumctl compute instances --workload=grafana
+    datumctl compute instances --workload=drawio
     ```
 
     The output is similar to the following:
 
     ```text
-    NAME                             WORKLOAD   LOCATION       INTERNAL IP                TYPE      AGE   STATUS
-    grafana-default-us-central-1-0   grafana    us-central-1   fd20:4a3b:91c2::1:0:0/96   sandbox   3m    Available
+    NAME                            WORKLOAD   LOCATION       INTERNAL IP           TYPE      AGE   STATUS
+    drawio-default-us-central-1-0   drawio     us-central-1   fd20:0:20::1:0:0/96   sandbox   3m    Available
 
     1 instances — 1 Available, 0 Pending, 0 Failed
     ```
 
-    The `INTERNAL IP` column shows the Instance's private IPv6 address on the `default` network. The Instance has no public address, so traffic from the internet reaches Grafana only through the ALB.
+    The `INTERNAL IP` column shows the Instance's private IPv6 address on the `default` network. The Instance has no public address, so traffic from the internet reaches draw.io only through the ALB.
   </Step>
 </Steps>
 
@@ -265,12 +200,12 @@ To avoid using your project's compute quota, delete the resources that you creat
 1. To delete the workload, its Instance, and its ALB, run the following command:
 
    ```bash
-   datumctl compute destroy grafana
+   datumctl compute destroy drawio
    ```
 
 2. Review the summary that the command prints.
-3. Enter `y` to confirm. The command prints `workload/grafana deleted.`
-4. Delete `grafana.yaml`, which contains your password in plain text, and `workload.yaml`.
+3. Enter `y` to confirm. The command prints `workload/drawio deleted.`
+4. Delete `workload.yaml` from the current directory.
 5. Optional: If you don't plan to deploy more workloads, delete the `default` network:
 
    ```bash
@@ -279,7 +214,7 @@ To avoid using your project's compute quota, delete the resources that you creat
 
 ## What's next
 
-- To pass configuration and secrets to a workload, see [Configure a workload](/compute/configuration).
+- To set environment variables and pass configuration and secrets to a workload, see [Configure a workload](/compute/configuration).
 - To learn what else you can set on a container workload, see [Run a container image](/compute/containers).
 - To package your own app as a fast-starting unikernel, see [Build and deploy a unikernel](/compute/unikernels).
 - To run in more locations or with more Instances, see [Placement and scaling](/compute/placement-and-scaling).
