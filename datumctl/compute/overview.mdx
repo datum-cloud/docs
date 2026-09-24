@@ -1,14 +1,14 @@
 ---
-title: "Compute"
+title: "Compute commands"
 sidebarTitle: "Overview"
 description: "Deploy and manage containerized workloads on Datum Cloud with the datumctl compute plugin."
 ---
 
 <Note>
-  Compute is coming soon and is not yet generally available.
+  Compute is in preview, and each project needs approved access before it can deploy. For product guides, including a quickstart, see [Compute](/compute/overview).
 </Note>
 
-`datumctl compute` deploys a container image as a **workload** running across one or more Datum Cloud cities, then gives you the day-to-day commands to scale, restart, and tear it down. It is a first-party plugin rather than a built-in command — install it once and its commands behave exactly like the rest of the CLI.
+`datumctl compute` deploys a container image as a *workload* that runs in one or more Datum Cloud locations, and provides the day-to-day commands to scale, restart, and delete it. It's a first-party plugin instead of a built-in command. After you install it, its commands behave like the rest of the CLI.
 
 ```bash
 datumctl plugin install compute
@@ -26,9 +26,9 @@ A handful of terms recur across every `compute` command:
 | Term | Meaning |
 |------|---------|
 | **Workload** | The thing you deploy — a container image plus its runtime configuration (ports, env, instance type) and one or more placements. |
-| **Placement** | A named group of cities and a scale policy (minimum replica count) within a workload. `deploy` from flags creates a single placement named `default`. |
-| **City** | A short code identifying a Datum Cloud location a workload can run in, for example `DFW` or `IAD`. |
-| **Instance** | One running copy of a workload's container in one city. A placement with `--min=2` across two cities produces four instances. |
+| **Placement** | A named group of locations and a scale policy (minimum replica count) in a workload. A flag-based `deploy` creates a single placement named `default`. |
+| **Location** | A Datum Cloud region a workload can run in, for example `us-central-1`. The `--city` flag selects every location in a city by its code, such as `DFW`. |
+| **Instance** | One running copy of a workload's container in one location. A placement with `--min=2` across two locations produces four Instances. |
 
 `compute` is project-scoped: every command reads `--project` (or your active context's project, injected automatically — see [Contexts & scoping](/datumctl/contexts-and-scoping)). There is no organization-level view and no `--namespace` flag; all compute resources live in the project's `default` namespace.
 
@@ -56,7 +56,7 @@ Compute is a gated service. The first time you run a command that needs it, `dat
 Run any gated command — `deploy`, `workloads`, `instances`, and so on — without access, and on a TTY `datumctl` prompts you inline:
 
 ```bash
-datumctl compute deploy api --image=ghcr.io/acme/api:1.4.2 --city=DFW --min=1
+datumctl compute deploy api --image=ghcr.io/acme/api:1.4.2 --location=us-central-1 --min=1
 ```
 
 `datumctl` checks if Compute is enabled for the project, and — if not — asks whether to request access; on confirmation, it submits the request and waits briefly to see whether the platform approves it immediately or the request needs manual review.
@@ -125,19 +125,20 @@ datumctl compute quota --constrained
     Turn a Dockerfile into an image Compute can run, and check compatibility before you deploy.
   </Card>
   <Card title="Deploying workloads" icon="rocket" href="/datumctl/compute/deploying-workloads">
-    Deploy a workload from flags or a manifest, and read back its health across cities.
+    Deploy a workload from flags or a manifest, and read back its health across locations.
   </Card>
   <Card title="Operations" icon="gauge" href="/datumctl/compute/scaling-and-operations">
-    Roll restarts, watch a rollout, and debug individual instances.
+    Roll restarts, watch a rollout, and debug individual Instances.
   </Card>
   <Card title="Destroying workloads" icon="trash" href="/datumctl/compute/destroying-workloads">
-    Tear down a workload and every instance it created.
+    Tear down a workload and every Instance it created.
   </Card>
 </CardGroup>
 
 ## Related
 
 - `datumctl compute --help` and `datumctl compute <command> --help` for the full flag reference.
+- [Compute](/compute/overview) — product guides for runtime classes, configuration, placement, and publishing workloads.
 - [Using plugins](/datumctl/plugins/using-plugins) — how the `compute` plugin is installed, upgraded, and trusted.
 - [Contexts & scoping](/datumctl/contexts-and-scoping) — how the project a `compute` command runs against is resolved.
 - [Output formats & scripting](/datumctl/output-and-scripting) — `-o json`/`-o yaml` patterns that apply across `compute` subcommands.

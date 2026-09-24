@@ -1,0 +1,124 @@
+---
+title: "Choose a runtime class"
+sidebarTitle: "Runtime classes"
+description: "Compare the general-purpose and unikernel runtime classes, and learn how to select one for a workload."
+---
+
+A runtime class is the execution tier that a workload's Instances run in. Compute offers two classes, and each one trades image compatibility against startup speed and overhead. You choose the class when you create a workload, and you can't change it later.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Compare runtime classes
+
+The following table compares the two classes:
+
+| Feature | General purpose | Unikernel |
+| --- | --- | --- |
+| Class name | `general-purpose` | `unikernel` (the default) |
+| Isolation | Each Instance runs in its own lightweight virtual machine with its own kernel. | Each Instance runs as its own unikernel in its own virtual machine. The Instance carries only the operating system code that its app uses. |
+| Images | Standard Linux container images, without changes. Includes images that need a full filesystem, dynamic linking, or credentials to pull. | Images packaged with `datumctl compute build`. A plain `docker build` image doesn't boot. |
+| Startup time | Several seconds, mostly spent booting a kernel and pulling the image. | A fraction of a second after the image is pulled. |
+| Overhead per Instance | Higher | Very low |
+| Root filesystem | The image filesystem. | Held in memory, so the unpacked image size counts against the Instance's 2 GiB of memory. |
+| Environment variables from a whole ConfigMap or Secret (`envFrom`) | Supported | Not supported. Use `env[].valueFrom` for each key instead. |
+| ConfigMap and Secret volumes | Supported | Supported |
+| Private registry credentials (`imagePullSecrets`) | Supported | Supported |
+| Added Linux capabilities | Supported | Not supported |
+| Instance size | 1 vCPU, 2 GiB | 1 vCPU, 2 GiB |
+
+## When to use each class
+
+Choose `general-purpose` in the following cases:
+
+- You want to run an existing container image without repackaging it.
+- Your app needs `envFrom`, extra Linux capabilities, setuid binaries, or a large filesystem.
+
+Choose `unikernel` in the following cases:
+
+- Startup time and per-Instance overhead matter, such as for bursty or short-lived services.
+- Your app is a self-contained binary, such as a Go or Rust program, or a small interpreted app whose runtime and libraries fit in memory.
+
+## Select a runtime class
+
+If you don't set a runtime class, Datum uses `unikernel`. To run a standard container image, set the class to `general-purpose` explicitly.
+
+To select a class with `datumctl`, pass the `--runtime-class` flag when you create the workload:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME \
+  --image=IMAGE \
+  --location=LOCATION \
+  --runtime-class=RUNTIME_CLASS
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: a name for your workload.
+- `IMAGE`: the full image reference, including the registry host, such as `ghcr.io/example/app:1.0`.
+- `LOCATION`: the location to run in, such as `us-central-1`.
+- `RUNTIME_CLASS`: `general-purpose` or `unikernel`.
+
+To select a class in a manifest, set `spec.template.spec.runtime.class`:
+
+```yaml
+apiVersion: compute.datumapis.com/v1alpha
+kind: Workload
+metadata:
+  name: web
+spec:
+  template:
+    spec:
+      runtime:
+        class: general-purpose
+        resources:
+          instanceType: datumcloud/d1-standard-2
+        sandbox:
+          containers:
+            - name: web
+              image: docker.io/traefik/whoami:v1.11
+              ports:
+                - name: http
+                  port: 80
+      networkInterfaces:
+        - network:
+            name: default
+  placements:
+    - name: dallas
+      locations:
+        - name: us-central-1
+      scaleSettings:
+        minReplicas: 1
+```
+
+When you apply a workload, Datum checks the spec against the class. If the workload uses a feature that the class doesn't offer, Datum rejects the request, and the error names the class and the feature. For example, adding a disk volume to a `general-purpose` workload returns an error that says disk-backed volumes aren't supported by the `general-purpose` runtime class.
+
+## View the runtime class catalog
+
+The classes are read-only resources in your project. To list them, run the following command:
+
+```bash
+datumctl get runtimeclasses
+```
+
+The output includes each class's display name, isolation boundary, whether it's the default, and whether it's available.
+
+## Change a workload's runtime class
+
+A workload keeps its runtime class for its whole life. If you try to change the class, `datumctl compute deploy` and the API reject the change.
+
+To move a workload to another class, follow these steps:
+
+1. Deploy a new workload with a different name and the class that you want.
+2. To confirm that the new workload is available, run `datumctl compute workloads` and check that its `HEALTH` is `Available`.
+3. Delete the old workload with `datumctl compute destroy OLD_WORKLOAD_NAME`. Replace `OLD_WORKLOAD_NAME` with the name of the workload that you're replacing.
+
+## Where each class runs
+
+Today, `us-central-1`, `us-east-1`, and `us-west-1` serve both classes. If you place a workload in a location that doesn't serve its class, Datum creates no Instances there and the workload reports the reason `RuntimeClassNotServed`. To fix it, choose another location or deploy a new workload with a class that the location serves. For the classes that each location serves, see [Locations](/compute/placement-and-scaling#locations).
+
+## What's next
+
+- To run a standard container image, see [Run a container image](/compute/containers).
+- To package your own app as a unikernel, see [Build and deploy a unikernel](/compute/unikernels).

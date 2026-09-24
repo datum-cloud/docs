@@ -1,0 +1,98 @@
+---
+title: "Compute"
+sidebarTitle: "Overview"
+description: "Run your apps as isolated Instances in Datum Cloud locations, from a standard container image or a fast-starting unikernel."
+---
+
+Datum Cloud Compute runs your app close to your users. You describe what to run and where, and Datum starts isolated Instances in the locations you choose, connects them to a private network, and can serve them publicly through Datum's Application Load Balancer (ALB).
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change. Your project needs approved access to Compute before you can deploy, and Datum reviews access requests manually. For details, see [Limits and quotas](/compute/limits-and-quotas).
+</Note>
+
+Every Instance runs in its own virtual machine with its own kernel. No kernel is shared between tenants.
+
+Compute is a good fit if you want to:
+
+- Run an HTTP service or API in more than one location without operating servers.
+- Deploy a container image you already build, with virtual machine isolation.
+- Start small, purpose-built services in a fraction of a second as unikernels.
+
+## How it works
+
+You create a *workload*. A workload holds a template for the Instances you want (image, command, environment variables, and ports) and one or more *placements* that say where to run them and how many to run in each location.
+
+For each location in a placement, Datum starts the requested number of Instances there. Every Instance attaches to a [network](/galactic-vpc/overview) in your project and receives a private IPv6 address. To reach a workload from the internet, attach Datum's [Application Load Balancer (ALB)](/alb/overview) to it.
+
+The following diagram shows a workload with one placement in two locations:
+
+```text
+Workload
+├── Placement "default" (us-central-1, us-east-1; 2 Instances per location)
+│   ├── us-central-1: Instance 0, Instance 1
+│   └── us-east-1:    Instance 0, Instance 1
+└── Network "default" → private IPv6 address per Instance
+```
+
+Each Instance reports its own status, and the workload summarizes the status of its Instances. When something goes wrong, the Instance has the most specific reason.
+
+## Key concepts
+
+| Concept | Description |
+| --- | --- |
+| Workload | The resource you create. It defines the Instance template and the placements. |
+| Placement | A named set of locations and the minimum number of Instances to run in each one. |
+| Location | A Datum Cloud region where Instances run, such as `us-central-1` (Dallas). |
+| Instance | One running copy of your workload in one location. Each Instance has 1 vCPU and 2 GiB of memory. |
+| Runtime class | The execution tier for a workload's Instances: `general-purpose` or `unikernel`. You choose it when you create the workload. |
+| Network | The private network your Instances attach to. `datumctl compute deploy` uses a network named `default`. |
+| ALB | Datum's [Application Load Balancer](/alb/overview), which serves public HTTP and HTTPS traffic to your workload's Instances. |
+
+## Runtime classes
+
+Compute offers two runtime classes. Both give each Instance its own kernel.
+
+- **General purpose (`general-purpose`):** Runs standard Linux container images without changes. Instances take several seconds to start.
+- **Unikernel (`unikernel`):** Runs a specially packaged image as a unikernel that starts in a fraction of a second, with very little overhead per Instance. You package the image with `datumctl compute build`.
+
+If you don't name a runtime class, Datum uses `unikernel`. For a detailed comparison, see [Choose a runtime class](/compute/runtime-classes).
+
+## Ways to work with Compute
+
+- **`datumctl compute`:** A `datumctl` plugin that deploys, publishes, scales, and deletes workloads with a single command each. The guides in this section use it. For the command reference, see [Compute commands](/datumctl/compute/overview).
+- **Manifests:** Workloads are Kubernetes-style resources. You can write them in YAML and manage them with `datumctl apply`, `datumctl get`, and `datumctl describe`, or with GitOps tooling. For more information, see [Kubernetes](/kubernetes).
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/compute/quickstart">
+    Deploy draw.io with one command and draw a diagram in your browser through Datum's ALB.
+  </Card>
+  <Card title="Choose a runtime class" icon="scale-balanced" href="/compute/runtime-classes">
+    Compare the general-purpose and unikernel tiers.
+  </Card>
+  <Card title="Run a container image" icon="box" href="/compute/containers">
+    Run a standard Linux container on general-purpose Instances.
+  </Card>
+  <Card title="Build and deploy a unikernel" icon="bolt" href="/compute/unikernels">
+    Package your app as a unikernel with `datumctl compute build`.
+  </Card>
+  <Card title="Configure a workload" icon="sliders" href="/compute/configuration">
+    Set environment variables and mount ConfigMaps and Secrets.
+  </Card>
+  <Card title="Placement and scaling" icon="earth-americas" href="/compute/placement-and-scaling">
+    Choose locations, set Instance counts, and roll out changes.
+  </Card>
+  <Card title="Publish a workload" icon="globe" href="/compute/publish-workloads">
+    Serve a workload with Datum's ALB, on a generated or custom hostname.
+  </Card>
+  <Card title="Manage and troubleshoot" icon="stethoscope" href="/compute/manage-workloads">
+    Check status, update, restart, and delete workloads.
+  </Card>
+  <Card title="Limits and quotas" icon="gauge" href="/compute/limits-and-quotas">
+    Request access, check quota, and review limitations.
+  </Card>
+  <Card title="Galactic VPC" icon="network-wired" href="/galactic-vpc/overview">
+    Create private networks and attach workloads to them.
+  </Card>
+</CardGroup>

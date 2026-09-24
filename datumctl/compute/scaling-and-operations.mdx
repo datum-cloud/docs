@@ -1,64 +1,73 @@
 ---
 title: "Operations"
 sidebarTitle: "Operations"
-description: "Restart, roll out, and inspect individual instances of a running workload with datumctl compute."
+description: "Scale, restart, roll out, and inspect individual Instances of a running workload with datumctl compute."
 ---
 
-Once a workload is deployed, these are the commands for day-to-day operation: restarting instances, watching a rollout progress, and drilling into a single instance when something isn't right.
+After you deploy a workload, use these commands for day-to-day operation: scaling, restarting Instances, watching a rollout, and inspecting a single Instance when something isn't right.
+
+## Scaling
+
+`datumctl compute scale` sets the minimum number of Instances per location for every placement of a workload:
+
+```bash
+# Run three Instances in each location of the workload
+datumctl compute scale api --min=3
+```
+
+The count is per location, from 1 to 1,000. Workloads don't scale automatically. For different counts per placement, edit `scaleSettings.minReplicas` in the manifest and apply it with `datumctl compute deploy -f`. For more information, see [Placement and scaling](/compute/placement-and-scaling).
 
 ## Restarting
 
-`datumctl compute restart` triggers a rolling restart — instances are replaced without changing the image or configuration, useful for picking up an external change like a secret rotation:
+`datumctl compute restart` starts a rolling restart. Datum replaces Instances without changing the image or configuration. A restart is useful to pick up an external change, such as a rotated Secret:
 
 ```bash
-# Restart every instance of the workload
 datumctl compute restart api
-
-# Restart only the instances in one city
-datumctl compute restart api --city=DFW
 ```
+
+`restart` replaces every Instance of the workload in every location.
 
 ## Watching a rollout
 
-Any change that replaces instances — a `deploy` with a new image, or a `restart` — starts a rollout. `datumctl compute rollout` attaches to it and prints progress per placement and city as it happens:
+Any change that replaces Instances, such as a `deploy` with a new image or a `restart`, starts a rollout. `datumctl compute rollout` attaches to the rollout and prints progress for each placement and location:
 
 ```bash
 datumctl compute rollout api
 ```
 
-Each row moves through phases — `Pending`, `Updating`, `Done` — until every placement finishes. If a placement stalls for more than 30 seconds without progress, its phase becomes `Blocked` and the command prints the reason (a quota limit, a scheduling issue) reported by the platform.
+Each row moves through phases — `Pending`, `Updating`, `Done` — until every placement finishes. Datum replaces Instances one at a time in each location, and waits for each replacement to be ready before it starts the next one. If a placement stalls for more than 30 seconds without progress, its phase becomes `Blocked` and the command prints the reason (a quota limit, a scheduling issue) reported by the platform.
 
 <Note>
-  Ctrl-C detaches from the watch; it never cancels the rollout. Re-run `datumctl compute rollout api` at any time to reattach and see current progress.
+  Press Control+C to detach from the watch. The rollout continues in the background. To reattach and see current progress, run `datumctl compute rollout api`.
 </Note>
 
-## Inspecting instances
+## Inspecting Instances
 
-`datumctl compute instances` lists every instance in the project — one row per running (or attempting-to-run) copy of a workload's container in a specific city:
+`datumctl compute instances` lists every Instance in the project. Each row is one copy of a workload's container in one location, whether it's running or trying to start:
 
 ```bash
-# Every instance in the project
+# List every Instance in the project
 datumctl compute instances
 
-# Just one workload
+# List the Instances of one workload
 datumctl compute instances --workload=api
 
-# Just one city
-datumctl compute instances --city=DFW
+# List the Instances in one location
+datumctl compute instances --location=us-central-1
 ```
 
-Status reflects availability, not just whether a process happens to be running at this instant — an instance blocked on quota shows `Pending (quota exceeded)` rather than a generic "not ready." Add `-o wide` for the underlying instance type alongside the default columns, or `-o json`/`-o yaml` for the full resource.
+The status reflects availability, not only whether a process is running. For example, an Instance blocked on quota shows `Pending (quota exceeded)` instead of a generic "not ready" status. Add `-o wide` for the underlying instance type alongside the default columns, or `-o json`/`-o yaml` for the full resource.
 
-For everything about a single instance — runtime configuration, environment, network addresses, and a plain-English explanation of any failure — use `describe`:
+To see the runtime configuration, environment, network addresses, and a plain-language explanation of any failure for one Instance, use `describe`:
 
 ```bash
-datumctl compute instances describe api-dfw-0
+datumctl compute instances describe api-default-us-central-1-0
 ```
 
-When an instance can't start because of quota, `describe` also prints the exact next commands to run — typically checking `datumctl compute quota`.
+When an Instance can't start because of quota, `describe` also prints the next commands to run, such as `datumctl compute quota`.
 
 ## Next steps
 
-- `datumctl compute restart --help`, `rollout --help`, and `instances --help` for the full flag reference.
+- `datumctl compute scale --help`, `restart --help`, `rollout --help`, and `instances --help` for the full flag reference.
 - [Deploying workloads](/datumctl/compute/deploying-workloads) — the `deploy` and `workloads` commands that create what you're operating on here.
-- [Destroying workloads](/datumctl/compute/destroying-workloads) — remove a workload and every instance it created.
+- [Destroying workloads](/datumctl/compute/destroying-workloads) — remove a workload and every Instance it created.

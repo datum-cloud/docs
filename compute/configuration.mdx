@@ -1,0 +1,331 @@
+---
+title: "Configure a workload"
+sidebarTitle: "Configuration"
+description: "Pass environment variables, ConfigMaps, and Secrets to your Instances, and pull images from a private registry."
+---
+
+This page shows how to pass configuration to a workload's containers: environment variables, ConfigMaps and Secrets as variables or files, and credentials for a private container registry.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Before you begin
+
+- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
+- Make sure that you can read the ConfigMaps and Secrets that your workload references. When you apply a workload, Datum checks that you have `get` permission on each one, and rejects the request if you don't.
+
+You can set environment variables, and load or mount whole ConfigMaps and Secrets, with `datumctl compute deploy` flags. These flags require compute plugin v0.10.7 or later. For anything that the flags can't set, such as a variable from one key of a Secret or credentials for a private registry, write a workload manifest. Apply the manifest with `datumctl compute deploy -f FILE` or `datumctl apply -f FILE`, where `FILE` is the path to your manifest. You can't combine the configuration flags with `-f`. A flag-based deploy saves its result to `workload.yaml`, which you can edit as a starting point. Each flag-based deploy overwrites `workload.yaml` in the current directory, so keep edited manifests under another name.
+
+<Warning>
+  A flag-based `datumctl compute deploy` replaces the workload's whole template and placements with what the flags describe. It keeps environment variables, ConfigMap and Secret imports, volumes, and labels. It removes registry credentials, custom commands, and extra placements that you set in a manifest, and it sets the Instance count to the `--min` value, which defaults to `1`. After you add settings that the flags can't set, update the workload with `datumctl compute deploy -f FILE`.
+</Warning>
+
+## Set environment variables
+
+To set an environment variable to a fixed value, pass `--env KEY=VALUE` when you deploy. Repeat the flag for each variable. Values can contain commas. The following command sets two variables:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME \
+  --image=IMAGE \
+  --location=LOCATION \
+  --env=LOG_LEVEL=info \
+  --env=ALLOWED_ORIGINS=a.example,b.example
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: the name of your workload.
+- `IMAGE`: the full image reference, including the registry host.
+- `LOCATION`: one or more locations, separated by commas.
+
+Variables carry forward. A later deploy that doesn't name a variable keeps its value. To remove a variable, add a trailing `-`, such as `--env=LOG_LEVEL-`.
+
+In a manifest, add the variable to the container's `env` list, as in the following example:
+
+```yaml
+containers:
+  - name: api
+    image: ghcr.io/example/api:1.4.2
+    env:
+      - name: LOG_LEVEL
+        value: info
+```
+
+## Create a ConfigMap or Secret
+
+ConfigMaps hold non-sensitive settings, and Secrets hold sensitive values such as passwords and tokens. Both live in your project, and a workload can reference any ConfigMap or Secret in the same project. To create a ConfigMap and a Secret, follow these steps:
+
+1. Save the following manifest as `api-config.yaml`:
+
+   ```yaml
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: api-config
+   data:
+     config.yaml: |
+       listen: "[::]:8080"
+       cache_ttl: 60s
+     REGION_LABEL: north-america
+   ---
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: api-secrets
+   type: Opaque
+   stringData:
+     db-password: PASSWORD
+   ```
+
+   Replace `PASSWORD` with your database password.
+
+2. To create the objects, run the following command:
+
+   ```bash
+   datumctl apply -f api-config.yaml
+   ```
+
+For more information about Secrets in the portal, see [Secrets](/platform/secrets).
+
+## Set a variable from a ConfigMap or Secret key
+
+The `deploy` flags can't set one variable from one key, so use a manifest. To set one environment variable from one key, use `valueFrom` with `configMapKeyRef` or `secretKeyRef`. This method works with both runtime classes. The following example sets one variable from a Secret key and one from a ConfigMap key:
+
+```yaml
+env:
+  - name: DATABASE_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: api-secrets
+        key: db-password
+  - name: REGION_LABEL
+    valueFrom:
+      configMapKeyRef:
+        name: api-config
+        key: REGION_LABEL
+```
+
+## Set variables from a whole ConfigMap or Secret
+
+On `general-purpose` workloads, you can turn every key of a ConfigMap or Secret into an environment variable. To do so with flags, pass `--env-from-configmap` or `--env-from-secret` as `NAME` or `NAME:PREFIX_`. The following command loads every key from `api-config` with the prefix `APP_`, and every key from `api-secrets` without a prefix:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME \
+  --image=IMAGE \
+  --location=LOCATION \
+  --env-from-configmap=api-config:APP_ \
+  --env-from-secret=api-secrets
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: the name of your workload.
+- `IMAGE`: the full image reference, including the registry host.
+- `LOCATION`: one or more locations, separated by commas.
+
+To remove an import, add a trailing `-` to the name, such as `--env-from-secret=api-secrets-`.
+
+In a manifest, use `envFrom`. Each entry names exactly one source. The optional `prefix` is added to each variable name, and must be a valid variable name itself. The following manifest example loads the same keys:
+
+```yaml
+envFrom:
+  - configMapRef:
+      name: api-config
+    prefix: APP_
+  - secretRef:
+      name: api-secrets
+```
+
+The `unikernel` runtime class doesn't support `envFrom`. On `unikernel` workloads, set each variable with `valueFrom` instead.
+
+## Mount a ConfigMap or Secret as files
+
+To mount a ConfigMap or Secret as files with flags, pass `--configmap` or `--secret` as `NAME:/mount/path`. Each key becomes a file in the mount directory. The following command mounts `api-config` at `/etc/api` and `api-secrets` at `/etc/api-secrets`:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME \
+  --image=IMAGE \
+  --location=LOCATION \
+  --configmap=api-config:/etc/api \
+  --secret=api-secrets:/etc/api-secrets
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: the name of your workload.
+- `IMAGE`: the full image reference, including the registry host.
+- `LOCATION`: one or more locations, separated by commas.
+
+To remove a mount, add a trailing `-` to the name, such as `--secret=api-secrets-`.
+
+In a manifest, declare a volume in `spec.template.spec.volumes`, and attach it to a container with `volumeAttachments`.
+
+The following manifest example mounts the same ConfigMap and Secret:
+
+```yaml
+spec:
+  template:
+    spec:
+      runtime:
+        sandbox:
+          containers:
+            - name: api
+              image: ghcr.io/example/api:1.4.2
+              volumeAttachments:
+                - name: config
+                  mountPath: /etc/api
+                - name: secrets
+                  mountPath: /etc/api-secrets
+      volumes:
+        - name: config
+          configMap:
+            name: api-config
+        - name: secrets
+          secret:
+            secretName: api-secrets
+```
+
+Keep the following rules in mind:
+
+- A ConfigMap volume uses `configMap.name`, but a Secret volume uses `secret.secretName`.
+- Attach every volume that you declare to at least one container, and give each attachment a `mountPath`.
+- To mount only some keys, or to choose file names, add `items` with a `key` and a relative `path` for each file. A `path` can't contain `..`.
+- To set file permissions, set `defaultMode`.
+
+ConfigMap and Secret volumes work with both runtime classes.
+
+## Apply a configuration change
+
+Running Instances don't restart when a ConfigMap or Secret changes. To make your app pick up the new values, restart the workload:
+
+```bash
+datumctl compute restart WORKLOAD_NAME
+```
+
+Replace `WORKLOAD_NAME` with the name of your workload.
+
+The restart replaces Instances one at a time in each location. For more information, see [Placement and scaling](/compute/placement-and-scaling#restart-instances).
+
+## Use images from a private registry
+
+To pull an image from a private registry, store the registry credentials in a Secret and reference it in `imagePullSecrets`. This method works with both runtime classes. To use a private registry, follow these steps:
+
+1. Save the following manifest as `registry-credentials.yaml`:
+
+   ```yaml
+   apiVersion: v1
+   kind: Secret
+   metadata:
+     name: registry-credentials
+   type: kubernetes.io/dockerconfigjson
+   stringData:
+     .dockerconfigjson: |
+       {"auths":{"REGISTRY_HOST":{"username":"REGISTRY_USERNAME","password":"REGISTRY_TOKEN"}}}
+   ```
+
+   Replace the following:
+
+   - `REGISTRY_HOST`: the registry host name, such as `ghcr.io`. For Docker Hub, use `https://index.docker.io/v1/`.
+   - `REGISTRY_USERNAME`: the user name for the registry.
+   - `REGISTRY_TOKEN`: a password or access token with permission to pull the image. Use a read-only token.
+
+2. To create the Secret, run the following command:
+
+   ```bash
+   datumctl apply -f registry-credentials.yaml
+   ```
+
+3. In your workload manifest, add the Secret to `spec.template.spec.runtime.sandbox.imagePullSecrets`:
+
+   ```yaml
+   runtime:
+     sandbox:
+       imagePullSecrets:
+         - name: registry-credentials
+       containers:
+         - name: api
+           image: ghcr.io/example/api:1.4.2
+   ```
+
+4. To apply the manifest, run the following command:
+
+   ```bash
+   datumctl compute deploy -f workload.yaml
+   ```
+
+   Replace `workload.yaml` with your manifest file if it has a different name.
+
+A manifest deploy doesn't create or remove a public URL. To publish a workload that you manage with manifests, see [Publish a workload you manage with manifests](/compute/publish-workloads#publish-a-workload-you-manage-with-manifests).
+
+## Complete example
+
+The following manifest combines the settings on this page for a `general-purpose` workload:
+
+```yaml
+apiVersion: compute.datumapis.com/v1alpha
+kind: Workload
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      runtime:
+        class: general-purpose
+        resources:
+          instanceType: datumcloud/d1-standard-2
+        sandbox:
+          imagePullSecrets:
+            - name: registry-credentials
+          containers:
+            - name: api
+              image: ghcr.io/example/api:1.4.2
+              args: ["--config", "/etc/api/config.yaml"]
+              env:
+                - name: LOG_LEVEL
+                  value: info
+                - name: DATABASE_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: api-secrets
+                      key: db-password
+              envFrom:
+                - configMapRef:
+                    name: api-config
+                  prefix: APP_
+              ports:
+                - name: http
+                  port: 8080
+              volumeAttachments:
+                - name: config
+                  mountPath: /etc/api
+      volumes:
+        - name: config
+          configMap:
+            name: api-config
+      networkInterfaces:
+        - network:
+            name: default
+  placements:
+    - name: us-east
+      locations:
+        - name: us-east-1
+      scaleSettings:
+        minReplicas: 1
+```
+
+To use this example on the `unikernel` class, change `runtime.class` to `unikernel` and remove the `envFrom` entry.
+
+## Limits
+
+ConfigMaps and Secrets that a workload references have the following size limits:
+
+- 256 KiB for each ConfigMap or Secret.
+- 1 MiB in total for all the ConfigMaps and Secrets that a workload references in one location.
+
+If a workload exceeds a limit, Datum accepts the request, but the workload reports `ReferencedDataNotReady` and its Instances report `SourceTooLarge`. For other configuration errors, see [Manage and troubleshoot workloads](/compute/manage-workloads#troubleshoot-common-problems).
+
+## What's next
+
+- To serve the workload on a public URL, see [Publish a workload](/compute/publish-workloads).
+- To check status and fix problems, see [Manage and troubleshoot workloads](/compute/manage-workloads).
