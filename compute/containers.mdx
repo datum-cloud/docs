@@ -49,7 +49,7 @@ Always pass `--runtime-class=general-purpose` when you create the workload. With
 
 ## Deploy from a manifest
 
-Use a manifest when you need settings that the `deploy` flags don't expose, such as a custom command, environment variables, or volumes. A flag-based deploy saves its result to `workload.yaml`, which you can edit as a starting point. Each flag-based deploy overwrites `workload.yaml` in the current directory, so keep edited manifests under another name.
+Use a manifest when you need settings that the `deploy` flags don't expose, such as a custom command, a second placement, or a variable set from one key of a Secret. A flag-based deploy saves its result to `workload.yaml`, which you can edit as a starting point. Each flag-based deploy overwrites `workload.yaml` in the current directory, so keep edited manifests under another name.
 
 The following manifest runs Redis in Dallas with a custom command:
 

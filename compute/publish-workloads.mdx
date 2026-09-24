@@ -37,7 +37,7 @@ Replace the following:
 `--http-port` works when you create a workload and when you update one that you deployed with flags.
 
 <Warning>
-  A flag-based `datumctl compute deploy` replaces the workload's whole template and placements with what the flags describe. It removes environment variables, volumes, registry credentials, custom commands, and extra placements that you set in a manifest, and it sets the Instance count to the `--min` value, which defaults to `1`. To publish a workload that you manage with a manifest, see [Publish a workload you manage with manifests](#publish-a-workload-you-manage-with-manifests).
+  A flag-based `datumctl compute deploy` replaces the workload's whole template and placements with what the flags describe. It keeps environment variables, ConfigMap and Secret imports, volumes, and labels. It removes registry credentials, custom commands, and extra placements that you set in a manifest, and it sets the Instance count to the `--min` value, which defaults to `1`. To publish a workload that you manage with a manifest, see [Publish a workload you manage with manifests](#publish-a-workload-you-manage-with-manifests).
 </Warning>
 
 The command declares the port on the container, waits for the rollout, and then prints the publishing progress and the ALB's hostname as the last line of output:

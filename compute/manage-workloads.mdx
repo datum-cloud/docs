@@ -82,7 +82,7 @@ Replace the following:
 - `COUNT`: the number of Instances to run in each location.
 
 <Warning>
-  A flag-based `datumctl compute deploy` replaces the workload's whole template and placements with what the flags describe. It removes environment variables, volumes, registry credentials, custom commands, and extra placements that you set in a manifest, and it sets the Instance count to the `--min` value, which defaults to `1`. Once you manage a workload with a manifest, update it with `datumctl compute deploy -f FILE`.
+  A flag-based `datumctl compute deploy` replaces the workload's whole template and placements with what the flags describe. It keeps environment variables, ConfigMap and Secret imports, volumes, and labels. It removes registry credentials, custom commands, and extra placements that you set in a manifest, and it sets the Instance count to the `--min` value, which defaults to `1`. Once you manage a workload with a manifest, update it with `datumctl compute deploy -f FILE`.
 </Warning>
 
 To update a workload from a manifest, edit the manifest and run `datumctl compute deploy -f FILE`, where `FILE` is the path to your manifest. The command shows the changes and asks for confirmation before it applies them.
