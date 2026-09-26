@@ -1,0 +1,31 @@
+---
+title: "Destroying workloads"
+sidebarTitle: "Destroying workloads"
+description: "Delete a workload and every instance it created with datumctl compute destroy."
+---
+
+`datumctl compute destroy` removes a workload and every instance it created, across every city it was placed in:
+
+```bash
+datumctl compute destroy api
+```
+
+Before deleting anything, it prints a summary of what's about to go — the number of placements, the cities involved, and total minimum replicas — then asks for confirmation. Pass `-y`/`--yes` to skip the prompt in scripts and CI:
+
+```bash
+datumctl compute destroy api -y
+```
+
+<Warning>
+  Unlike `datumctl delete` elsewhere in the CLI, `destroy` has no `--dry-run` and there's no `diff` equivalent to preview it. The confirmation prompt is your only checkpoint — read the summary it prints, or check the workload yourself first:
+
+  ```bash
+  datumctl compute workloads describe api
+  ```
+</Warning>
+
+## Next steps
+
+- `datumctl compute destroy --help` for the full flag reference.
+- [Deploying workloads](/datumctl/compute/deploying-workloads) — redeploy the workload later from the same manifest or image.
+- [Operations](/datumctl/compute/scaling-and-operations) — restart or check instances before you decide to remove a workload altogether.

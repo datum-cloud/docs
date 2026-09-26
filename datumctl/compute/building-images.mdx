@@ -1,0 +1,94 @@
+---
+title: "Building images"
+sidebarTitle: "Building images"
+description: "Turn a Dockerfile into an image Datum Compute can run, check it for compatibility, and publish it with datumctl compute build."
+---
+
+`datumctl compute build` packages a Dockerfile and build context into an image, and optionally publishes it. Point it at the same Dockerfile you already use for a normal container — no Compute-specific syntax required.
+
+```bash
+datumctl compute build .
+```
+
+Compute doesn't run that image as a normal container — it boots it as a unikernel, which is what gives Compute VM-level isolation between workloads at container-like density and cold-start speed. `build` packages your Dockerfile into the artifact that runtime boots from, and validates it against unikernel requirements as part of the same step — so a missing shared library or the wrong architecture shows up as a build-time error instead of a workload that never comes up.
+
+<Info>
+  `build` needs a BuildKit backend to run: Docker Desktop or Docker Engine with BuildKit enabled (the default on modern installs), a standalone `buildkitd`, or `BUILDKIT_HOST` pointing at one.
+</Info>
+
+With no `--output`, this is a **local debug build**: it packages the image so you can confirm it builds successfully, without writing or publishing anything. Once you're ready to deploy it, add `--output` or move on to [deploying workloads](/datumctl/compute/deploying-workloads).
+
+## Choosing a Dockerfile
+
+By default, `build` looks for `Dockerfile.datum` in the build context and falls back to `Dockerfile` if that file does not exist — a convenient way to keep a Compute-specific variant alongside your normal one without extra flags. Use `-f` to point at a Dockerfile anywhere else:
+
+```bash
+# Use a Dockerfile in a non-default location
+datumctl compute build -f ./deploy/Dockerfile .
+
+# Pass build-time variables used by ARG instructions
+datumctl compute build --build-arg VERSION=1.2.3 .
+
+# Package a specific stage of a multi-stage Dockerfile (default: the final stage)
+datumctl compute build --target production .
+```
+
+## Writing the output somewhere
+
+`--output` (`-o`) accepts three kinds of destination:
+
+| Destination | Example |
+|-------------|---------|
+| Registry reference | `--output ghcr.io/acme/api:latest` |
+| OCI archive (`.tar`) | `--output ./compute-image.tar` |
+| OCI layout directory | `--output ./compute-image` |
+
+```bash
+# Publish straight to a registry
+datumctl compute build --push --output ghcr.io/acme/api:latest .
+
+# Write a portable OCI archive instead
+datumctl compute build --output ./compute-image.tar .
+```
+
+<Warning>
+  When `--output` is a registry reference, `build` asks for confirmation before pushing. Pass `--push` to skip that prompt — required in CI, where there is no terminal to confirm on.
+</Warning>
+
+## Checking compatibility before you package it
+
+`--analyze` inspects the built entrypoint for the kind of problem that only shows up once Compute's unikernel runtime tries to boot the image — a binary built for the wrong architecture, a startup script whose interpreter is missing, or a shared library the final stage never copied in:
+
+```bash
+datumctl compute build --analyze .
+```
+
+Where a fix is a mechanical Dockerfile edit, the finding shows exactly what to change:
+
+```text
+error[missing-libs]: /app/server requires 1 runtime file that is not present in the image
+   --> Dockerfile:8
+    | Copy the missing shared library into the final stage
+    | - COPY --from=build /app /app
+    | + COPY --from=build /app /app
+    | + COPY --from=build /lib/libc.so.6 /lib/libc.so.6
+```
+
+Reach for `--fix` once you're ready to apply changes like that automatically — it edits the selected Dockerfile in place and rebuilds. `--fix` implies `--analyze`, and only ever applies safe, exact-line edits — it will never restructure your Dockerfile.
+
+```bash
+datumctl compute build --fix .
+```
+
+## Inspecting a published image
+
+`build inspect <image>` is a diagnostic for an image that already exists in a registry — useful when a deployment isn't starting and you want to confirm the image itself is the problem before looking at the workload. It reports the same kind of compatibility findings as `--analyze`, plus the packaged filesystem and startup configuration Compute will boot from. Add `--extended` for additional OCI metadata — the image index, manifest digest, and layer count. Inspection never downloads the packaged filesystem layer itself, so it stays fast even against a large image.
+
+```bash
+datumctl compute build inspect ghcr.io/acme/api:1.4.2
+```
+
+## Next steps
+
+- `datumctl compute build --help` and `datumctl compute build inspect --help` for the full flag reference.
+- [Deploying workloads](/datumctl/compute/deploying-workloads) — take a published image and run it as a workload.

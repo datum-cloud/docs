@@ -1,0 +1,64 @@
+---
+title: "Operations"
+sidebarTitle: "Operations"
+description: "Restart, roll out, and inspect individual instances of a running workload with datumctl compute."
+---
+
+Once a workload is deployed, these are the commands for day-to-day operation: restarting instances, watching a rollout progress, and drilling into a single instance when something isn't right.
+
+## Restarting
+
+`datumctl compute restart` triggers a rolling restart — instances are replaced without changing the image or configuration, useful for picking up an external change like a secret rotation:
+
+```bash
+# Restart every instance of the workload
+datumctl compute restart api
+
+# Restart only the instances in one city
+datumctl compute restart api --city=DFW
+```
+
+## Watching a rollout
+
+Any change that replaces instances — a `deploy` with a new image, or a `restart` — starts a rollout. `datumctl compute rollout` attaches to it and prints progress per placement and city as it happens:
+
+```bash
+datumctl compute rollout api
+```
+
+Each row moves through phases — `Pending`, `Updating`, `Done` — until every placement finishes. If a placement stalls for more than 30 seconds without progress, its phase becomes `Blocked` and the command prints the reason (a quota limit, a scheduling issue) reported by the platform.
+
+<Note>
+  Ctrl-C detaches from the watch; it never cancels the rollout. Re-run `datumctl compute rollout api` at any time to reattach and see current progress.
+</Note>
+
+## Inspecting instances
+
+`datumctl compute instances` lists every instance in the project — one row per running (or attempting-to-run) copy of a workload's container in a specific city:
+
+```bash
+# Every instance in the project
+datumctl compute instances
+
+# Just one workload
+datumctl compute instances --workload=api
+
+# Just one city
+datumctl compute instances --city=DFW
+```
+
+Status reflects availability, not just whether a process happens to be running at this instant — an instance blocked on quota shows `Pending (quota exceeded)` rather than a generic "not ready." Add `-o wide` for the underlying instance type alongside the default columns, or `-o json`/`-o yaml` for the full resource.
+
+For everything about a single instance — runtime configuration, environment, network addresses, and a plain-English explanation of any failure — use `describe`:
+
+```bash
+datumctl compute instances describe api-dfw-0
+```
+
+When an instance can't start because of quota, `describe` also prints the exact next commands to run — typically checking `datumctl compute quota`.
+
+## Next steps
+
+- `datumctl compute restart --help`, `rollout --help`, and `instances --help` for the full flag reference.
+- [Deploying workloads](/datumctl/compute/deploying-workloads) — the `deploy` and `workloads` commands that create what you're operating on here.
+- [Destroying workloads](/datumctl/compute/destroying-workloads) — remove a workload and every instance it created.
