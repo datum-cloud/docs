@@ -92,6 +92,16 @@
             "group": "ALB",
             "pages": [
               "alb/overview",
+              "alb/quickstart",
+              {
+                "group": "Using datumctl",
+                "pages": [
+                  "alb/guides/datumctl-custom-domain",
+                  "alb/guides/datumctl-routes",
+                  "alb/guides/datumctl-traffic-protection",
+                  "alb/guides/datumctl-troubleshooting"
+                ]
+              },
               {
                 "group": "Guides",
                 "pages": [
