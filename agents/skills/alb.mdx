@@ -28,8 +28,18 @@ npx skills add https://github.com/datum-cloud/skills
 </CodeGroup>
 
 <Note>
-Once installed, the skill activates automatically when you ask an agent to work with Application Load Balancer on Datum. No further configuration needed.
+Once installed, the skill activates automatically when you ask an agent to work with Application Load Balancer on Datum.
 </Note>
+
+<Warning>
+The skill teaches the `datumctl alb` commands, which come from a plugin that is not installed by default. Install it before an agent follows this skill, or every command it runs will fail:
+
+```bash
+datumctl plugin install alb
+```
+
+Until the plugin is published to the Datum catalog, install a release archive with `datumctl plugin install datum-cloud/network-services-operator@<tag>`. Check it with `datumctl alb version`.
+</Warning>
 
 ## Capabilities
 
@@ -43,10 +53,13 @@ Once installed, the skill activates automatically when you ask an agent to work 
 
 It also teaches the three ways this API's status misleads a naive reader — conditions that report on several hostnames without naming one, a condition that is true when something is wrong, and two reasons set true to mean "does not apply" — so an agent does not report a problem that is not there, or miss one that is.
 
+It does not cover metrics. There is no command for request rates, latency percentiles or error rates over time, so the skill sends people to the Metrics tab for that load balancer in the cloud portal instead of guessing from access logs.
+
 ## How it relates to other Datum surfaces
 
 - **Product docs:** [Application Load Balancer](/alb/overview) — the human-facing reference for what an ALB is made of
 - **Datum MCP:** [Datum MCP](/datum-mcp) — for agents that need to read and write Datum resources during a session
+- **Datum's own assistant** — a separate surface with read-only Application Load Balancer tools of its own, entitled through the platform catalog. It answers questions about a load balancer in the portal without anything being installed; this skill is for driving `datumctl` yourself
 - **`datumctl`:** [datumctl overview](/datumctl/overview) — the `datumctl alb` commands the skill teaches agents to use, plus `apply`, `diff` and `delete` for the advanced policies
 
 ## View the full skill
