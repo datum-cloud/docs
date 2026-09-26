@@ -1,0 +1,85 @@
+---
+title: "Serve traffic on your own domain"
+description: "Attach a custom hostname to a Datum Application Load Balancer with datumctl, prove you own the domain, and get a certificate."
+---
+
+A new load balancer serves on a generated hostname like `a1b2c3d4.datumproxy.net`. This guide attaches a hostname of your own to it and gets HTTPS working on that name.
+
+## Two ways in, and they fail differently
+
+**Keep your own DNS.** Create a CNAME from your hostname to the generated one. Datum writes nothing, and there is nothing to wait for. This is covered in [the quickstart](/alb/quickstart) and needs none of the steps below.
+
+**Attach a custom hostname.** Datum serves the name directly, which is what the rest of this guide does. It takes four steps, and each one gates the next.
+
+## Attach it
+
+```bash
+datumctl alb hostname add my-app app.example.com
+datumctl alb hostname list my-app
+```
+
+Custom hostnames must be unique across Datum. If the name is already claimed, `describe` reports it — and note that who holds it is not visible to you, since it may be in another customer's project. If you believe it should be yours, raise it with Datum rather than going looking.
+
+## Watch the four steps
+
+```bash
+datumctl alb describe my-app
+```
+
+Each custom hostname passes through these, in order:
+
+| Step | What it means | If it is stuck |
+|---|---|---|
+| Claimed | This load balancer holds the name | Something else on Datum has it |
+| Ownership verified | You proved you own the domain | Below |
+| DNS record | A record points the name here | Below |
+| Certificate | HTTPS works on it | Almost always DNS, not the certificate |
+
+## Prove you own the domain
+
+Datum gives you a record to create. Look it up on the domain:
+
+```bash
+datumctl get domains --project <project>
+datumctl describe domain example-com --project <project>
+```
+
+Create that record exactly as given, at your DNS provider. Then leave it — Datum picks it up on its own once it is publicly visible. There is no command to force a re-check, and no deadline, because this step waits on you rather than on Datum.
+
+Three things look like a missing record and are not:
+
+- **The record is only visible internally.** Datum queries it the way the public internet does, so a record in a split-horizon or private zone does not count.
+- **It has not propagated yet.** A record created a minute ago may not be visible from where Datum looks.
+- **The name got the zone appended twice.** Many DNS interfaces add the zone automatically, turning `_datum-challenge.example.com` into `_datum-challenge.example.com.example.com`. Check the record's full name as your provider displays it. This is the most common cause of a verification that will not complete on a record you are certain you created.
+
+## Let Datum answer DNS, or keep your own
+
+Once ownership is proven, whether Datum can write the DNS record depends on who answers for the domain.
+
+If Datum runs the domain's DNS, the record appears on its own. If it does not, `describe` says so — and that is a normal arrangement, not a fault. Create a CNAME to the generated hostname at your own provider and you are done.
+
+<Warning>
+Moving a domain's nameservers to Datum moves **all** of its DNS, not just this hostname. Anything else answered by your current provider needs to exist in the new zone first, or it stops resolving. This is the step that causes outages.
+</Warning>
+
+## The certificate
+
+Once the name resolves publicly to the load balancer, the certificate is issued automatically. Until then it cannot be — so a certificate that is not issued is usually a symptom, and the DNS step above is the cause.
+
+If DNS is genuinely in place and the certificate still fails, check for a CAA record on the domain that does not permit Datum's certificate authority. Customers often do not know one is there.
+
+## Confirm it
+
+```bash
+curl -sSI https://app.example.com
+```
+
+Status alone is not enough here — public DNS caches mean the configuration can be right and the name still not resolve for a while.
+
+## Removing a hostname
+
+```bash
+datumctl alb hostname remove my-app app.example.com
+```
+
+This does not ask for confirmation. If Datum manages DNS for the domain, the records it created go with it.
