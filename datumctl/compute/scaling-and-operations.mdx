@@ -8,7 +8,7 @@ Once a workload is deployed, these are the commands for day-to-day operation: re
 
 ## Restarting
 
-`datumctl compute restart` triggers a rolling restart — instances are replaced without changing the image or configuration, useful for picking up an external change like a secret rotation:
+`datumctl compute restart` triggers a rolling restart. It replaces instances without changing the image or configuration, which is useful for picking up an external change like a secret rotation:
 
 ```bash
 # Restart every instance of the workload
@@ -47,7 +47,7 @@ datumctl compute instances --workload=api
 datumctl compute instances --city=DFW
 ```
 
-Status reflects availability, not just whether a process happens to be running at this instant — an instance blocked on quota shows `Pending (quota exceeded)` rather than a generic "not ready." Add `-o wide` for the underlying instance type alongside the default columns, or `-o json`/`-o yaml` for the full resource.
+Status reflects availability, not just whether a process happens to be running at this instant. For example, an instance blocked on quota shows `Pending (quota exceeded)` rather than a generic "not ready." Add `-o wide` for the underlying instance type alongside the default columns, or `-o json`/`-o yaml` for the full resource.
 
 For everything about a single instance — runtime configuration, environment, network addresses, and a plain-English explanation of any failure — use `describe`:
 

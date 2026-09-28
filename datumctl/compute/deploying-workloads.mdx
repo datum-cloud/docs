@@ -32,12 +32,12 @@ If a workload named `api` doesn't exist yet, this creates it with one placement 
 | `-y`/`--yes` | Skip the confirmation prompt — needed in scripts and CI. |
 
 <Note>
-  `deploy` needs a network to attach the workload to. If none exists yet in the project, it offers to create a minimal one, with IP addresses assigned automatically, on your behalf — pass `-y` to accept that automatically in a non-interactive run.
+  `deploy` needs a network to attach the workload to. If none exists yet in the project, it offers to create a minimal one for you, with automatically assigned IP addresses. Pass `-y` to accept that offer in a non-interactive run.
 </Note>
 
 ## Watching the rollout
 
-`deploy` waits and prints progress as instances come up, the same view `datumctl compute rollout` shows on demand — see [Operations](/datumctl/compute/scaling-and-operations). Ctrl-C detaches from the watch without canceling anything; the rollout keeps going in the background; run `datumctl compute rollout api` any time to reattach.
+`deploy` waits and prints progress as instances come up, the same view `datumctl compute rollout` shows on demand — see [Operations](/datumctl/compute/scaling-and-operations). Ctrl-C detaches from the watch without canceling anything, and the rollout keeps going in the background. Run `datumctl compute rollout api` any time to reattach.
 
 ## Deploying from a manifest
 

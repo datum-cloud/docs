@@ -10,7 +10,7 @@ description: "Turn a Dockerfile into an image Datum Compute can run, check it fo
 datumctl compute build .
 ```
 
-Compute doesn't run that image as a normal container — it boots it as a unikernel, which is what gives Compute VM-level isolation between workloads at container-like density and cold-start speed. `build` packages your Dockerfile into the artifact that runtime boots from, and validates it against unikernel requirements as part of the same step — so a missing shared library or the wrong architecture shows up as a build-time error instead of a workload that never comes up.
+Compute doesn't run that image as a normal container — it boots it as a unikernel, which is what gives Compute VM-level isolation between workloads at container-like density and cold-start speed. `build` packages your Dockerfile into the artifact that runtime boots from. It also validates the artifact against unikernel requirements in the same step. A missing shared library or the wrong architecture shows up as a build-time error instead of a workload that never comes up.
 
 <Info>
   `build` needs a BuildKit backend to run: Docker Desktop or Docker Engine with BuildKit enabled (the default on modern installs), a standalone `buildkitd`, or `BUILDKIT_HOST` pointing at one.
@@ -20,7 +20,7 @@ With no `--output`, this is a **local debug build**: it packages the image so yo
 
 ## Choosing a Dockerfile
 
-By default, `build` looks for `Dockerfile.datum` in the build context and falls back to `Dockerfile` if that file does not exist — a convenient way to keep a Compute-specific variant alongside your normal one without extra flags. Use `-f` to point at a Dockerfile anywhere else:
+By default, `build` looks for `Dockerfile.datum` in the build context and falls back to `Dockerfile` if that file does not exist. This lets you keep a Compute-specific variant alongside your normal one without extra flags. Use `-f` to point at a Dockerfile anywhere else:
 
 ```bash
 # Use a Dockerfile in a non-default location
@@ -82,7 +82,7 @@ datumctl compute build --fix .
 
 ## Inspecting a published image
 
-`build inspect <image>` is a diagnostic for an image that already exists in a registry — useful when a deployment isn't starting and you want to confirm the image itself is the problem before looking at the workload. It reports the same kind of compatibility findings as `--analyze`, plus the packaged filesystem and startup configuration Compute will boot from. Add `--extended` for additional OCI metadata — the image index, manifest digest, and layer count. Inspection never downloads the packaged filesystem layer itself, so it stays fast even against a large image.
+`build inspect <image>` is a diagnostic for an image that already exists in a registry. Use it when a deployment isn't starting and you want to confirm the image itself is the problem before looking at the workload. It reports the same kind of compatibility findings as `--analyze`, plus the packaged filesystem and startup configuration Compute will boot from. Add `--extended` for additional OCI metadata — the image index, manifest digest, and layer count. Inspection never downloads the packaged filesystem layer itself, so it stays fast even against a large image.
 
 ```bash
 datumctl compute build inspect ghcr.io/acme/api:1.4.2
