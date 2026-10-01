@@ -1,0 +1,81 @@
+---
+title: "Open a shell in an Instance"
+sidebarTitle: "Instance shell"
+description: "Run an interactive shell or a single command in a container of a running Instance, from the Cloud Portal or datumctl."
+---
+
+A shell session connects you to a container of a running Instance, so you can run an interactive shell or a single command against it. Use it to inspect a process, read a file, or check a configuration without changing how the workload runs.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+Shell sessions are available for `general-purpose` Instances only. A `general-purpose` Instance runs in its own virtual machine, so a shell session reaches a real container through that isolation boundary. `unikernel` Instances don't have a shell, so the **Shell** tab and `datumctl compute exec` aren't available for them. For more about the two classes, see [Choose a runtime class](/compute/runtime-classes).
+
+## How a session works
+
+Opening a shell creates a session: a request to run one command, with or without a terminal, in one container of one Instance. The session has a time limit, and it ends when the command exits, when you close it, when it reaches its time limit, or when the platform can't keep it open.
+
+A session is single-use. Reconnecting after it ends, or running another command, starts a new session.
+
+Two ways to open a session:
+
+<CardGroup cols={2}>
+  <Card title="Cloud Portal" icon="browser" href="/compute/instance-shell-portal">
+    Open an interactive shell from the Instance's **Shell** tab.
+  </Card>
+  <Card title="datumctl" icon="terminal" href="/compute/instance-shell-cli">
+    Run `datumctl compute exec` for an interactive shell or a single command.
+  </Card>
+</CardGroup>
+
+## Security
+
+- **End-to-end encryption.** The connection between your browser or `datumctl` and the Instance's container is encrypted all the way to the cell that runs the Instance.
+- **A one-time key that stays local.** Each session generates its own key pair. The private key never leaves your browser or your machine, and it isn't sent to Datum.
+- **Every session is recorded.** Opening, connecting, and ending a session each appear in the project's [Activity](/platform/activity-logs), with the end reason and exit code.
+- **Containers in the same Instance share a trust domain.** Two shell sessions into the same Instance can see each other's processes and environment variables, because they run in the same container. Treat every shell into an Instance as having the same level of access as any other shell into it.
+- **Ending a session stops what it started, with one exception.** A process that detaches itself from the session, for example with `setsid`, can keep running after the session ends. A background job that was killed can also stay behind as a defunct process in a container whose main process doesn't reap its children. This is a known limitation.
+
+## Permissions
+
+Creating a shell session requires the **Compute Admin** role, which includes `compute.datumapis.com/instanceconsolesessions.create`. The **Compute Viewer** role can list and inspect sessions, including who opened one and how it ended, but can't open or close one. For more on assigning roles, see [Assign roles](/platform/service-accounts#assign-roles).
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Open sessions per Instance | 3 |
+| Open sessions per project | 10 by default. Datum can grant a project more. Contact [support@datum.net](mailto:support@datum.net) to request an increase. |
+| Time to connect after creating a session | 60 seconds. A session nobody connects to by then ends with `NotConnected`. |
+| Session time limit | 15 minutes by default, up to 1 hour. |
+
+## Why a session ended
+
+The **Shell** tab and `datumctl compute exec` both report why a session ended. The following table lists every reason:
+
+| Reason | Meaning | What to do |
+| --- | --- | --- |
+| `Completed` | The command exited on its own. The exit code is included. | Nothing. This is a normal end. |
+| `ClosedByUser` | You closed the shell, or left or closed the page. | Nothing. Open a new session to continue. |
+| `Disconnected` | The connection broke before the command exited, so the platform stopped it. | Check your network connection and reconnect. |
+| `Expired` | The session reached its time limit. | Open a new session. To run longer, request a longer `ttl` next time; see [Open a shell with datumctl](/compute/instance-shell-cli). |
+| `Revoked` | The session was closed from elsewhere, such as another client deleting it. | Open a new session if you still need one. |
+| `NotConnected` | Nothing connected within 60 seconds of creating the session. | Try again. If it keeps happening, check your network connection to Datum. |
+| `TooManySessions` | The Instance already has 3 open sessions. | Close another shell into the same Instance, then try again. |
+| `NoShell` | The container has no `sh`. Datum runs every command through a shell, so no command can run in a container without one. | Use an image that includes a shell, or run the command a different way, such as in the image's entrypoint. |
+| `CommandUnavailable` | The container doesn't have the command you asked for. | Check the command name and that it's installed in the image. |
+| `InstanceNotRunning` | The Instance or its container isn't running. | Wait for the Instance to become `Available`, then try again. See [Manage and troubleshoot workloads](/compute/manage-workloads). |
+| `InstanceNotFound` | The Instance named in the session no longer exists, for example because it was replaced. | Open a new session against the current Instance. |
+| `AgentShutdown` | Datum closed the session for maintenance. | Connect again to continue. |
+| `AgentLost` | Datum lost contact with the session unexpectedly. | Connect again to continue. |
+| `Invalid` | The request couldn't be served as written. | Read the message that comes with this reason; it says why. |
+| `Unavailable` | No part of Datum took the session in time. | Try again shortly. |
+
+If your project's shell session limit is `0`, the **Shell** tab and `datumctl compute exec` both report that shell sessions aren't enabled for the project. Request an increase from [support@datum.net](mailto:support@datum.net).
+
+## What's next
+
+- [Open a shell from the Cloud Portal](/compute/instance-shell-portal)
+- [Open a shell with datumctl](/compute/instance-shell-cli)
+- [Manage and troubleshoot workloads](/compute/manage-workloads)

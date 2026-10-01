@@ -130,6 +130,9 @@
               "compute/placement-and-scaling",
               "compute/publish-workloads",
               "compute/manage-workloads",
+              "compute/instance-shell",
+              "compute/instance-shell-portal",
+              "compute/instance-shell-cli",
               "compute/limits-and-quotas"
             ]
           },
