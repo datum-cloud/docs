@@ -1,0 +1,43 @@
+---
+title: "Open a shell from the Cloud Portal"
+sidebarTitle: "Shell (Cloud Portal)"
+description: "Open an interactive shell in a running Instance from the Cloud Portal, choose a container and command, and end the session when you're done."
+---
+
+This page shows how to open a shell in a running `general-purpose` Instance from the [Datum Cloud portal](https://cloud.datum.net).
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Before you begin
+
+- Deploy a `general-purpose` workload with at least one `Available` Instance. For more information, see [Run a container image](/compute/containers).
+- Your account needs the **Compute Admin** role to open a shell. For more information, see [Permissions](/compute/instance-shell#permissions).
+
+## Open a shell
+
+1. Open your project in the [Datum Cloud portal](https://cloud.datum.net).
+2. Go to **Compute**, then **Workloads**.
+3. Select the workload, then select the Instance you want a shell in.
+4. Select the **Shell** tab.
+5. Choose a **Container**. If the Instance runs only one container, it's already selected.
+6. Enter a **Command**, or select one of the quick picks, `/bin/sh` or `/bin/bash`. The field defaults to `/bin/sh`.
+7. Select **Connect**.
+
+The terminal connects and runs the command you chose. If the container has no shell, or doesn't have the command you asked for, the session ends immediately and the page explains why. For the full list of end reasons, see [Why a session ended](/compute/instance-shell#why-a-session-ended).
+
+## Open the shell in its own window
+
+Select **Open in new window** to continue the session in a console-only window, separate from the rest of the portal. The option is hidden on phones and other small screens, where the shell stays in the page instead.
+
+Opening a shell from a shared link only fills in the **Container** and **Command** fields. Nothing runs until you select **Connect** yourself.
+
+## End a session
+
+Select **Close shell** to end the session and stop the command. Leaving the page or closing the tab also ends the session.
+
+## What's next
+
+- [Open a shell with datumctl](/compute/instance-shell-cli)
+- [Instance shell sessions](/compute/instance-shell) — concepts, security, permissions, and limits.

@@ -37,7 +37,7 @@ If a request is denied or access is revoked, submit a new request with `datumctl
 
 ## Quotas
 
-Your project's compute quota limits how many workloads and Instances you can run, and how much vCPU and memory they use. Datum sets the quota. You can't change it yourself.
+Your project's compute quota limits how many workloads and Instances you can run, how much vCPU and memory they use, and how many shell sessions can be open at once. Datum sets the quota. You can't change it yourself.
 
 Each Instance uses the following quota:
 
@@ -93,6 +93,8 @@ The following table lists fixed limits:
 | Total size of referenced ConfigMaps and Secrets for a workload in one location | 1 MiB |
 | ALBs attached to each workload with `datumctl compute deploy` | 1, on one port |
 | Unikernel image size | The unpacked image must fit in the Instance's 2 GiB of memory, along with the app. |
+| Open shell sessions per Instance | 3 |
+| Open shell sessions per project | 10 by default. Datum can grant a project more. |
 
 ## Limitations
 
@@ -104,7 +106,7 @@ The Compute preview has the following limitations. For limitations of each runti
 - Persistent disks, raw devices, GPUs, and custom virtual machine images aren't available. Files written at runtime are lost when Datum replaces an Instance.
 - Instances with more than one container aren't supported. Run one container per workload.
 - Health probes, such as readiness and liveness checks, aren't available. An Instance is ready when its containers are running.
-- You can't suspend, resume, or snapshot Instances, or open a shell in them or run commands in them.
+- You can't suspend, resume, or snapshot Instances. You can open a shell or run a command in a running `general-purpose` Instance; see [Instance shell sessions](/compute/instance-shell).
 - A workload's runtime class and network can't change after you create it.
 
 ### Placement and scaling
@@ -132,3 +134,4 @@ For more information about networking, see [Networking limitations and roadmap](
 
 - To deploy your first workload, see [Compute quickstart](/compute/quickstart).
 - To check status and fix problems, see [Manage and troubleshoot workloads](/compute/manage-workloads).
+- To open a shell in a running Instance, see [Instance shell sessions](/compute/instance-shell).
