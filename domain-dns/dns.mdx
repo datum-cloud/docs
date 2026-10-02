@@ -24,6 +24,62 @@ We offer authoritative DNS hosting for your domains that you can manage through 
 6. Audit Log – Track all zone and record changes with user attribution and timestamps.
 7. Project Scoped – Manage zones within individual projects with role-based access control.
 
+<Warning>
+Datum DNS doesn't currently support DNSSEC. If DNSSEC is turned on for your domain, turn it off and wait for the DS record to expire **before** you point your domain at Datum's nameservers. Otherwise your domain stops resolving for most of the internet. See [DNSSEC](#dnssec).
+</Warning>
+
+## DNSSEC
+
+Datum DNS doesn't currently support DNSSEC. Zones hosted on Datum aren't signed, and you can't create `DS`, `DNSKEY`, `RRSIG`, `NSEC`, or `NSEC3` records.
+
+This matters most when you move an existing domain to Datum. If your registrar still publishes a `DS` record for the domain, validating resolvers (Google Public DNS, Cloudflare 1.1.1.1, Quad9, and most ISP resolvers) expect signed answers. Datum's answers aren't signed, so those resolvers treat them as tampered with and return `SERVFAIL`. To your users, the domain looks like it has gone offline.
+
+### Check whether DNSSEC is on
+
+Look for a `DS` record at the parent zone:
+
+```bash
+dig +short DS example.com
+```
+
+If this prints nothing, DNSSEC isn't on and you can move to Datum without extra steps. If it prints one or more lines, DNSSEC is on.
+
+If you've added the domain to Datum, its registration details also show this. `datumctl describe domain <name> --project <project-id>` reports `status.registration.dnssec.enabled` and any `DS` records the registry has on file.
+
+### Turn off DNSSEC before you switch nameservers
+
+Do these steps in order. Keep your current DNS provider serving the zone until the last step.
+
+<Steps>
+  <Step title="Remove the DS record at your registrar">
+    Turn off DNSSEC, or delete the `DS` record, wherever your domain is registered. If your current DNS provider manages DNSSEC for you (Cloudflare, for example), turn it off there as well. Leave the zone signed at your current provider for now. See [Cloudflare's guide to disabling DNSSEC](https://developers.cloudflare.com/dns/dnssec/) for an example of this flow.
+  </Step>
+  <Step title="Wait for the DS record to disappear">
+    Run `dig +short DS example.com` until it returns nothing. Then wait one more full `DS` TTL so cached copies expire. You can see the TTL with `dig DS example.com`. For `.com` and `.net` it's 24 hours, and other TLDs vary.
+  </Step>
+  <Step title="Create the zone on Datum">
+    Add the zone and import your records. If your zone file includes `DS`, `DNSKEY`, `RRSIG`, `NSEC`, or `NSEC3` records, the importer skips them and lists them in a warning. You can ignore that warning.
+  </Step>
+  <Step title="Point your domain at Datum">
+    At your registrar, change the nameservers to `ns1`–`ns4.datumdomains.net`.
+  </Step>
+</Steps>
+
+### If your domain stopped resolving after the move
+
+If the domain resolves when you skip validation but fails normally, a leftover `DS` record is the likely cause:
+
+```bash
+dig example.com          # status: SERVFAIL
+dig +cd example.com      # status: NOERROR, with answers
+```
+
+Remove the `DS` record at your registrar. Validating resolvers recover as their cached copy of the `DS` record expires, which can take up to the `DS` TTL.
+
+### Subdomains delegated to Datum
+
+You can delegate a subdomain (for example `app.example.com`) to Datum even when the parent zone is signed somewhere else. This works as long as the parent zone has no `DS` record for that subdomain. Without one, resolvers treat the subdomain as unsigned and accept Datum's answers.
+
 ## DNS record types and behaviors
 
 Most record types are standardized (A, AAAA, CNAME, etc.), but some DNS “record-like” features are provider-specific behaviors (for example, “CNAME flattening”).
