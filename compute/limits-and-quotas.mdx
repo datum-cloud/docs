@@ -1,0 +1,134 @@
+---
+title: "Limits and quotas"
+description: "Request access to Compute, check your project's compute quota, and review the limits and limitations of the Compute preview."
+---
+
+This page explains how to get access to Compute for a project, how quota works, and what Compute doesn't support.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Request access
+
+Compute is enabled for each project separately, and Datum approves each request manually. Until a project has access, every `datumctl compute` command except `access` and `help` stops and asks you to request access. This includes `build`.
+
+To request access for the active project, follow these steps:
+
+1. To check the current state, run the following command:
+
+   ```bash
+   datumctl compute access
+   ```
+
+   The `Status` line shows a state such as `Not requested`, `Pending approval`, `Active`, `Denied`, or `Revoked`.
+
+2. To submit a request and wait for a decision, run the following command:
+
+   ```bash
+   datumctl compute access request --message="MESSAGE" --wait
+   ```
+
+   Replace `MESSAGE` with a short description of what you plan to run. The message helps Datum review your request.
+
+3. Wait until the `Status` line shows `Active`. You can then deploy workloads.
+
+If a request is denied or access is revoked, submit a new request with `datumctl compute access request --renew`. For all access options, see [Compute commands](/datumctl/compute/overview#requesting-access).
+
+## Quotas
+
+Your project's compute quota limits how many workloads and Instances you can run, and how much vCPU and memory they use. Datum sets the quota. You can't change it yourself.
+
+Each Instance uses the following quota:
+
+- 1 Instance
+- 1 vCPU
+- 2 GiB (2,048 MiB) of memory
+
+Quota is shared across runtime classes. A `general-purpose` Instance and a `unikernel` Instance use the same amount.
+
+### Check your quota
+
+To see your project's limits and usage, run the following command:
+
+```bash
+datumctl compute quota
+```
+
+The output is similar to the following:
+
+```text
+Quota for project PROJECT_ID
+
+RESOURCE    UNIT        LIMIT   USED   AVAILABLE   USAGE
+Workloads   workloads   10      3      7           [######--------------]  30%
+Instances   instances   50      12     38          [#####---------------]  24%
+vCPUs       vCPUs       32      8      24          [#####---------------]  25%
+Memory      MiB         65536   16384  49152       [#####---------------]  25%
+```
+
+To show only the resources that are at their limit, add `--constrained`.
+
+### If your quota is used up
+
+If your project doesn't have enough quota for a new Instance, Datum doesn't start it. The Instance shows `Pending (quota exceeded)` in `datumctl compute instances` and reports `QuotaExceeded`, and the workload reports `QuotaNotGranted`. To let the Instance start, do one of the following:
+
+- Lower the number of Instances with `datumctl compute scale WORKLOAD_NAME --min=COUNT`.
+- Delete workloads that you no longer need.
+- Ask for more quota by contacting [support@datum.net](mailto:support@datum.net).
+
+If an Instance reports `QuotaNoBudget`, or another reason that starts with `Quota`, your project's quota isn't set up correctly. The workload exists, but its Instances don't start. Contact support, and Datum fixes the problem.
+
+## Limits
+
+The following table lists fixed limits:
+
+| Item | Limit |
+| --- | --- |
+| Instance type | `datumcloud/d1-standard-2` only: 1 vCPU and 2 GiB of memory |
+| Instances in each location of a placement (`minReplicas`) | 1 to 1,000 |
+| Network interfaces for each Instance | Exactly 1 |
+| Networks for each workload | 1 |
+| Size of each referenced ConfigMap or Secret | 256 KiB |
+| Total size of referenced ConfigMaps and Secrets for a workload in one location | 1 MiB |
+| ALBs attached to each workload with `datumctl compute deploy` | 1, on one port |
+| Unikernel image size | The unpacked image must fit in the Instance's 2 GiB of memory, along with the app. |
+
+## Limitations
+
+The Compute preview has the following limitations. For limitations of each runtime class, see [Run a container image](/compute/containers#limitations) and [Build and deploy a unikernel](/compute/unikernels#limitations). For limitations of the ALB, see [Publish a workload](/compute/publish-workloads#limitations).
+
+### Runtime and sizing
+
+- One instance type is available, and you can't set CPU or memory for each container.
+- Persistent disks, raw devices, GPUs, and custom virtual machine images aren't available. Files written at runtime are lost when Datum replaces an Instance.
+- Instances with more than one container aren't supported. Run one container per workload.
+- Health probes, such as readiness and liveness checks, aren't available. An Instance is ready when its containers are running.
+- You can't suspend, resume, or snapshot Instances, or open a shell in them or run commands in them.
+- A workload's runtime class and network can't change after you create it.
+
+### Placement and scaling
+
+- Compute runs in `us-central-1` (Dallas), `us-east-1` (Ashburn), and `us-west-1` (San Jose).
+- Workloads don't scale automatically, and they can't scale to zero. Don't set `scaleSettings.maxReplicas` or `scaleSettings.metrics`.
+- Rollouts replace Instances one at a time in each location, with no option to add extra Instances during the rollout.
+
+### Networking
+
+- During the preview, Instances have private IPv6 addresses only. Private IPv4 addresses and public IP addresses are a preview limitation.
+- Outbound internet access and IPv4 destinations are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities). Image pulls aren't affected.
+- Private DNS names for Instances are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
+- Firewall rules to filter traffic between Instances on a network are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
+- Public access is HTTP and HTTPS only, served through Datum's [ALB](/alb/overview). Raw TCP and UDP exposure is a preview limitation.
+
+For more information about networking, see [Networking limitations and roadmap](/galactic-vpc/limitations-and-roadmap). To learn which networking capabilities Datum is working on, see [Planned capabilities](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
+
+### Operations
+
+- `datumctl compute` has no command to read Instance logs.
+- Per-Instance CPU and memory metrics aren't available.
+
+## What's next
+
+- To deploy your first workload, see [Compute quickstart](/compute/quickstart).
+- To check status and fix problems, see [Manage and troubleshoot workloads](/compute/manage-workloads).
