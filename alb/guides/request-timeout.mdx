@@ -16,7 +16,7 @@ You likely need this guide if you see any of the following:
 - **Large downloads stop partway through.** The file is cut off after about 15 seconds. `curl` reports:
 
   ```
-  curl: (18) transfer closed with 1234567 bytes remaining to read
+  curl: (18) transfer closed with <N> bytes remaining to read
   ```
 
 - **Streaming responses stop after about 15 seconds.** Server-sent events, log tails, long polling, and similar connections that stay open close without warning.
@@ -98,7 +98,7 @@ timeout="1h"
 
 > **Note:** Datum caps the request timeout at **1 hour**. A value higher than `1h` is rejected when you apply it.
 
-> **Warning:** Only one `BackendTrafficPolicy` can attach to a route. If your route already has one (for example, from the [Load Balancer Failover](/alb/guides/load-balancer-failover) guide), add the `timeout` block to that policy instead of creating a second one. A second policy targeting the same route is not accepted.
+> **Warning:** Only one `BackendTrafficPolicy` can attach to a route. If your route already has one (for example, from the [Load Balancer Failover](/alb/guides/load-balancer-failover) guide), add the `timeout` block to that policy instead of creating a second one. A second policy targeting the same route reports `Accepted: False` with reason `Conflicted` and has no effect.
 
 #### Windows (PowerShell)
 
@@ -245,7 +245,7 @@ datumctl delete backendtrafficpolicy ${proxy}-timeout \
 |---------|------------|------------|
 | Responses still stop after about 15 seconds | `targetRefs` doesn't name the `HTTPRoute` for your `HTTPProxy`, or the policy is not `Accepted` | Set `targetRefs[].name` to the exact `HTTPProxy` name and check `status.ancestors` as in Step 3 |
 | Policy is rejected when you apply it | `requestTimeout` is higher than `1h` | Use `1h` or less |
-| Policy is applied but not `Accepted` | Another `BackendTrafficPolicy` already targets the same route | Add the `timeout` block to the existing policy and delete the new one |
+| Policy is applied but not `Accepted`, reason `Conflicted` | Another `BackendTrafficPolicy` already targets the same route (the older policy wins) | Add the `timeout` block to the existing policy and delete the new one |
 | Responses stop after exactly the value you set | The response took longer than the timeout | Raise the timeout (up to `1h`) or have the client reconnect |
 | Streamed responses never arrive, at any timeout | A `TrafficProtectionPolicy` (WAF) is attached | Known limitation, see [Limitations](#limitations) |
 
