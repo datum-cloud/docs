@@ -1,0 +1,277 @@
+---
+title: "Raise the Request Timeout for an HTTPProxy"
+description: "Stop large downloads, streams, and slow API responses from being cut off after about 15 seconds by raising an HTTPProxy's request timeout to as much as 1 hour with datumctl and an Envoy Gateway BackendTrafficPolicy."
+---
+
+This guide describes how to **raise the request timeout** for an application behind a Datum **`HTTPProxy`**, from the default of about 15 seconds up to a maximum of **1 hour**, using `datumctl`. The configuration uses an **Envoy Gateway `BackendTrafficPolicy`** resource and applies to **Windows, macOS, and Linux**.
+
+---
+
+## Overview
+
+By default, Datum's edge gives every request about **15 seconds** to finish. The clock starts when the request arrives and covers the whole response, not just the wait for it to begin. If your origin is still sending when time runs out, Datum ends the response.
+
+You likely need this guide if you see any of the following:
+
+- **Large downloads stop partway through.** The file is cut off after about 15 seconds. `curl` reports:
+
+  ```
+  curl: (18) transfer closed with 1234567 bytes remaining to read
+  ```
+
+- **Streaming responses stop after about 15 seconds.** Server-sent events, log tails, long polling, and similar connections that stay open close without warning.
+- **Slow requests fail with a `504`.** If your origin takes more than about 15 seconds to start answering, the request returns `504 Gateway Timeout` with a page that mentions `response_timeout`.
+
+`HTTPProxy` has no timeout setting of its own. Instead, you attach a `BackendTrafficPolicy` to the route that Datum creates for your `HTTPProxy`, and set the timeout there.
+
+At a high level, this setup:
+
+1. Finds the name of your `HTTPProxy`, which is also the name of the route to target
+2. Applies a **`BackendTrafficPolicy`** that sets `timeout.http.requestTimeout`
+3. Confirms the policy was accepted
+4. Verifies that a long response now completes
+
+---
+
+## Prerequisites
+
+- `datumctl` installed and authenticated
+- A valid **Project**
+- An existing **`HTTPProxy`**
+- Permission to create:
+  - `BackendTrafficPolicy`
+
+Verify access and find your `HTTPProxy` name:
+
+```bash
+datumctl get httpproxy --project <project-id> --namespace default
+```
+
+---
+
+## Critical Requirement: Target the Route with Your HTTPProxy's Name
+
+Datum creates an `HTTPRoute` for every `HTTPProxy`, and gives it **the same name as the `HTTPProxy`**. The policy must target that `HTTPRoute`, not the `HTTPProxy` itself.
+
+### Why This Matters
+
+- A `BackendTrafficPolicy` can only attach to Gateway API resources such as an `HTTPRoute`. It cannot target an `HTTPProxy` directly
+- If `targetRefs` names a route that doesn't exist, the policy is stored but never takes effect, and your responses are still cut off at about 15 seconds
+
+You can confirm the route exists:
+
+```bash
+datumctl get httproute <proxy-name> --project <project-id> --namespace default
+```
+
+---
+
+## Configuration Steps
+
+### Step 1: Set Variables
+
+Set `timeout` to the longest you expect a single response to take, up to `1h`. Use a value like `90s`, `10m`, or `1h`.
+
+#### Windows (PowerShell)
+
+```powershell
+$project   = "your-project-id"
+$namespace = "default"
+$proxy     = "your-httpproxy-name"
+$hostname  = "your-app.example.com"
+$timeout   = "1h"
+```
+
+#### macOS / Linux
+
+```bash
+project="your-project-id"
+namespace="default"
+proxy="your-httpproxy-name"
+hostname="your-app.example.com"
+timeout="1h"
+```
+
+---
+
+### Step 2: Apply the BackendTrafficPolicy
+
+> **Note:** Datum caps the request timeout at **1 hour**. A value higher than `1h` is rejected when you apply it.
+
+> **Warning:** Only one `BackendTrafficPolicy` can attach to a route. If your route already has one (for example, from the [Load Balancer Failover](/alb/guides/load-balancer-failover) guide), add the `timeout` block to that policy instead of creating a second one. A second policy targeting the same route is not accepted.
+
+#### Windows (PowerShell)
+
+```powershell
+@"
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: ${proxy}-timeout
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: $proxy
+  timeout:
+    http:
+      requestTimeout: $timeout
+"@ | datumctl apply --project $project --namespace $namespace -f -
+```
+
+#### macOS / Linux
+
+```bash
+cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: ${proxy}-timeout
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: $proxy
+  timeout:
+    http:
+      requestTimeout: $timeout
+EOF
+```
+
+To change the timeout later, update `timeout` and apply the same manifest again.
+
+---
+
+### Step 3: Confirm the Policy Was Accepted
+
+#### Windows (PowerShell)
+
+```powershell
+datumctl get backendtrafficpolicy ${proxy}-timeout `
+  --project $project --namespace $namespace -o yaml
+```
+
+#### macOS / Linux
+
+```bash
+datumctl get backendtrafficpolicy ${proxy}-timeout \
+  --project $project --namespace $namespace -o yaml
+```
+
+Look for an `Accepted` condition with status `"True"` under `status.ancestors`:
+
+```yaml
+status:
+  ancestors:
+  - ancestorRef:
+      ...
+    conditions:
+    - type: Accepted
+      status: "True"
+      ...
+```
+
+The new timeout typically reaches Datum's edge in under a minute.
+
+---
+
+## Verification
+
+Make a request that takes longer than 15 seconds and check that it completes. Use your own slow endpoint, large file, or stream.
+
+If you'd rather see the before-and-after with a known test origin, create a test `HTTPProxy` whose backend is `https://httpbin.org`, then use its `/drip` endpoint. The request below asks the origin to send 40 bytes spread evenly over 40 seconds.
+
+#### Windows (PowerShell)
+
+```powershell
+curl.exe -o NUL -w "%{http_code} %{size_download} %{time_total}`n" "https://$hostname/drip?duration=40&numbytes=40"
+```
+
+#### macOS / Linux
+
+```bash
+curl -o /dev/null -w '%{http_code} %{size_download} %{time_total}\n' "https://$hostname/drip?duration=40&numbytes=40"
+```
+
+### Before the Policy
+
+The response is cut off after about 15 seconds, with only part of the body delivered. Output is similar to:
+
+```
+curl: (18) transfer closed with 25 bytes remaining to read
+200 15 16.0
+```
+
+### After the Policy
+
+The full body arrives and the request runs for the full 40 seconds. Output is similar to:
+
+```
+200 40 39.5
+```
+
+---
+
+## Cleanup / Restore the Default Timeout
+
+Deleting the policy returns the route to the default timeout of about 15 seconds.
+
+### Windows (PowerShell)
+
+```powershell
+datumctl delete backendtrafficpolicy ${proxy}-timeout `
+  --project $project --namespace $namespace --ignore-not-found
+```
+
+### macOS / Linux
+
+```bash
+datumctl delete backendtrafficpolicy ${proxy}-timeout \
+  --project $project --namespace $namespace --ignore-not-found
+```
+
+---
+
+## Limitations
+
+- **1 hour is the maximum, and it covers the whole response.** The timeout is measured from when the request arrives until the last byte is sent. A download, stream, or long poll that is still open after the timeout is cut off, even if data is still flowing. Clients that keep connections open longer than an hour need to reconnect.
+- **Streamed responses and traffic protection.** When a `TrafficProtectionPolicy` (WAF) is attached to the `HTTPProxy`, streamed responses such as server-sent events currently don't arrive at the client at all. Raising the timeout does not change this. This is a known issue.
+
+---
+
+## Troubleshooting
+
+| Symptom | Root Cause | Resolution |
+|---------|------------|------------|
+| Responses still stop after about 15 seconds | `targetRefs` doesn't name the `HTTPRoute` for your `HTTPProxy`, or the policy is not `Accepted` | Set `targetRefs[].name` to the exact `HTTPProxy` name and check `status.ancestors` as in Step 3 |
+| Policy is rejected when you apply it | `requestTimeout` is higher than `1h` | Use `1h` or less |
+| Policy is applied but not `Accepted` | Another `BackendTrafficPolicy` already targets the same route | Add the `timeout` block to the existing policy and delete the new one |
+| Responses stop after exactly the value you set | The response took longer than the timeout | Raise the timeout (up to `1h`) or have the client reconnect |
+| Streamed responses never arrive, at any timeout | A `TrafficProtectionPolicy` (WAF) is attached | Known limitation, see [Limitations](#limitations) |
+
+### Useful Debug Commands
+
+```bash
+datumctl get httpproxy $proxy --project $project --namespace $namespace
+datumctl get httproute $proxy --project $project --namespace $namespace
+datumctl get backendtrafficpolicy --project $project --namespace $namespace
+datumctl get backendtrafficpolicy ${proxy}-timeout --project $project --namespace $namespace -o yaml
+```
+
+---
+
+## Best Practices
+
+- Set the timeout close to the longest response you actually expect, rather than always using `1h`. A shorter timeout frees up stuck requests sooner when your origin hangs
+- For anything that may stay open longer than the timeout, such as event streams, build clients that reconnect automatically
+- Name the policy after the `HTTPProxy` (for example `<proxy-name>-timeout`) so it's easy to find and clean up
+
+---
+
+## Summary
+
+- Datum's edge ends every response about 15 seconds after the request arrives unless you raise the timeout
+- `HTTPProxy` has no timeout field. Set `timeout.http.requestTimeout` in a `BackendTrafficPolicy` instead
+- The policy targets the `HTTPRoute` that has the same name as your `HTTPProxy`
+- The maximum is `1h`, measured over the whole response, including streams
+- Only one `BackendTrafficPolicy` can attach to a route, so add the timeout to an existing policy if there is one

@@ -108,7 +108,8 @@
                   "alb/guides/basic-auth",
                   "alb/guides/oidc-google",
                   "alb/guides/oidc-auth0",
-                  "alb/guides/load-balancer-failover"
+                  "alb/guides/load-balancer-failover",
+                  "alb/guides/request-timeout"
                 ]
               }
             ]
