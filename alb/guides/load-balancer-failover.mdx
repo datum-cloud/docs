@@ -43,11 +43,11 @@ datumctl get httproute
 
 ---
 
-## Critical Requirement: BackendTLSPolicy for FQDN Backends
+## Critical requirement: BackendTLSPolicy for FQDN backends
 
 A `Backend` that targets an external FQDN **must** be paired with a `BackendTLSPolicy` that sets `spec.validation.hostname`.
 
-### Why This Matters
+### Why this matters
 
 - An FQDN `Backend`'s inline `spec.tls` block alone does **not** set outbound SNI
 - Origins that route by SNI (most shared-IP hosting platforms) reject connections with no or incorrect SNI
@@ -57,9 +57,9 @@ Origins that do not inspect SNI (single-tenant IPs, some test endpoints) will wo
 
 ---
 
-## Configuration Steps
+## Configuration steps
 
-### Step 1: Set Variables
+### Step 1: Set variables
 
 #### Windows (PowerShell)
 
@@ -89,7 +89,7 @@ fallbackBackend="fallback-backend"
 
 ---
 
-### Step 2: Create the Primary and Fallback Backends
+### Step 2: Create the primary and fallback backends
 
 Set `fallback: true` on the fallback `Backend` only. Envoy sends traffic to a `fallback: true` backend only once every non-fallback backend referenced by the same route is ejected.
 
@@ -159,7 +159,7 @@ EOF
 
 ---
 
-### Step 3: Attach a BackendTLSPolicy to Each Backend
+### Step 3: Attach a BackendTLSPolicy to each backend
 
 #### Windows (PowerShell)
 
@@ -227,7 +227,7 @@ EOF
 
 ---
 
-### Step 4: Update the HTTPRoute to Reference Both Backends
+### Step 4: Update the HTTPRoute to reference both backends
 
 Add both backends to the route's `backendRefs`. Give them equal `weight` — the fallback's `fallback: true` flag, not the weight, is what keeps it out of rotation while the primary is healthy.
 
@@ -299,7 +299,7 @@ EOF
 
 ---
 
-### Step 5: Apply Passive Health Checking with a BackendTrafficPolicy
+### Step 5: Apply passive health checking with a BackendTrafficPolicy
 
 > **Note:** Only passive (outlier-detection) health checking is supported. A `healthCheck.active` block is rejected by admission — active `/healthz` polling is not available on this platform.
 
@@ -357,7 +357,7 @@ EOF
 
 ## Verification
 
-### Primary Healthy
+### Primary healthy
 
 ```bash
 curl -I https://your-app.example.com
@@ -373,7 +373,7 @@ Traffic is served by the primary backend.
 
 ---
 
-### Primary Failing
+### Primary failing
 
 > **Warning:** This test interrupts live traffic to the primary. Run it against a non-production hostname or during a maintenance window.
 
@@ -413,7 +413,7 @@ Traffic returns to the primary automatically — no manual re-enable step is req
 
 ---
 
-## Cleanup / Disable Failover
+## Cleanup / disable failover
 
 ### Windows (PowerShell)
 
@@ -455,7 +455,7 @@ datumctl delete backend $primaryBackend $fallbackBackend \
 | Traffic never shifts to the fallback backend | Fallback `Backend` missing `fallback: true`, or `BackendTrafficPolicy.spec.targetRefs` doesn't match the `HTTPRoute` | Set `fallback: true` on the fallback `Backend`; confirm the `targetRefs` name matches |
 | Fallback keeps serving traffic after the primary recovers | Still inside the `baseEjectionTime` window | Wait out the ejection window — Envoy re-admits the primary automatically once it passes health checks again |
 
-### Useful Debug Commands
+### Useful debug commands
 
 ```bash
 datumctl get backend --project $project --namespace $namespace
@@ -466,7 +466,7 @@ datumctl get httproute $route --project $project --namespace $namespace -o yaml
 
 ---
 
-## Best Practices
+## Best practices
 
 - Set `consecutive5XxErrors` / `consecutiveGatewayErrors` above `1` in production to avoid ejecting on a single transient error
 - Keep `maxEjectionPercent` at `100` when there is only one primary backend — a lower value can block ejection entirely since there is only one host to eject from
