@@ -1,0 +1,221 @@
+---
+title: "Compute quickstart"
+sidebarTitle: "Quickstart"
+description: "Deploy draw.io to Dallas with one command, open it through Datum's ALB, draw a diagram in your browser, and then clean up."
+---
+
+In this quickstart, you deploy [draw.io](https://www.drawio.com/), the open source diagramming app, to the Dallas location with one command. You open it in your browser through Datum's Application Load Balancer (ALB), draw a diagram, and then delete the workload.
+
+The quickstart uses the `general-purpose` runtime class, which runs standard container images without changes, and the official `docker.io/jgraph/drawio` image. The app fits in one Instance (1 vCPU and 2 GiB of memory), listens on IPv6, and starts without outbound internet access. It has no accounts and stores nothing on the Instance, because your diagrams stay in your browser until you save them to your device. You don't set a password or edit any files.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change. Your project needs approved access to Compute before you can deploy, and Datum reviews access requests manually.
+</Note>
+
+## Before you begin
+
+- Create a Datum Cloud account, an organization, and a project. For more information, see [Account setup](/platform/setup).
+- Install `datumctl` and run `datumctl login`. For more information, see the [datumctl quickstart](/datumctl/quickstart).
+- Make sure that you have permission to create compute and networking resources in the project, for example, through the **Compute Admin** and **Network Admin** roles.
+- Install a web browser and `curl`.
+
+## Set up your project
+
+Complete these steps once for each project that runs Compute workloads. Other Compute guides assume that you've completed them.
+
+<Steps>
+  <Step title="Select your project">
+    Compute commands run against a project. To make your project the active context, run the following command:
+
+    ```bash
+    datumctl ctx use ORG_ID/PROJECT_ID
+    ```
+
+    Replace the following:
+
+    - `ORG_ID`: the ID of your organization.
+    - `PROJECT_ID`: the ID of your project.
+
+    To pick a project from a list instead, run `datumctl ctx use` with no arguments.
+  </Step>
+
+  <Step title="Install the compute plugin">
+    The `compute` commands come from a plugin in the official Datum catalog. To install the plugin, run the following command:
+
+    ```bash
+    datumctl plugin install compute
+    ```
+
+    If you installed the plugin earlier, run `datumctl plugin upgrade compute` instead to get the latest release. For more information about plugins, see [Using plugins](/datumctl/plugins/using-plugins).
+  </Step>
+
+  <Step title="Request access to Compute">
+    To request access for your project and wait for a decision, run the following command:
+
+    ```bash
+    datumctl compute access request --wait
+    ```
+
+    Datum approves requests manually, so the wait can outlast the command's default 30-minute timeout. If the command times out, run `datumctl compute access` to check the state of your request. Continue when the status is `Active`.
+  </Step>
+</Steps>
+
+## Deploy and use draw.io
+
+<Steps>
+  <Step title="Deploy draw.io">
+    To deploy draw.io to Dallas (`us-central-1`) and publish it on a public URL, run the following command:
+
+    ```bash
+    datumctl compute deploy drawio \
+      --image=docker.io/jgraph/drawio:31.4.6 \
+      --runtime-class=general-purpose \
+      --location=us-central-1 \
+      --http-port=8080
+    ```
+
+    The flags do the following:
+
+    - `--image`: the container image to run, pinned to a draw.io release. Compute requires the registry host in the image reference, such as `docker.io`.
+    - `--runtime-class=general-purpose`: runs the image as a standard container in a lightweight virtual machine. Without this flag, Datum uses the `unikernel` class, which needs a specially packaged image.
+    - `--location=us-central-1`: runs one Instance in Dallas.
+    - `--http-port=8080`: attaches Datum's [ALB](/alb/overview) to the workload and publishes port `8080`, where draw.io serves HTTP. The app listens on all IPv4 and IPv6 addresses, which matters because Instances have private IPv6 addresses only.
+
+    The command asks you two questions:
+
+    1. The first time you deploy in a project, the command asks whether to create a network named `default`. Enter `y`.
+    2. The command prints a plan and asks `Apply? (Y/n)`. Enter `y`.
+
+    The command then creates the workload, waits for the Instance to start, and publishes the URL. The output is similar to the following:
+
+    ```text
+    Resolving workload "drawio" in project PROJECT_ID...
+      Network "default" does not exist in project PROJECT_ID.
+      Create it now? (Y/n): y
+      network/default created
+      Placement "default": locations=[us-central-1], min=1
+      Runtime class:       general-purpose
+      Network:             default
+      HTTP service:        port 8080 → Datum-managed URL
+                           Datum terminates TLS; serve plain HTTP on this port.
+    Apply? (Y/n): y
+      workload/drawio created
+    Saved workload.yaml
+    Waiting for rollout. Ctrl-C to detach (rollout continues in background).
+
+      PLACEMENT  LOCATION      UPDATED  READY  OLD  PHASE
+      default    us-central-1  0        0      1    Pending
+      default    us-central-1  1        1      0    Done
+    Rollout complete in 22s.
+
+    Publishing...
+      Backends     1 healthy across us-central-1
+      Edge         programmed
+      Certificate  issued
+
+      https://peril-oven-p53hn.datumproxy.net
+    ```
+
+    The rollout table adds a row each time the location's progress changes, so your rows and the rollout time can differ.
+
+    The last line is the hostname of the ALB that `--http-port` attached to the workload. Your hostname is different. The command also saves the workload definition to `workload.yaml` in the current directory. You don't need the file for this quickstart.
+  </Step>
+
+  <Step title="Check that draw.io is available">
+    To list the workloads in your project, run the following command:
+
+    ```bash
+    datumctl compute workloads
+    ```
+
+    The output is similar to the following:
+
+    ```text
+    NAME     LOCATIONS      HEALTH      READY   UP-TO-DATE   PLACEMENTS   IMAGE                  AGE   URL
+    drawio   us-central-1   Available   1/1     1/1          default      jgraph/drawio:31.4.6   2m    https://peril-oven-p53hn.datumproxy.net
+
+    1 workloads — 1 Available, 0 Degraded, 0 Unavailable, 0 Unknown
+    ```
+
+    Continue when `HEALTH` is `Available` and `READY` is `1/1`. The `URL` column shows the ALB hostname from the deploy output.
+  </Step>
+
+  <Step title="Open draw.io in your browser">
+    In your web browser, go to the URL from the last line of the deploy output, such as `https://peril-oven-p53hn.datumproxy.net`. Datum's ALB serves draw.io over HTTPS, and the app opens a blank diagram named **Untitled Diagram**.
+
+    If the browser can't find the site, wait a minute and try again. A new hostname can take a few minutes to resolve.
+
+    To check draw.io from the command line as well, run the following command:
+
+    ```bash
+    curl -s WORKLOAD_URL | grep -o '<title>.*</title>'
+    ```
+
+    Replace `WORKLOAD_URL` with the URL from the last line of the deploy output.
+
+    The output is the following:
+
+    ```text
+    <title>Flowchart Maker &amp; Online Diagram Software</title>
+    ```
+  </Step>
+
+  <Step title="Draw a diagram">
+    To draw a diagram and save it to your computer, follow these steps:
+
+    1. In the **General** shape panel, click the rectangle. The editor adds a rectangle to the diagram.
+    2. Double-click the rectangle, and enter a label, such as `Hello from Datum`.
+    3. Click an empty part of the diagram to finish editing.
+    4. Click **File** > **Export as** > **PNG...**.
+    5. Click **Export**.
+    6. Click **Save**. Your browser downloads `Untitled Diagram.drawio.png`.
+
+    The editor runs in your browser. The Instance only serves the app's files, so your diagrams aren't lost when Datum restarts or replaces the Instance. Anyone who has the URL can open the editor, but each person's diagrams stay in their own browser.
+  </Step>
+
+  <Step title="Optional: See the Instance">
+    To list the workload's Instances, run the following command:
+
+    ```bash
+    datumctl compute instances --workload=drawio
+    ```
+
+    The output is similar to the following:
+
+    ```text
+    NAME                            WORKLOAD   LOCATION       INTERNAL IP           TYPE      AGE   STATUS
+    drawio-default-us-central-1-0   drawio     us-central-1   fd20:0:20::1:0:0/96   sandbox   3m    Available
+
+    1 instances — 1 Available, 0 Pending, 0 Failed
+    ```
+
+    The `INTERNAL IP` column shows the Instance's private IPv6 address on the `default` network. The Instance has no public address, so traffic from the internet reaches draw.io only through the ALB.
+  </Step>
+</Steps>
+
+## Clean up
+
+To avoid using your project's compute quota, delete the resources that you created by following these steps:
+
+1. To delete the workload, its Instance, and its ALB, run the following command:
+
+   ```bash
+   datumctl compute destroy drawio
+   ```
+
+2. Review the summary that the command prints.
+3. Enter `y` to confirm. The command prints `workload/drawio deleted.`
+4. Delete `workload.yaml` from the current directory.
+5. Optional: If you don't plan to deploy more workloads, delete the `default` network:
+
+   ```bash
+   datumctl delete network default
+   ```
+
+## What's next
+
+- To set environment variables and pass configuration and secrets to a workload, see [Configure a workload](/compute/configuration).
+- To learn what else you can set on a container workload, see [Run a container image](/compute/containers).
+- To package your own app as a fast-starting unikernel, see [Build and deploy a unikernel](/compute/unikernels).
+- To run in more locations or with more Instances, see [Placement and scaling](/compute/placement-and-scaling).
+- To serve the workload on your own domain, see [Publish a workload](/compute/publish-workloads).
