@@ -1,0 +1,106 @@
+---
+title: "Roll out traffic protection safely"
+description: "Turn on the Datum web application firewall with datumctl without blocking real users, using Observe mode and access logs to tune it first."
+---
+
+Every load balancer created with `datumctl alb create` gets traffic protection in **Enforce** mode at sensitivity 1. That is a sensible default for something new. It is not a sensible thing to switch on in front of a live site without looking first.
+
+This guide covers doing it in the order that does not block your own users.
+
+## Where it stands
+
+```bash
+datumctl alb waf describe my-app
+```
+
+Three states:
+
+| Mode | What happens |
+|---|---|
+| `Observe` | Requests are inspected and logged. Nothing is blocked. |
+| `Enforce` | Matching requests are blocked. |
+| `Disabled` | The policy exists but does nothing. |
+
+Sensitivity — the paranoia level — runs 1 to 4. Higher catches more and produces more false positives.
+
+<Note>
+The cloud portal offers sensitivity 1 and 2 only. Setting 3 or 4 here works, but the portal will not be able to change it afterwards.
+</Note>
+
+## Putting an existing site behind it
+
+Do not go straight to `Enforce` on a site that already has users.
+
+<Steps>
+  <Step title="Start in Observe">
+    ```bash
+    datumctl alb waf set my-app --mode Observe --paranoia 1
+    ```
+    Requests are inspected and logged, and nothing is blocked.
+  </Step>
+  <Step title="Let it see real traffic">
+    Long enough to include whatever runs weekly — reports, exports, batch jobs, a partner's nightly integration. A weekday is rarely enough.
+  </Step>
+  <Step title="Read what would have been blocked">
+    ```bash
+    datumctl alb logs my-app --since 24h --code 403
+    ```
+    Look for legitimate traffic in there: file uploads, rich text or Markdown in request bodies, SQL-like strings typed into a search box, long base64 values, API clients sending unusual headers. All of these trip rules at higher sensitivities.
+  </Step>
+  <Step title="Switch to Enforce">
+    ```bash
+    datumctl alb waf set my-app --mode Enforce --paranoia 1
+    ```
+  </Step>
+  <Step title="Raise sensitivity one level at a time">
+    Repeat the same check at each level. Do not jump from 1 to 4.
+  </Step>
+</Steps>
+
+## When real traffic is being blocked
+
+The signature is requests reaching the load balancer and coming back `403` without ever reaching your origin. Your origin's own logs show nothing at all, which is what makes it confusing — from the origin's side the traffic simply vanished.
+
+```bash
+datumctl alb logs my-app --since 1h --code 403 -o wide
+```
+
+The fix is almost never to turn protection off. In order of preference: drop to `Observe` while you investigate, lower the sensitivity, or narrow what runs.
+
+```bash
+datumctl alb waf set my-app --mode Observe
+```
+
+Turning it off entirely is a decision to make knowingly:
+
+```bash
+datumctl alb waf disable my-app
+```
+
+<Warning>
+`waf disable` deletes the policy without asking for confirmation.
+</Warning>
+
+## A load balancer with no protection at all
+
+This is worth checking for, because nothing reports it as a problem.
+
+Creating a load balancer in the cloud portal attaches protection on a best-effort basis. If that attach fails, the load balancer is created anyway, you are not told, and the security card simply reads as disabled. The same is true of `datumctl alb create`: if the load balancer is created and the policy then fails, the command exits non-zero having left an unprotected load balancer behind.
+
+So after any failed create:
+
+```bash
+datumctl alb waf describe my-app
+```
+
+If it reports off, attach one:
+
+```bash
+datumctl alb waf set my-app --mode Enforce --paranoia 1
+```
+
+## Rule exclusions and rate limiting
+
+`datumctl alb waf` covers mode and sensitivity. Excluding specific rules, setting score thresholds, rate limiting and circuit breaking are manifests — see [WAF configuration](/alb/waf-configuration) and [HTTPProxy and WAF capabilities](/alb/proxy-waf).
+
+Keep the detection level at or above the blocking level so you can preview stricter rules in the logs before enforcing them.

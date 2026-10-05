@@ -1,0 +1,95 @@
+---
+title: "When a load balancer is not serving"
+description: "Work out why a Datum Application Load Balancer is not serving traffic, in the order that finds the cause fastest, using datumctl."
+---
+
+This guide goes in order. Each step rules something out, so work down rather than jumping.
+
+## Start with describe
+
+```bash
+datumctl alb describe my-app
+```
+
+That is the whole picture: status, the generated hostname, each custom hostname with its progress, routes and their origins, traffic protection, and basic auth.
+
+Two things to read carefully.
+
+**Status conditions report on several hostnames at once and name none of them.** A load balancer reporting a partial failure is telling you something is wrong with at least one hostname, not which. The per-hostname lines below are where the answer is.
+
+**"Published" is not "serving".** A load balancer reports its configuration as published within seconds of a change, while Datum's edge is still catching up, and nothing publishes when that finishes. There is no documented figure for how long, so do not wait on a number — make a request.
+
+## Is anything actually reaching it?
+
+```bash
+curl -sSI https://<generated hostname>
+datumctl alb logs my-app --since 1h
+```
+
+Test the **generated** hostname first. It bypasses every question about your own DNS, so it splits the problem cleanly:
+
+- Generated hostname works, custom one does not → a hostname problem, below.
+- Neither works → the load balancer or its origin, further below.
+
+<Note>
+No traffic in the logs is not a diagnosis. A load balancer nobody has called looks exactly like one that is broken. If nothing is arriving, send a request yourself and look again.
+</Note>
+
+## A hostname that does not work
+
+`describe` shows four steps per custom hostname. Work on the first one that is not done and ignore the rest — each gates the next.
+
+| Step not done | Where to go |
+|---|---|
+| Claimed | The name is held elsewhere on Datum. Who holds it is not visible to you |
+| Ownership verified | [Serve traffic on your own domain](/alb/guides/datumctl-custom-domain) |
+| DNS record | Same guide — usually Datum does not answer for the domain, which is normal |
+| Certificate | Almost always DNS. Fix the step above and it resolves itself |
+
+Two states that look like failures and are not:
+
+- **Datum does not manage the domain's DNS.** Reported as such, set deliberately. It means "create a CNAME yourself", not "something went wrong". Nothing is pending.
+- **The generated hostname reports nothing about its DNS record.** No status is published for it at all, so its absence tells you nothing either way.
+
+## An origin that cannot be reached
+
+If the generated hostname does not serve either, the problem is between the load balancer and your origin.
+
+```bash
+datumctl alb route list my-app
+datumctl alb logs my-app --since 1h -o wide
+```
+
+Read the response codes:
+
+| What you see | What it means |
+|---|---|
+| `200`, `404`, other application responses | Traffic is reaching your origin and it is answering. The problem is in your application |
+| `403` with nothing at your origin | Blocked before it got there — [traffic protection](/alb/guides/datumctl-traffic-protection) |
+| `502` / `503` | Datum could not get a usable answer. Origin down, refusing connections, or too slow |
+| `429` | Rate limited |
+
+The response flags in `-o wide` are the most useful field when nothing else explains it — they say whether the connection to your origin failed, timed out, or found nothing healthy.
+
+For a network service origin, check the service exists and declares the port name you used. `--port` takes a name like `http`, never a number, and Datum will not invent a service that does not exist.
+
+## A change that was accepted and never took effect
+
+This one is easy to miss.
+
+If a load balancer reports as waiting to be published, read the message rather than waiting. A message saying it cannot be published means Datum has decided it cannot use these settings at all — the load balancer keeps serving whatever it published last, and waiting will never clear it.
+
+The usual cause is two URL origins on one route that need different Host headers. See [sending paths to different origins](/alb/guides/datumctl-routes).
+
+## Nothing reports a fault and it still does not work
+
+In rough order of likelihood:
+
+1. **Nothing points at it.** No CNAME, no custom hostname attached. Common, and invisible in status.
+2. **It was created moments ago.** The edge is still converging. Retry the request rather than reading status again.
+3. **The origin is refusing connections.** The logs show it; status does not.
+4. **Traffic protection is blocking real requests.** `Enforce` at a high sensitivity will do this.
+
+## Permission errors
+
+A command that fails with a permission error rather than a not-found means your account cannot act on that resource in this project. Ask whoever administers the project; there is nothing to change on the load balancer.

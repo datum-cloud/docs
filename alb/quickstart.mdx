@@ -1,0 +1,219 @@
+---
+title: "Application Load Balancer quickstart"
+sidebarTitle: "Quickstart"
+description: "Put a public site behind Datum's Application Load Balancer with one command, watch the firewall block an attack, and then clean up."
+---
+
+In this quickstart, you put an existing website behind a Datum Application Load Balancer (ALB) with one command. You get an HTTPS address, confirm the site is served through it, watch the built-in web application firewall block an attack, and then delete the load balancer.
+
+The quickstart uses [httpbin.org](https://httpbin.org) as the origin, because it is public and echoes back whatever you send it. Nothing is installed on the origin and nothing about it changes — the load balancer sits in front of it. Swap the URL for your own site and every step works the same way.
+
+## Why put a site behind an ALB
+
+A load balancer is worth adding when you want something in front of your origin that you would otherwise have to build:
+
+- **HTTPS without managing certificates.** Datum issues and renews them. HTTP is redirected to HTTPS by default.
+- **A web application firewall on by default.** The OWASP Core Rule Set blocks common injection and scripting attacks before they reach your origin.
+- **One address for several origins.** Send `/api` to one service and everything else to another, without changing either.
+- **A password in front of a staging site.** Basic authentication takes one command and needs no support from the app.
+- **Access logs for what actually arrived**, including requests the firewall blocked, which your origin never sees.
+- **Somewhere to point a domain** that does not change when your origin does.
+
+## Before you begin
+
+- Create a Datum Cloud account, an organization, and a project. See [Account setup](/platform/setup).
+- Install `datumctl` and run `datumctl login`. See the [datumctl quickstart](/datumctl/quickstart).
+- Make sure you have permission to create networking resources in the project.
+- Install `curl`.
+
+## Set up your project
+
+<Steps>
+  <Step title="Select your project">
+    Load balancer commands run against a project. To make your project the active context, run the following command:
+
+    ```bash
+    datumctl ctx use ORG_ID/PROJECT_ID
+    ```
+
+    Replace the following:
+
+    - `ORG_ID`: the ID of your organization.
+    - `PROJECT_ID`: the ID of your project.
+
+    To pick from a list instead, run `datumctl ctx use` with no arguments. To check which project is active, run `datumctl ctx`.
+  </Step>
+
+  <Step title="Install the alb plugin">
+    The `alb` commands come from a plugin in the official Datum catalog. To install it, run the following command:
+
+    ```bash
+    datumctl plugin install alb
+    ```
+
+    If you installed it earlier, run `datumctl plugin upgrade alb` instead. To confirm it is there, run `datumctl alb version`, which needs no login, no project and no network.
+  </Step>
+</Steps>
+
+## Create and use the load balancer
+
+<Steps>
+  <Step title="Create it">
+    To create a load balancer in front of `httpbin.org`, run the following command:
+
+    ```bash
+    datumctl alb create quickstart-demo --endpoint https://httpbin.org
+    ```
+
+    The output is similar to the following:
+
+    ```text
+    Application load balancer "quickstart-demo" created.
+    Hostname: cake-game-mwr46.datumproxy.net
+
+    Next steps:
+      datumctl alb hostname add quickstart-demo <custom-hostname>
+      datumctl alb describe quickstart-demo
+    ```
+
+    Your hostname is different. Datum generates one for every load balancer, and the command waits for it, because that hostname is what you point a domain at later.
+
+    Three things are on by default, and match what the cloud portal creates:
+
+    - **Force HTTPS.** Requests on HTTP get a 301 to HTTPS.
+    - **Traffic protection** in `Enforce` mode at sensitivity 1, so matching requests are blocked rather than logged.
+    - **No custom hostnames.** It serves on the generated hostname until you add one.
+
+    <Note>
+      Putting an existing, busy site behind a firewall in blocking mode is the most common way to block your own users. For a live site, start in `Observe` mode with `--waf-mode Observe`, watch real traffic, then switch to `Enforce`.
+    </Note>
+  </Step>
+
+  <Step title="Check what it looks like">
+    To see the load balancer as a whole, run the following command:
+
+    ```bash
+    datumctl alb describe quickstart-demo
+    ```
+
+    The output is similar to the following:
+
+    ```text
+    Name:               quickstart-demo
+    Display name:       quickstart-demo
+    Status:             Active
+    Status detail:      The HTTPProxy has been programmed
+    Age:                18s ago
+    Default hostname:   cake-game-mwr46.datumproxy.net
+    Custom hostnames:   none
+    Force HTTPS:        yes
+    Routes:
+      /
+        https://httpbin.org (url)
+    Host header:        —
+    Traffic protection: Enforce (paranoia 1)
+    Basic auth:         off
+    Certificates:       True (AllCertificatesReady)
+
+    Try it:
+      curl -I https://cake-game-mwr46.datumproxy.net/
+    ```
+
+    `Status: Active` means Datum has published the configuration. It does not mean a request has succeeded yet — nothing reports that — so confirm with a request in the next step.
+  </Step>
+
+  <Step title="Confirm it serves">
+    To send a request through the load balancer, run the following command:
+
+    ```bash
+    curl -s -o /dev/null -w '%{http_code}\n' https://ALB_HOSTNAME/get
+    ```
+
+    Replace `ALB_HOSTNAME` with the hostname from the create output.
+
+    The output is the following:
+
+    ```text
+    200
+    ```
+
+    If `curl` cannot resolve the host, wait a minute and try again. A new hostname takes a short time to appear in public DNS, and there is no status that reports when it has.
+  </Step>
+
+  <Step title="Watch the firewall block an attack">
+    This is what traffic protection does for you. To send a request that looks like SQL injection, run the following command:
+
+    ```bash
+    curl -s -o /dev/null -w '%{http_code}\n' "https://ALB_HOSTNAME/get?id=1'%20OR%20'1'='1"
+    ```
+
+    The output is the following:
+
+    ```text
+    403
+    ```
+
+    A cross-site scripting attempt is blocked the same way:
+
+    ```bash
+    curl -s -o /dev/null -w '%{http_code}\n' "https://ALB_HOSTNAME/get?q=%3Cscript%3Ealert(1)%3C%2Fscript%3E"
+    ```
+
+    ```text
+    403
+    ```
+
+    Neither request reached `httpbin.org`. The load balancer answered `403` itself, which is why a blocked request never appears in your origin's own logs — from the origin's side, the traffic simply is not there.
+  </Step>
+
+  <Step title="Check that HTTP is redirected">
+    To confirm Force HTTPS, run the following command:
+
+    ```bash
+    curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' http://ALB_HOSTNAME/get
+    ```
+
+    The output is similar to the following:
+
+    ```text
+    301 https://cake-game-mwr46.datumproxy.net/get
+    ```
+  </Step>
+
+  <Step title="Optional: See what arrived">
+    To see the requests that reached the load balancer, including the ones it blocked, run the following command:
+
+    ```bash
+    datumctl alb logs quickstart-demo --since 10m
+    ```
+
+    To narrow it to blocked requests, add `--code 403`.
+
+    Logs can take a few minutes to appear, and `No access logs found.` on a load balancer you have only just created usually means they have not arrived yet rather than that nothing was served.
+  </Step>
+</Steps>
+
+## Clean up
+
+To delete the load balancer, run the following command:
+
+```bash
+datumctl alb delete quickstart-demo --yes
+```
+
+The output is the following:
+
+```text
+Application load balancer "quickstart-demo" deleted.
+```
+
+This also removes the traffic protection policy and any basic authentication attached to it. Without `--yes`, the command asks you to type the name to confirm.
+
+## What's next
+
+- To serve traffic on a domain you own, see [Serve traffic on your own domain](/alb/guides/datumctl-custom-domain).
+- To send different paths to different origins, see [Send paths to different origins](/alb/guides/datumctl-routes).
+- To turn the firewall on in front of a live site without blocking real users, see [Roll out traffic protection safely](/alb/guides/datumctl-traffic-protection).
+- To work out why a load balancer is not serving, see [When a load balancer is not serving](/alb/guides/datumctl-troubleshooting).
+- To put a password in front of a site, see [HTTP basic authentication](/alb/guides/basic-auth).
+- For what an ALB is made of and what else it can do, see the [Application Load Balancer overview](/alb/overview).
