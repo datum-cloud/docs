@@ -21,13 +21,107 @@ A session is single-use. Reconnecting after it ends, or running another command,
 Two ways to open a session:
 
 <CardGroup cols={2}>
-  <Card title="Cloud Portal" icon="browser" href="/compute/instance-shell-portal">
+  <Card title="Cloud Portal" icon="browser" href="/compute/instance-shell#cloud-portal">
     Open an interactive shell from the Instance's **Shell** tab.
   </Card>
-  <Card title="datumctl" icon="terminal" href="/compute/instance-shell-cli">
+  <Card title="datumctl" icon="terminal" href="/compute/instance-shell#datumctl">
     Run `datumctl compute exec` for an interactive shell or a single command.
   </Card>
 </CardGroup>
+
+## Cloud Portal
+
+Open an interactive shell in a running `general-purpose` Instance from the [Datum Cloud portal](https://cloud.datum.net).
+
+### Before you begin
+
+- Deploy a `general-purpose` workload with at least one `Available` Instance. For more information, see [Run a container image](/compute/containers).
+- Your account needs the **Compute Admin** role to open a shell. For more information, see [Permissions](#permissions).
+
+### Open a shell
+
+1. Open your project in the [Datum Cloud portal](https://cloud.datum.net).
+2. Go to **Compute**, then **Workloads**.
+3. Select the workload, then select the Instance you want a shell in.
+4. Select the **Shell** tab.
+5. Choose a **Container**. If the Instance runs only one container, it's already selected.
+6. Enter a **Command**, or select one of the quick picks, `/bin/sh` or `/bin/bash`. The field defaults to `/bin/sh`.
+7. Select **Connect**.
+
+The terminal connects and runs the command you chose. If the container has no shell, or doesn't have the command you asked for, the session ends immediately and the page explains why. For the full list of end reasons, see [Why a session ended](#why-a-session-ended).
+
+### Open the shell in its own window
+
+Select **Open in new window** to continue the session in a console-only window, separate from the rest of the portal. The option is hidden on phones and other small screens, where the shell stays in the page instead.
+
+Opening a shell from a shared link only fills in the **Container** and **Command** fields. Nothing runs until you select **Connect** yourself.
+
+### End a session
+
+Select **Close shell** to end the session and stop the command. Leaving the page or closing the tab also ends the session.
+
+## datumctl
+
+`datumctl compute exec` runs a command, interactively or once, in a container of a running `general-purpose` Instance.
+
+### Before you begin
+
+- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
+- `exec` needs a version of the `compute` plugin that includes it. If `datumctl compute exec --help` doesn't show the command, upgrade the plugin:
+
+  ```bash
+  datumctl plugin upgrade compute
+  ```
+
+  For more on installing and upgrading plugins, see [Using plugins](/datumctl/plugins/using-plugins).
+- Deploy a `general-purpose` workload with at least one `Available` Instance. For more information, see [Run a container image](/compute/containers).
+
+### Open an interactive shell
+
+Run the following command, replacing `INSTANCE_NAME` with the name of the Instance:
+
+```bash
+datumctl compute exec INSTANCE_NAME -it -- sh
+```
+
+`-i` keeps standard input open, and `-t` allocates a terminal. Together, they give you an interactive shell. The following example opens one in an Instance named `api-dfw-0`:
+
+```bash
+datumctl compute exec api-dfw-0 -it -- sh
+```
+
+### Run a single command
+
+Omit `-it` to run a command once and print its output, without an interactive shell:
+
+```bash
+datumctl compute exec api-dfw-0 -- cat /etc/os-release
+```
+
+### Choose a container
+
+If the Instance runs more than one container, name the one to run the command in with `-c`:
+
+```bash
+datumctl compute exec api-dfw-0 -c worker -- ps aux
+```
+
+Without `-c`, the command runs in the Instance's only container. `general-purpose` Instances run exactly one container today, so you only need `-c` once an Instance runs more than one.
+
+### Exit codes
+
+`datumctl compute exec` passes through the result of the command or the session:
+
+| Exit code | Meaning |
+| --- | --- |
+| The command's own exit code | The command ran and exited on its own. |
+| `1` | The platform ended the session instead of the command exiting, for example because it expired or the Instance stopped running. `datumctl` prints why. |
+| `2` | A usage error, such as a missing instance name or command. |
+| `130` | You interrupted `datumctl` (Ctrl+C) before the command finished. |
+
+For the full list of reasons the platform can end a session, see [Why a session ended](#why-a-session-ended).
+
+For the full flag reference, run `datumctl compute exec --help`.
 
 ## Security
 
@@ -59,7 +153,7 @@ The **Shell** tab and `datumctl compute exec` both report why a session ended. T
 | `Completed` | The command exited on its own. The exit code is included. | Nothing. This is a normal end. |
 | `ClosedByUser` | You closed the shell, or left or closed the page. | Nothing. Open a new session to continue. |
 | `Disconnected` | The connection broke before the command exited, so the platform stopped it. | Check your network connection and reconnect. |
-| `Expired` | The session reached its time limit. | Open a new session. To run longer, request a longer `ttl` next time; see [Open a shell with datumctl](/compute/instance-shell-cli). |
+| `Expired` | The session reached its time limit. | Open a new session. To run longer, request a longer `ttl` next time; see [Open a shell with datumctl](#datumctl). |
 | `Revoked` | The session was closed from elsewhere, such as another client deleting it. | Open a new session if you still need one. |
 | `NotConnected` | Nothing connected within 60 seconds of creating the session. | Try again. If it keeps happening, check your network connection to Datum. |
 | `TooManySessions` | The Instance already has 3 open sessions. | Close another shell into the same Instance, then try again. |
@@ -76,6 +170,5 @@ If your project's shell session limit is `0`, the **Shell** tab and `datumctl co
 
 ## What's next
 
-- [Open a shell from the Cloud Portal](/compute/instance-shell-portal)
-- [Open a shell with datumctl](/compute/instance-shell-cli)
 - [Manage and troubleshoot workloads](/compute/manage-workloads)
+- [Check Compute limits and quotas](/compute/limits-and-quotas)

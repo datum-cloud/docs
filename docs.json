@@ -141,8 +141,6 @@
               "compute/publish-workloads",
               "compute/manage-workloads",
               "compute/instance-shell",
-              "compute/instance-shell-portal",
-              "compute/instance-shell-cli",
               "compute/limits-and-quotas"
             ]
           },
@@ -372,6 +370,14 @@
     {
       "source": "/ai-edge/:slug*",
       "destination": "/alb/:slug*"
+    },
+    {
+      "source": "/compute/instance-shell-portal",
+      "destination": "/compute/instance-shell"
+    },
+    {
+      "source": "/compute/instance-shell-cli",
+      "destination": "/compute/instance-shell"
     }
   ]
 }
