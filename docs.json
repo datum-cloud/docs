@@ -102,6 +102,7 @@
             "pages": [
               "alb/overview",
               "alb/quickstart",
+              "alb/wildcard-hostnames",
               {
                 "group": "Using datumctl",
                 "pages": [
