@@ -106,6 +106,7 @@
                 "group": "Using datumctl",
                 "pages": [
                   "alb/guides/datumctl-custom-domain",
+                  "alb/guides/wildcard-hostnames",
                   "alb/guides/datumctl-routes",
                   "alb/guides/datumctl-traffic-protection",
                   "alb/guides/datumctl-troubleshooting"
