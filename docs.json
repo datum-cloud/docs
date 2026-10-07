@@ -89,10 +89,20 @@
             ]
           },
           {
+            "group": "Galactic VPC",
+            "pages": [
+              "galactic-vpc/overview",
+              "galactic-vpc/networks",
+              "galactic-vpc/addressing-and-traffic",
+              "galactic-vpc/limitations-and-roadmap"
+            ]
+          },
+          {
             "group": "ALB",
             "pages": [
               "alb/overview",
               "alb/quickstart",
+              "alb/wildcard-hostnames",
               {
                 "group": "Using datumctl",
                 "pages": [
@@ -121,9 +131,19 @@
             ]
           },
           {
-            "group": "Galactic VPC",
+            "group": "Compute",
             "pages": [
-              "galactic-vpc/overview"
+              "compute/overview",
+              "compute/quickstart",
+              "compute/runtime-classes",
+              "compute/containers",
+              "compute/unikernels",
+              "compute/configuration",
+              "compute/placement-and-scaling",
+              "compute/publish-workloads",
+              "compute/manage-workloads",
+              "compute/instance-shell",
+              "compute/limits-and-quotas"
             ]
           },
           {
@@ -352,6 +372,14 @@
     {
       "source": "/ai-edge/:slug*",
       "destination": "/alb/:slug*"
+    },
+    {
+      "source": "/compute/instance-shell-portal",
+      "destination": "/compute/instance-shell"
+    },
+    {
+      "source": "/compute/instance-shell-cli",
+      "destination": "/compute/instance-shell"
     }
   ]
 }

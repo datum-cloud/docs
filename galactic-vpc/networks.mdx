@@ -1,0 +1,155 @@
+---
+title: "Create and manage networks"
+sidebarTitle: "Manage networks"
+description: "Create a Galactic VPC network, attach a Compute workload to it, keep Instance addresses, and delete a network."
+---
+
+This page shows how to create a network, attach workloads to it, keep Instance addresses after scale-down, and delete a network. To learn how networks relate to projects, locations, and Instances, see [Galactic VPC](/galactic-vpc/overview).
+
+<Note>
+  Galactic VPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## Before you begin
+
+- Install `datumctl`, log in, and select a project. For more information, see the [datumctl quickstart](/datumctl/quickstart).
+- To create, change, or delete networks, you need the **Network Admin** role in the project. The same role lets you attach workloads to a network. For more information, see [Permissions](#permissions).
+
+## Create a network
+
+To create a network, follow these steps:
+
+1. Save the following manifest as `network.yaml`:
+
+   ```yaml
+   apiVersion: networking.datumapis.com/v1alpha
+   kind: Network
+   metadata:
+     name: backend
+   spec:
+     ipam:
+       mode: Auto
+   ```
+
+   `spec.ipam.mode: Auto` tells Datum to assign the network's address space. `ipam.mode` is the only field that you need to set.
+
+2. To create the network, run the following command:
+
+   ```bash
+   datumctl apply -f network.yaml
+   ```
+
+3. To check that the network is ready, run the following command:
+
+   ```bash
+   datumctl get networks
+   ```
+
+   When the network is ready, the `IPV6PREFIX` column shows the private IPv6 prefix that Datum assigned, and the `READY` column shows `True`.
+
+A network has two optional settings: `spec.ipFamilies` defaults to `[IPv6]`, and `spec.mtu` defaults to `1440`. Keep the defaults unless you have a reason to change them. Datum rejects a network that doesn't include IPv6, and a larger MTU can cause connections between locations to stall.
+
+## Attach a workload to a network
+
+A workload chooses its network when you create it. You can't move a workload to a different network later.
+
+To attach a workload with `datumctl`, pass `--network` when you create it:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME \
+  --image=IMAGE \
+  --location=LOCATION \
+  --network=NETWORK_NAME
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: a name for your workload.
+- `IMAGE`: the full image reference, including the registry host.
+- `LOCATION`: one or more locations, separated by commas.
+- `NETWORK_NAME`: the name of the network, such as `backend`.
+
+If you omit `--network`, the command attaches the workload to the `default` network. For more information, see [The default network](/galactic-vpc/overview#the-default-network).
+
+To attach a workload in a manifest, set `network.name` in the workload's only entry under `spec.template.spec.networkInterfaces`. The following workload runs in Dallas and Ashburn on the `backend` network:
+
+```yaml
+apiVersion: compute.datumapis.com/v1alpha
+kind: Workload
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      runtime:
+        class: general-purpose
+        resources:
+          instanceType: datumcloud/d1-standard-2
+        sandbox:
+          containers:
+            - name: api
+              image: ghcr.io/example/api:1.4.2
+              ports:
+                - name: http
+                  port: 8080
+      networkInterfaces:
+        - network:
+            name: backend
+  placements:
+    - name: dallas
+      locations:
+        - name: us-central-1
+      scaleSettings:
+        minReplicas: 1
+    - name: ashburn
+      locations:
+        - name: us-east-1
+      scaleSettings:
+        minReplicas: 1
+```
+
+If the network doesn't exist, the workload reports `NetworkNotFound` and no Instances start. If you don't have permission to use the network, Datum rejects the workload with `permission to use the network was denied`.
+
+## Keep addresses after scale-down
+
+By default, an Instance keeps its address when Datum replaces it during a rollout or restart, but Datum releases the address when it removes the Instance, such as when you scale down or delete the workload.
+
+To keep addresses reserved even after scale-down, set `reclaimPolicy: Retain` on the network interface when you create the workload:
+
+```yaml
+networkInterfaces:
+  - network:
+      name: backend
+    reclaimPolicy: Retain
+```
+
+Retained addresses stay reserved even when you scale down. You can't change `reclaimPolicy` after you create the workload.
+
+## Delete a network
+
+Before you delete a network, delete the workloads that are attached to it. To delete a network, run the following command:
+
+```bash
+datumctl delete network NETWORK_NAME
+```
+
+Replace `NETWORK_NAME` with the name of the network.
+
+If Instances still hold addresses on the network, the network stays in deletion and reports `RangeOccupied` until they're gone.
+
+## Permissions
+
+Networks use the following roles and permissions:
+
+| Task | What you need |
+| --- | --- |
+| View networks | The **Network Viewer** role or the **Network Admin** role. |
+| Create, change, or delete a network | The **Network Admin** role. |
+| Attach a workload to a network | The `networking.datumapis.com/networks.use` permission on the network, in addition to permission to create the workload. The **Network Admin** role includes `networks.use`. Datum checks the permission when you create the workload. |
+| Attach an ALB to a workload | The **Network Admin** role. For more information, see [Publish a workload](/compute/publish-workloads). |
+
+## What's next
+
+- To learn how Instances get addresses and which traffic a network carries, see [Network addressing and traffic](/galactic-vpc/addressing-and-traffic).
+- To review what networks can't do, see [Networking limitations and roadmap](/galactic-vpc/limitations-and-roadmap).
+- To serve a workload publicly through Datum's ALB, see [Publish a workload](/compute/publish-workloads).
