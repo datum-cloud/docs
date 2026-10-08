@@ -1,15 +1,16 @@
 ---
-title: "Observability"
-description: "Use metrics, logs, and activity history to understand your Datum resources and workloads."
+title: "Monitor Compute workloads"
+sidebarTitle: "Observability"
+description: "Use metrics and logs to understand your Compute workloads and Instances."
 ---
 
-Datum's observability tools help you measure resource usage, inspect application output and request logs, and review changes to your resources. The examples below focus on Compute workloads and their Application Load Balancers (ALBs).
+Use Compute metrics and logs to understand how your workloads run. Metrics show CPU and memory usage. Logs show Instance output and, for published workloads, requests handled by an Application Load Balancer (ALB).
 
 ## Metrics
 
-The Cloud Portal shows CPU and memory usage on Compute workload and Instance pages. Open the **Metrics** tab for a longer view. Datum also publishes the measurements to your project's metrics store so you can query them or [export them to Grafana Cloud](/platform/metrics-export). The Metrics Export guide also lists prebuilt dashboards for Datum infrastructure and proxy traffic.
+The Cloud Portal shows CPU and memory usage on Compute workload and Instance pages. Open the **Metrics** tab for a longer view. Datum also publishes the measurements to your project's metrics store so you can query them or [export them to Grafana Cloud](/platform/metrics-export).
 
-### Compute CPU and memory
+### CPU and memory series
 
 | Metric | Type | Meaning |
 | --- | --- | --- |
@@ -62,6 +63,4 @@ Open a workload's **Logs** tab in the Cloud Portal to see output from its Instan
 
 Instance output appears after an Instance starts writing to standard output. ALB access logs require a published workload and requests to its public endpoint. If you don't see expected entries, check that the Instance is running, select a time range that includes the activity, and confirm that requests reached the ALB.
 
-## Activity logs
-
-[Activity logs](/platform/activity-logs) record changes to Datum resources across an organization or project. Use them to find who changed a workload or another resource; use workload logs to investigate what the running application emitted.
+To find who changed a workload's configuration, see [Activity logs](/platform/activity-logs). Activity logs record resource changes; the Logs tab shows output from running Instances and requests to the ALB.
