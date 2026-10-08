@@ -1,0 +1,62 @@
+---
+title: "Monitor Instance CPU and memory"
+sidebarTitle: "CPU and memory metrics"
+description: "Query CPU usage and memory working set for Compute Instances and their containers."
+---
+
+Datum publishes CPU and memory metrics for Compute Instances to your project's metrics store. Use the Instance name to find its series, or use the `instance_container` label to inspect a container separately.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Available metrics
+
+| Metric | Type | Meaning |
+| --- | --- | --- |
+| `datum_compute_instance_cpu_usage_seconds_total` | Counter | CPU time used, in seconds. Apply `rate()` to see CPU usage in cores. |
+| `datum_compute_instance_memory_working_set_bytes` | Gauge | Memory working set, in bytes. |
+
+Each series describes one container in an Instance. The measurements come from the running containers; they don't represent total virtual machine memory or include a separate virtual machine overhead measurement. An Instance's quota and configured size are also different from its measured usage.
+
+The labels to use in queries are:
+
+| Label | Meaning |
+| --- | --- |
+| `resourcemanager_datumapis_com_project_name` | Project ID. |
+| `resource_name` | Instance name, as shown by `datumctl compute instances`. This is not the workload name. |
+| `instance_container` | Container name within the Instance. Use this label for a per-container breakdown. The metrics store does not expose the raw Prometheus `container` label. |
+| `region` | Location where the Instance runs, such as `us-central-1`. |
+| `runtime_class` | `general-purpose` on standard container Instances. |
+
+## Query one Instance
+
+Replace `PROJECT_ID` and `INSTANCE_NAME` with your project ID and the name returned by `datumctl compute instances --workload=WORKLOAD_NAME`. Run these MetricsQL queries in your metrics tool:
+
+```promql
+sum(rate(datum_compute_instance_cpu_usage_seconds_total{resourcemanager_datumapis_com_project_name="PROJECT_ID",resource_name="INSTANCE_NAME"}[5m]))
+```
+
+The CPU result is in cores. For example, `0.5` means approximately half of one CPU core over the five-minute window.
+
+```promql
+sum(datum_compute_instance_memory_working_set_bytes{resourcemanager_datumapis_com_project_name="PROJECT_ID",resource_name="INSTANCE_NAME"})
+```
+
+The memory result is in bytes. These queries add the container measurements for the selected Instance. Keep the project selector: Instance names alone are not unique across projects.
+
+To see the contribution from each container, retain `instance_container` in the result:
+
+```promql
+sum by (instance_container) (rate(datum_compute_instance_cpu_usage_seconds_total{resourcemanager_datumapis_com_project_name="PROJECT_ID",resource_name="INSTANCE_NAME"}[5m]))
+
+sum by (instance_container) (datum_compute_instance_memory_working_set_bytes{resourcemanager_datumapis_com_project_name="PROJECT_ID",resource_name="INSTANCE_NAME"})
+```
+
+If an Instance has more than one container, each container has its own series. Sum the series once for an Instance total; don't add a container breakdown to the total again.
+
+## Query a workload
+
+The metrics don't carry a workload-name label. To graph a workload, get its Instance names with `datumctl compute instances --workload=WORKLOAD_NAME`, then select those names in `resource_name`. For example, a two-Instance workload can use `resource_name=~"INSTANCE_1|INSTANCE_2"` with the same project selector. Sum the selected CPU rates or memory gauges for workload totals.
+
+To send these metrics to an external monitoring system, see [Metrics Export](/platform/metrics-export).
