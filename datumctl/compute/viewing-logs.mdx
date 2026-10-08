@@ -1,0 +1,62 @@
+---
+title: "View Compute logs"
+sidebarTitle: "Viewing logs"
+description: "Read and follow workload Instance output and ALB access logs with datumctl compute logs."
+---
+
+`datumctl compute logs` reads the output of a workload's Instances. Pass a **workload name**, not an Instance name. By default, it merges the newest 200 lines from all of the workload's Instances over the last 24 hours and prefixes each line with its Instance.
+
+<Note>
+  Install the Compute plugin with `datumctl plugin install compute`. If `datumctl compute logs` is an unknown command, run `datumctl plugin upgrade compute` and check `datumctl compute logs --help`.
+</Note>
+
+## Read and follow Instance output
+
+Replace `WORKLOAD_NAME` with the name of your workload:
+
+```bash
+datumctl compute logs WORKLOAD_NAME
+datumctl compute logs WORKLOAD_NAME --follow
+```
+
+Use `--since` to read a longer or shorter window. A time window shows all matching lines unless you also set `--tail`:
+
+```bash
+datumctl compute logs WORKLOAD_NAME --since=1h
+datumctl compute logs WORKLOAD_NAME --since=1h --tail=100
+```
+
+To narrow the output, use the location, Instance, or container name. `--instance` accepts a full name or the short name shown in line prefixes. `--container` applies to standard container Instances; unikernel logs aren't split by container.
+
+```bash
+datumctl compute logs WORKLOAD_NAME --location=us-central-1 --since=15m
+datumctl compute logs WORKLOAD_NAME --instance=INSTANCE_NAME --follow
+datumctl compute logs WORKLOAD_NAME --container=app --search=error
+```
+
+`--search` matches text case-sensitively. For machine-readable output, use `-o json`, which prints one JSON object per line:
+
+```bash
+datumctl compute logs WORKLOAD_NAME -o json | jq .line
+```
+
+The command can also read logs left by replaced Instances or a deleted workload. To inspect an Instance's preceding generation, use `--instance=INSTANCE_NAME --previous` and widen the time window with `--since` if needed.
+
+## Read ALB access logs
+
+For a workload published through an ALB, use `--alb` to read requests to its public URL:
+
+```bash
+datumctl compute logs WORKLOAD_NAME --alb --since=15m
+datumctl compute logs WORKLOAD_NAME --alb --follow
+```
+
+ALB access logs belong to the published URL, so `--alb` can't be combined with `--instance`, `--location`, `--container`, or `--search`. If the workload has no published URL, there are no ALB access logs to read.
+
+## Open logs in the Cloud Portal
+
+```bash
+datumctl compute logs WORKLOAD_NAME --browser
+```
+
+This opens the workload's Logs tab. Add one `--instance=INSTANCE_NAME` to open that Instance's Logs tab. For an overview of Compute metrics and logs, see [Observability](/compute/observability).

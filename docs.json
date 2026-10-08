@@ -229,6 +229,7 @@
               "datumctl/compute/building-images",
               "datumctl/compute/deploying-workloads",
               "datumctl/compute/scaling-and-operations",
+              "datumctl/compute/viewing-logs",
               "datumctl/compute/destroying-workloads"
             ]
           },
