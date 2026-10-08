@@ -80,6 +80,7 @@
               {
                 "group": "Operations",
                 "pages": [
+                  "platform/observability",
                   "platform/metrics-export",
                   "platform/activity-logs",
                   "platform/project-suspension",
@@ -141,7 +142,6 @@
               "compute/placement-and-scaling",
               "compute/publish-workloads",
               "compute/manage-workloads",
-              "compute/metrics",
               "compute/instance-shell",
               "compute/limits-and-quotas"
             ]
