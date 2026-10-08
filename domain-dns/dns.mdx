@@ -32,7 +32,7 @@ Datum DNS doesn't currently support DNSSEC. If DNSSEC is turned on for your doma
 
 Datum DNS doesn't currently support DNSSEC. Zones hosted on Datum aren't signed, and you can't create `DS`, `DNSKEY`, `RRSIG`, `NSEC`, or `NSEC3` records.
 
-This matters most when you move an existing domain to Datum. If your registrar still publishes a `DS` record for the domain, validating resolvers (Google Public DNS, Cloudflare 1.1.1.1, Quad9, and most ISP resolvers) expect signed answers. Datum's answers aren't signed, so those resolvers treat them as tampered with and return `SERVFAIL`. To your users, the domain looks like it has gone offline.
+This matters most when you move an existing domain to Datum. If your registrar still publishes a `DS` (Delegation Signer) record for the domain, validating resolvers (Google Public DNS, Cloudflare 1.1.1.1, Quad9, and most ISP resolvers) expect signed answers. Datum's answers aren't signed, so those resolvers treat them as tampered with and return `SERVFAIL`. To your users, the domain looks like it has gone offline.
 
 ### Check whether DNSSEC is on
 
@@ -55,7 +55,7 @@ Do these steps in order. Keep your current DNS provider serving the zone until t
     Turn off DNSSEC, or delete the `DS` record, wherever your domain is registered. If your current DNS provider manages DNSSEC for you (Cloudflare, for example), turn it off there as well. Leave the zone signed at your current provider for now. See [Cloudflare's guide to disabling DNSSEC](https://developers.cloudflare.com/dns/dnssec/) for an example of this flow.
   </Step>
   <Step title="Wait for the DS record to disappear">
-    Run `dig +short DS example.com` until it returns nothing. Then wait one more full `DS` TTL so cached copies expire. You can see the TTL with `dig DS example.com`. For `.com` and `.net` it's 24 hours, and other TLDs vary.
+    Run `dig +short DS example.com` until it returns nothing. Then wait one more full `DS` TTL (time to live) so cached copies expire. You can see the TTL with `dig DS example.com`. For `.com` and `.net` it's 24 hours, and other TLDs vary.
   </Step>
   <Step title="Create the zone on Datum">
     Add the zone and import your records. If your zone file includes `DS`, `DNSKEY`, `RRSIG`, `NSEC`, or `NSEC3` records, the importer skips them and lists them in a warning. You can ignore that warning.
