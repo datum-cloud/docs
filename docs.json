@@ -98,6 +98,7 @@
               "alb/overview",
               "alb/quickstart",
               "alb/wildcard-hostnames",
+              "alb/load-balancing",
               {
                 "group": "Using datumctl",
                 "pages": [

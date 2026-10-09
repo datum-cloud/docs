@@ -1,6 +1,6 @@
 ---
 title: "Send paths to different origins"
-description: "Add routes to a Datum Application Load Balancer with datumctl, split traffic across several origins, and understand what the cloud portal does with the result."
+description: "Add routes to a Datum Application Load Balancer with datumctl, split traffic across several weighted origins, and understand what the cloud portal does with the result."
 ---
 
 A load balancer starts with one route: everything on `/` goes to the origin you gave it. This guide adds more.
@@ -40,7 +40,7 @@ The `/` route cannot be removed while other routes exist unless you pass `--forc
 
 ## Several origins on one route
 
-A route takes up to 16 origins, and traffic is split across them:
+A route takes up to 16 origins, and requests are split across them by weight:
 
 ```bash
 datumctl alb route backend list my-app
@@ -48,30 +48,27 @@ datumctl alb route backend add my-app --path /api --endpoint https://api-2.examp
 datumctl alb route backend remove my-app --path /api --endpoint https://api.example.com
 ```
 
-Removing the last origin on a route is refused — remove the route instead.
+Removing the last origin on a route is refused. Remove the route instead.
 
-### The one rule that decides whether a pool works
-
-**Every origin in a route must agree on the Host header sent upstream.**
-
-- Origins that are **network services** need no Host rewrite, so pools of those work.
-- A **URL origin** takes its Host from its own hostname, so two URL origins on different hostnames conflict.
-
-<Warning>
-When they conflict, the command still succeeds. The conflict is caught when the platform tries to publish the change, not when you make it, so you get an exit code of zero and a success line — and the load balancer goes on serving what it published last. Run `datumctl alb describe my-app` after adding a second URL origin; it will show `Error` with the conflict in the message.
-</Warning>
-
-There are two ways round it, and one is a trap:
-
-**Give each origin its own route.** Safe, and usually what you actually wanted.
-
-**Set a Host override on the route.** This makes the origins agree and it publishes — but every origin then receives the same Host. Any origin that serves by hostname (Vercel, Netlify, Fly.io, Cloudflare Pages) will answer the wrong site or a 404. It looks like it worked, which is what makes it worse than the error.
-
-```bash
-datumctl alb header set my-app Host=origin.example.com
-```
+Each URL origin is sent its own hostname as the Host header, so origins on different hostnames can share a route. A Host override on the route is the trap: it sends the same Host to every origin, so any origin that serves by hostname (Vercel, Netlify, Fly.io, Cloudflare Pages) answers the wrong site or a 404. It looks like it worked.
 
 A connector origin has to be the only origin in its route.
+
+### Weights
+
+Weights are relative: origins at 1 and 3 get 25% and 75% of requests. An origin with no weight counts as 1. `route backend list` shows each origin's `WEIGHT` and `SHARE`.
+
+```bash
+datumctl alb route backend add my-app --path /api --endpoint https://api-3.example.com --weight 2
+datumctl alb route backend update my-app --path /api --endpoint https://api.example.com --weight 0
+```
+
+- Without `--weight`, `route backend add` gives the new origin the average weight of the pool, so adding one beside two origins at 50 gives it 50 rather than 1. A pool where no origin has a weight stays that way.
+- `route backend update --weight 0` drains an origin: it stays in the pool and gets no requests.
+- A change that would leave every origin on a route at weight 0 is refused, because the route would serve nothing.
+- `route update` keeps the weight, TLS hostname and filters of any origin that stays in the new list.
+
+The load balancing algorithm and passive health checks apply to every route. See [Load balancing and health checks](/alb/load-balancing).
 
 ## Routes this plugin will not edit
 
@@ -81,19 +78,8 @@ Force HTTPS also appears in `route list`, marked `system`. It is a redirect rule
 
 ## What the cloud portal does with this
 
-This is the part worth reading before you add a route.
+The portal manages one route: the pool of origins on `/`, with their weights, the load balancing algorithm and health checks. Those are the same fields `datumctl alb` writes, so you can change them from either.
 
-The portal edits **one route with one origin**. It has no way to show a second route, a second origin, or a path match, and it does not tell you they are there.
+The portal has no way to show a second route, a path match or a per-origin filter. When a load balancer has any of them, the portal makes its Backends tab and origin settings read-only, so it never drops what it cannot show. Custom hostnames, traffic protection and basic authentication stay editable there.
 
-It does not stop you editing, either. Changing the origin, TLS settings, Force HTTPS or the Host header in the portal rebuilds the whole route list from the few fields it models — so anything beyond its shape is dropped, and the save reports success.
-
-So once a load balancer has routes or a pool:
-
-| In the portal | Safe? |
-|---|---|
-| Custom hostnames | Yes — does not touch routes |
-| Traffic protection | Yes |
-| Basic authentication | Yes |
-| Origin, TLS, Force HTTPS, Host header | **No — discards your routes** |
-
-Manage a multi-route load balancer with `datumctl alb`, and keep portal edits to hostnames, protection and auth until the portal's own routes editor ships.
+Manage a load balancer with more than one route with `datumctl alb`.
