@@ -1,0 +1,15 @@
+---
+title: "Configuration"
+description: "The settings that make up a Datum Application Load Balancer, and where to configure each one."
+---
+
+An Application Load Balancer is configured through a few platform resources: an `HTTPProxy` for hostnames, routes, and origins, a `TrafficProtectionPolicy` for the web application firewall, and an optional `SecurityPolicy` for authentication. For how they fit together, see [What an ALB is made of](/alb/overview#what-an-alb-is-made-of).
+
+| To configure | See |
+| --- | --- |
+| The web application firewall | [Web application firewall](/alb/configuration/waf) |
+| A wildcard hostname, such as `*.example.com` | [Wildcard hostnames](/alb/configuration/wildcard-hostnames) |
+| Routes, redirects, rewrites, and headers on the proxy | [HTTPProxy](/alb/httpproxy/overview) |
+| A custom domain with `datumctl` | [Serve traffic on your own domain](/guides/alb/custom-domain) |
+| Several origins and path routes with `datumctl` | [Send paths to different origins](/guides/alb/routes) |
+| Basic or OIDC authentication | [Guides](/guides/overview#application-load-balancer) |

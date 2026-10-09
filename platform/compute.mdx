@@ -1,0 +1,17 @@
+---
+title: "Compute"
+description: "How Compute fits into the Datum platform."
+---
+
+Datum Compute runs your apps as isolated Instances in Datum locations, close to your users and on the same network as the rest of the platform. Each Instance runs in its own lightweight virtual machine, from either a standard container image or a fast-starting unikernel.
+
+Compute builds on the rest of the platform:
+
+- **[Locations](/locations):** Instances run in Datum locations that serve Compute.
+- **[Galactic VPC](/galactic-vpc/overview):** every Instance gets a private IPv6 address on a network that spans locations.
+- **[Application Load Balancer](/alb/overview):** public HTTP and HTTPS traffic reaches Instances through an ALB.
+- **[Kubernetes-style APIs](/platform/kubernetes):** workloads are declarative resources that you manage with `datumctl`, manifests, or GitOps tooling.
+
+<Card title="Compute documentation" icon="microchip" href="/compute/overview">
+  Runtimes, placement and scaling, configuration, operations, and more.
+</Card>

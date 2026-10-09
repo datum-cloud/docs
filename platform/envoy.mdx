@@ -1,0 +1,47 @@
+---
+title: "Envoy"
+description: "How Datum uses the Envoy proxy and Envoy Gateway as the data plane for the Application Load Balancer."
+---
+
+[Envoy](https://www.envoyproxy.io/) is the open source, high-performance proxy that handles Layer 7 traffic on Datum. Datum's [Application Load Balancer (ALB)](/alb/overview) is built on Envoy, powered by Tetrate, and configured through [Envoy Gateway](https://gateway.envoyproxy.io/) and the Kubernetes [Gateway API](https://gateway-api.sigs.k8s.io/).
+
+<Info>
+  Datum is still being built, and a deeper look at how Envoy runs on the platform is on the way. For what's coming next, see the [Platform roadmap](/platform/roadmap).
+</Info>
+
+## Where Envoy fits
+
+When you create an ALB, you describe what you want with Datum resources, and Datum turns them into Envoy configuration:
+
+- **[HTTPProxy](/alb/httpproxy/overview)** is the main resource you write: hostnames, routes, origins, redirects, rewrites, and header changes. Datum's operator turns it into a Gateway API `Gateway` and `HTTPRoute`, and Envoy Gateway programs Envoy from them.
+- **[TrafficProtectionPolicy](/alb/configuration/waf)** adds the [Coraza](https://www.coraza.io/) web application firewall with the OWASP Core Rule Set, which runs inside Envoy and inspects requests before they reach your origin.
+- **Certificates and DNS** for the ALB's hostnames are managed by Datum alongside the Envoy configuration.
+
+For the full picture of the resources behind a load balancer, see [What an ALB is made of](/alb/overview#what-an-alb-is-made-of).
+
+## What Envoy gives you
+
+Envoy handles the protocols and traffic features of the ALB, including:
+
+- HTTP/1.1, HTTP/2, gRPC, and WebSockets.
+- TLS termination, with certificates that Datum issues and renews.
+- Path, header, and query matching, with weighted traffic across several origins.
+- Redirects, URL rewrites, and request and response header changes.
+- Access logs for every request, including the ones the firewall blocks. See [ALB observability](/alb/observability).
+
+## Using Envoy Gateway resources directly
+
+Some advanced features use Envoy Gateway resources (`gateway.envoyproxy.io/v1alpha1`) that you apply to your project with `datumctl`, alongside your `HTTPProxy`:
+
+| Resource | Used for | Guide |
+| --- | --- | --- |
+| `SecurityPolicy` | Basic authentication and OIDC sign-in | [Basic auth](/guides/alb/basic-auth), [OIDC with Google](/guides/alb/oidc-google), [Auth0](/guides/alb/oidc-auth0) |
+| `Backend` and `BackendTrafficPolicy` | Failover between a primary and a fallback origin | [Load balancer failover](/guides/alb/load-balancer-failover) |
+
+Because these are standard Envoy Gateway and Gateway API resources, the upstream [Envoy Gateway documentation](https://gateway.envoyproxy.io/docs/) is a useful reference. Not every upstream feature is available on Datum, so start from the Datum guides.
+
+## Related
+
+- [ALB overview](/alb/overview)
+- [HTTPProxy](/alb/httpproxy/overview)
+- [Kubernetes](/platform/kubernetes) — why Datum's APIs follow Kubernetes conventions.

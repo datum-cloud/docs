@@ -1,0 +1,26 @@
+---
+title: "Observability"
+description: "Status, metrics, and access logs for Datum Application Load Balancers."
+---
+
+This page covers how to see what an Application Load Balancer is doing. The ALB is still being built, and more detail is on the way.
+
+## Status and metrics
+
+The load balancer's overview in the Cloud Portal shows whether it is serving, the live request rate, error rate, latency, and requests blocked by the firewall. With `datumctl`, run `datumctl alb describe ALB_NAME` for status, hostnames, and certificates.
+
+To export ALB metrics to your own tools, see [Metrics export](/operations/metrics-export).
+
+## Access logs
+
+To see the requests that reached a load balancer, including the ones the firewall blocked, run the following command:
+
+```bash
+datumctl alb logs ALB_NAME --since 10m
+```
+
+To narrow it to blocked requests, add `--code 403`. Logs can take a few minutes to appear. For a load balancer attached to a Compute workload, see also [Compute observability](/compute/observability).
+
+## Activity
+
+To see who changed a load balancer and when, see [Activity logs](/operations/activity-logs).

@@ -10,7 +10,7 @@ A shell session connects you to a container of a running Instance, so you can ru
   Compute is in preview, and the `v1alpha` API can change.
 </Note>
 
-Shell sessions are available for `general-purpose` Instances only. A `general-purpose` Instance runs in its own virtual machine, so a shell session reaches a real container through that isolation boundary. `unikernel` Instances don't have a shell, so the **Shell** tab and `datumctl compute exec` aren't available for them. For more about the two classes, see [Choose a runtime class](/compute/runtime-classes).
+Shell sessions are available for `general-purpose` Instances only. A `general-purpose` Instance runs in its own virtual machine, so a shell session reaches a real container through that isolation boundary. `unikernel` Instances don't have a shell, so the **Shell** tab and `datumctl compute exec` aren't available for them. For more about the two classes, see [Choose a runtime class](/compute/runtimes/overview).
 
 ## How a session works
 
@@ -35,7 +35,7 @@ Open an interactive shell in a running `general-purpose` Instance from the [Datu
 
 ### Before you begin
 
-- Deploy a `general-purpose` workload with at least one `Available` Instance. For more information, see [Run a container image](/compute/containers).
+- Deploy a `general-purpose` workload with at least one `Available` Instance. For more information, see [Run a container image](/compute/runtimes/general-compute).
 - Your account needs the **Compute Admin** role to open a shell. For more information, see [Permissions](#permissions).
 
 ### Open a shell
@@ -66,7 +66,7 @@ Select **Close shell** to end the session and stop the command. Leaving the page
 
 ### Before you begin
 
-- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
+- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/quickstart#set-up-your-project).
 - `exec` needs a version of the `compute` plugin that includes it. If `datumctl compute exec --help` doesn't show the command, upgrade the plugin:
 
   ```bash
@@ -74,7 +74,7 @@ Select **Close shell** to end the session and stop the command. Leaving the page
   ```
 
   For more on installing and upgrading plugins, see [Using plugins](/datumctl/plugins/using-plugins).
-- Deploy a `general-purpose` workload with at least one `Available` Instance. For more information, see [Run a container image](/compute/containers).
+- Deploy a `general-purpose` workload with at least one `Available` Instance. For more information, see [Run a container image](/compute/runtimes/general-compute).
 
 ### Open an interactive shell
 
@@ -127,13 +127,13 @@ For the full flag reference, run `datumctl compute exec --help`.
 
 - **End-to-end encryption.** The connection between your browser or `datumctl` and the Instance's container is encrypted all the way to the cell that runs the Instance.
 - **A one-time key that stays local.** Each session generates its own key pair. The private key never leaves your browser or your machine, and it isn't sent to Datum.
-- **Every session is recorded.** Opening, connecting, and ending a session each appear in the project's [Activity](/platform/activity-logs), with the end reason and exit code.
+- **Every session is recorded.** Opening, connecting, and ending a session each appear in the project's [Activity](/operations/activity-logs), with the end reason and exit code.
 - **Containers in the same Instance share a trust domain.** Two shell sessions into the same Instance can see each other's processes and environment variables, because they run in the same container. Treat every shell into an Instance as having the same level of access as any other shell into it.
 - **Ending a session stops what it started, with one exception.** A process that detaches itself from the session, for example with `setsid`, can keep running after the session ends. A background job that was killed can also stay behind as a defunct process in a container whose main process doesn't reap its children. This is a known limitation.
 
 ## Permissions
 
-Creating a shell session requires the **Compute Admin** role, which includes `compute.datumapis.com/instanceconsolesessions.create`. The **Compute Viewer** role can list and inspect sessions, including who opened one and how it ended, but can't open or close one. For more on assigning roles, see [Assign roles](/platform/service-accounts#assign-roles).
+Creating a shell session requires the **Compute Admin** role, which includes `compute.datumapis.com/instanceconsolesessions.create`. The **Compute Viewer** role can list and inspect sessions, including who opened one and how it ended, but can't open or close one. For more on assigning roles, see [Assign roles](/getting-started/service-accounts#assign-roles).
 
 ## Limits
 
@@ -159,7 +159,7 @@ The **Shell** tab and `datumctl compute exec` both report why a session ended. T
 | `TooManySessions` | The Instance already has 3 open sessions. | Close another shell into the same Instance, then try again. |
 | `NoShell` | The container has no `sh`. Datum runs every command through a shell, so no command can run in a container without one. | Use an image that includes a shell, or run the command a different way, such as in the image's entrypoint. |
 | `CommandUnavailable` | The container doesn't have the command you asked for. | Check the command name and that it's installed in the image. |
-| `InstanceNotRunning` | The Instance or its container isn't running. | Wait for the Instance to become `Available`, then try again. See [Manage and troubleshoot workloads](/compute/manage-workloads). |
+| `InstanceNotRunning` | The Instance or its container isn't running. | Wait for the Instance to become `Available`, then try again. See [Compute operations](/compute/operations). |
 | `InstanceNotFound` | The Instance named in the session no longer exists, for example because it was replaced. | Open a new session against the current Instance. |
 | `AgentShutdown` | Datum closed the session for maintenance. | Connect again to continue. |
 | `AgentLost` | Datum lost contact with the session unexpectedly. | Connect again to continue. |
@@ -170,5 +170,5 @@ If your project's shell session limit is `0`, the **Shell** tab and `datumctl co
 
 ## What's next
 
-- [Manage and troubleshoot workloads](/compute/manage-workloads)
+- [Compute operations](/compute/operations)
 - [Check Compute limits and quotas](/compute/limits-and-quotas)

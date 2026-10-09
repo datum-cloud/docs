@@ -1,0 +1,37 @@
+---
+title: "Addressing"
+description: "Learn how Instances on a Galactic VPC network get private IPv6 addresses."
+---
+
+Every Instance gets a private IPv6 address on the network that its workload attaches to. This page describes the address plan. To learn which traffic a network carries, see [Traffic and connecting](/galactic-vpc/networks/traffic).
+
+<Note>
+  Galactic VPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## How Instances get addresses
+
+Datum assigns all addresses. You don't choose address ranges or plan subnets. The following table describes each level of the address plan:
+
+| Level | Address space | Details |
+| --- | --- | --- |
+| Network | A `/48` IPv6 prefix | Datum assigns the prefix from the unique local range `fd00::/8` when you create the network. Prefixes don't overlap between networks or projects. The `IPV6PREFIX` column of `datumctl get networks` shows the prefix. |
+| Location | A `/64` from the network's prefix | Datum assigns one to each location where Instances on the network run. |
+| Instance | A `/96` block from the location's `/64` | Each Instance's network interface owns the whole block. The block's primary address is the Instance's private IPv6 address. |
+
+Inside the Instance, the interface is named `eth0`, and it has IPv6 addresses only. Unique local addresses are private: they aren't routable on the internet.
+
+To find your Instances' addresses, run the following command:
+
+```bash
+datumctl compute instances --workload=WORKLOAD_NAME
+```
+
+Replace `WORKLOAD_NAME` with the name of your workload.
+
+The `INTERNAL IP` column shows each Instance's primary private IPv6 address. For all the addresses on an Instance's interface, run `datumctl compute instances describe INSTANCE_NAME`.
+
+## What's next
+
+- To learn which traffic a network carries and how Instances connect, see [Traffic and connecting](/galactic-vpc/networks/traffic).
+- To keep an Instance's address after scale-down, see [Keep addresses after scale-down](/galactic-vpc/configuration#keep-addresses-after-scale-down).

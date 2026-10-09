@@ -8,10 +8,10 @@ Datum is built for agents as first-class users. Rather than wrapping an API in a
 ## The four agent surfaces
 
 <CardGroup cols={2}>
-  <Card title="Skills" icon="book-open" href="/agents/skills">
+  <Card title="Skills" icon="book-open" href="/agents/skills/index">
     Self-contained instructions agents load on demand. One skill per Datum resource — install once, agents handle the rest.
   </Card>
-  <Card title="Datum MCP" icon="plug" href="/datum-mcp">
+  <Card title="Datum MCP" icon="plug" href="/agents/datum-mcp">
     The official Model Context Protocol server. Gives agents authenticated, live access to Datum APIs.
   </Card>
   <Card title="llms.txt" icon="file-lines" href="/agents/llms-txt">
@@ -31,4 +31,4 @@ Datum is built for agents as first-class users. Rather than wrapping an API in a
 | Discover what documentation exists | **llms.txt** |
 | Execute commands directly | **datumctl** |
 
-These surfaces layer together. A typical agent session loads one or two relevant Skills at startup, calls `datumctl` or Datum MCP to act, and falls back to `llms.txt` when it needs deeper context. See [Skills](/agents/skills) to get started.
+These surfaces layer together. A typical agent session loads one or two relevant Skills at startup, calls `datumctl` or Datum MCP to act, and falls back to `llms.txt` when it needs deeper context. See [Skills](/agents/skills/index) to get started.

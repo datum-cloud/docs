@@ -12,7 +12,7 @@ This page shows how to pass configuration to a workload's containers: environmen
 
 ## Before you begin
 
-- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
+- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/quickstart#set-up-your-project).
 - Make sure that you can read the ConfigMaps and Secrets that your workload references. When you apply a workload, Datum checks that you have `get` permission on each one, and rejects the request if you don't.
 
 You can set environment variables, and load or mount whole ConfigMaps and Secrets, with `datumctl compute deploy` flags. These flags require compute plugin v0.10.7 or later. For anything that the flags can't set, such as a variable from one key of a Secret or credentials for a private registry, write a workload manifest. Apply the manifest with `datumctl compute deploy -f FILE` or `datumctl apply -f FILE`, where `FILE` is the path to your manifest. You can't combine the configuration flags with `-f`. A flag-based deploy saves its result to `workload.yaml`, which you can edit as a starting point. Each flag-based deploy overwrites `workload.yaml` in the current directory, so keep edited manifests under another name.
@@ -86,7 +86,7 @@ ConfigMaps hold non-sensitive settings, and Secrets hold sensitive values such a
    datumctl apply -f api-config.yaml
    ```
 
-For more information about Secrets in the portal, see [Secrets](/platform/secrets).
+For more information about Secrets in the portal, see [Secrets](/operations/secrets).
 
 ## Set a variable from a ConfigMap or Secret key
 
@@ -256,7 +256,7 @@ To pull an image from a private registry, store the registry credentials in a Se
 
    Replace `workload.yaml` with your manifest file if it has a different name.
 
-A manifest deploy doesn't create or remove a public URL. To publish a workload that you manage with manifests, see [Publish a workload you manage with manifests](/compute/publish-workloads#publish-a-workload-you-manage-with-manifests).
+A manifest deploy doesn't create or remove a public URL. To publish a workload that you manage with manifests, see [Publish a workload you manage with manifests](/compute/compute-and-alb#publish-a-workload-you-manage-with-manifests).
 
 ## Complete example
 
@@ -323,9 +323,9 @@ ConfigMaps and Secrets that a workload references have the following size limits
 - 256 KiB for each ConfigMap or Secret.
 - 1 MiB in total for all the ConfigMaps and Secrets that a workload references in one location.
 
-If a workload exceeds a limit, Datum accepts the request, but the workload reports `ReferencedDataNotReady` and its Instances report `SourceTooLarge`. For other configuration errors, see [Manage and troubleshoot workloads](/compute/manage-workloads#troubleshoot-common-problems).
+If a workload exceeds a limit, Datum accepts the request, but the workload reports `ReferencedDataNotReady` and its Instances report `SourceTooLarge`. For other configuration errors, see [Compute troubleshooting](/compute/troubleshooting).
 
 ## What's next
 
-- To serve the workload on a public URL, see [Publish a workload](/compute/publish-workloads).
-- To check status and fix problems, see [Manage and troubleshoot workloads](/compute/manage-workloads).
+- To serve the workload on a public URL, see [Publish a workload](/compute/compute-and-alb).
+- To check status and fix problems, see [Compute operations](/compute/operations) and [Troubleshooting](/compute/troubleshooting).

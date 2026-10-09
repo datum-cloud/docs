@@ -1,0 +1,50 @@
+---
+title: "Troubleshooting"
+description: "Find out why a Compute workload or Instance isn't running, and fix common errors."
+---
+
+This page lists common Compute errors and states, what they mean, and how to fix them. To check on workloads and Instances first, see [Operations](/compute/operations).
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Common problems
+
+The following table lists common errors and states, what they mean, and how to fix them. Errors that Datum returns when you apply a workload appear in the command output. Reasons appear in `datumctl get workloads`, `datumctl get instances`, and `datumctl compute instances describe`.
+
+| Error or reason | Meaning | What to do |
+| --- | --- | --- |
+| `must include a registry` | The image reference has no registry host. | Use a full reference, such as `docker.io/library/redis:7`. |
+| `... are not supported by the "CLASS" runtime class` | The workload uses a feature that its runtime class doesn't offer, such as `envFrom` or added capabilities on `unikernel`. | Remove the feature, or deploy a new workload with a class that offers it. See [Choose a runtime class](/compute/runtimes/overview). |
+| `resources: Forbidden: not implemented` | The workload sets CPU or memory for a container. | Remove `resources`, and set `runtime.resources.instanceType` to `datumcloud/d1-standard-2`. |
+| `permission to use the network was denied` | You don't have permission to attach workloads to the network. | Ask a project administrator for the **Network Admin** role. |
+| `permission to get ... was denied` | You can't read a ConfigMap or Secret that the workload references. | Ask for read access to the object, or reference another object. |
+| `volume must be attached at least 1 time` | The workload declares a volume that no container mounts. | Add a `volumeAttachments` entry with a `mountPath`, or remove the volume. |
+| `NetworkNotFound` | The network named in `networkInterfaces` doesn't exist. | Create the network. See [Galactic VPC configuration](/galactic-vpc/configuration). |
+| `RuntimeClassNotServed` | A location in the placement doesn't serve the workload's runtime class. | Choose another location, or deploy a new workload with a class that the location serves. |
+| `NoMatchingLocations` | A placement's selector matches no location. | Fix the selector, or list locations by name. |
+| `QuotaExceeded` or `QuotaNotGranted` | Your project's compute quota is used up. | Run fewer Instances, delete unused workloads, or ask for more quota. See [Limits and quotas](/compute/limits-and-quotas). |
+| `QuotaNoBudget`, or another reason that starts with `Quota` | Compute quota isn't set up correctly for your project. | Contact [support@datum.net](mailto:support@datum.net). Datum fixes this. |
+| `ReferencedDataNotReady` with `SourceNotFound` | A referenced ConfigMap or Secret doesn't exist. | Create the object, or fix its name in the workload. |
+| `ReferencedDataNotReady` with `SourceTooLarge` | A referenced ConfigMap or Secret is larger than 256 KiB, or all of them together exceed 1 MiB. | Make the objects smaller. |
+| `ReferencedDataNotReady` with `SourceUnauthorized` | Datum can't read a referenced ConfigMap or Secret. | Check that the object is in the same project, and contact support if the problem continues. |
+| `ImageUnavailable` | Datum couldn't pull the image. | Check the image reference and tag. For a private registry, check the `imagePullSecrets` Secret. |
+| `InstanceCrashing` | The program starts and exits repeatedly. | Check the command, arguments, environment variables, and mounted files. For a `unikernel` workload, rebuild with `datumctl compute build --analyze`. |
+| `ConfigurationError` | Datum refused the configuration before the program ran. | Check the environment variables and volume references. |
+| The Instance stays `Starting` for more than a few minutes | The first image pull can take a while. A program that exits at startup can also stay in this state. | Check the image and configuration. For a `unikernel` workload, run `datumctl compute build --analyze`. If the problem continues, contact support. |
+| The Instance is `Available`, but the ALB's hostname returns an error | The app isn't reachable on the published port. | Make sure that the app listens on IPv6 (`::`), serves plain HTTP, and uses the port that you passed to `--http-port`. |
+| `curl` can't resolve the ALB's hostname | The new hostname hasn't propagated. | Wait a few minutes and try again. |
+
+To see a history of changes to your workloads, use `datumctl activity`. For more information, see [Querying activity](/datumctl/activity/overview).
+
+If you can't resolve a problem, contact [support@datum.net](mailto:support@datum.net) with the workload name, the project ID, and the output of `datumctl compute instances describe INSTANCE_NAME`.
+
+## Debug inside an Instance
+
+To open an interactive shell or run a command in a running `general-purpose` Instance, see [Instance shell](/compute/instance-shell). To read Instance output and CPU and memory usage, see [Observability](/compute/observability).
+
+## What's next
+
+- To check quota and review limits, see [Limits and quotas](/compute/limits-and-quotas).
+- To review what Compute doesn't support yet, see [Limitations and roadmap](/compute/limitations-and-roadmap).

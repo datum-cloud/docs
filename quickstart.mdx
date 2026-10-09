@@ -1,0 +1,244 @@
+---
+title: "Quick Start"
+description: "Put a public site behind Datum's Application Load Balancer, then run your own app on Datum Compute and serve it through the same kind of load balancer."
+---
+
+This quickstart walks through the two things most builders do first on Datum:
+
+1. **Put an existing site behind an [Application Load Balancer (ALB)](/alb/overview).** You get an HTTPS address and a web application firewall in front of a public origin with one command. This part needs no Compute access and takes a few minutes.
+2. **Run your own app on [Compute](/compute/overview).** You deploy [draw.io](https://www.drawio.com/), the open source diagramming app, to Dallas and open it in your browser through an ALB that Datum attaches for you.
+
+You can stop after Part 1. At the end you delete everything you created.
+
+<Note>
+  Datum is still being built, and Compute is in preview. The `v1alpha` APIs can change, and Datum reviews Compute access requests manually.
+</Note>
+
+## Before you begin
+
+- Create a Datum Cloud account, an organization, and a project. For more information, see [Account setup](/getting-started/account-setup).
+- Install `datumctl` and run `datumctl login`. For more information, see the [datumctl quickstart](/datumctl/quickstart).
+- Make sure that you have permission to create compute and networking resources in the project, for example, through the **Compute Admin** and **Network Admin** roles.
+- Install a web browser and `curl`.
+
+## Set up your project
+
+<Steps>
+  <Step title="Select your project">
+    Commands run against a project. To make your project the active context, run the following command:
+
+    ```bash
+    datumctl ctx use ORG_ID/PROJECT_ID
+    ```
+
+    Replace the following:
+
+    - `ORG_ID`: the ID of your organization.
+    - `PROJECT_ID`: the ID of your project.
+
+    To pick from a list instead, run `datumctl ctx use` with no arguments. To check which project is active, run `datumctl ctx`.
+  </Step>
+
+  <Step title="Install the plugins">
+    The `alb` and `compute` commands come from plugins in the official Datum catalog. To install them, run the following commands:
+
+    ```bash
+    datumctl plugin install alb
+    datumctl plugin install compute
+    ```
+
+    If you installed a plugin earlier, run `datumctl plugin upgrade alb` or `datumctl plugin upgrade compute` instead. For more information about plugins, see [Using plugins](/datumctl/plugins/using-plugins).
+  </Step>
+</Steps>
+
+## Part 1: Put a site behind an ALB
+
+This part uses [httpbin.org](https://httpbin.org) as the origin, because it is public and echoes back whatever you send it. Nothing about the origin changes — the load balancer sits in front of it. Swap the URL for your own site and every step works the same way.
+
+<Steps>
+  <Step title="Create the load balancer">
+    To create a load balancer in front of `httpbin.org`, run the following command:
+
+    ```bash
+    datumctl alb create quickstart-demo --endpoint https://httpbin.org
+    ```
+
+    The output is similar to the following:
+
+    ```text
+    Application load balancer "quickstart-demo" created.
+    Hostname: cake-game-mwr46.datumproxy.net
+
+    Next steps:
+      datumctl alb hostname add quickstart-demo <custom-hostname>
+      datumctl alb describe quickstart-demo
+    ```
+
+    Your hostname is different. Three things are on by default, and match what the cloud portal creates:
+
+    - **Force HTTPS.** Requests on HTTP get a 301 to HTTPS.
+    - **Traffic protection** in `Enforce` mode at sensitivity 1, so matching requests are blocked rather than logged.
+    - **No custom hostnames.** It serves on the generated hostname until you add one.
+
+    <Note>
+      Putting an existing, busy site behind a firewall in blocking mode is the most common way to block your own users. For a live site, start in `Observe` mode with `--waf-mode Observe`, watch real traffic, then switch to `Enforce`. See [Roll out traffic protection safely](/guides/alb/traffic-protection).
+    </Note>
+  </Step>
+
+  <Step title="Confirm it serves">
+    To send a request through the load balancer, run the following command:
+
+    ```bash
+    curl -s -o /dev/null -w '%{http_code}\n' https://ALB_HOSTNAME/get
+    ```
+
+    Replace `ALB_HOSTNAME` with the hostname from the create output. The output is `200`.
+
+    If `curl` cannot resolve the host, wait a minute and try again. A new hostname takes a short time to appear in public DNS.
+
+    To see the load balancer as a whole, run `datumctl alb describe quickstart-demo`. `Status: Active` means Datum has published the configuration; the request above is what confirms it serves.
+  </Step>
+
+  <Step title="Watch the firewall block an attack">
+    To send a request that looks like SQL injection, run the following command:
+
+    ```bash
+    curl -s -o /dev/null -w '%{http_code}\n' "https://ALB_HOSTNAME/get?id=1'%20OR%20'1'='1"
+    ```
+
+    The output is `403`. The request never reached `httpbin.org` — the load balancer answered it, which is why a blocked request never appears in your origin's own logs.
+
+    To confirm that plain HTTP is redirected, run the following command:
+
+    ```bash
+    curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' http://ALB_HOSTNAME/get
+    ```
+
+    The output is similar to `301 https://cake-game-mwr46.datumproxy.net/get`.
+  </Step>
+
+  <Step title="Optional: See what arrived">
+    To see the requests that reached the load balancer, including the ones it blocked, run the following command:
+
+    ```bash
+    datumctl alb logs quickstart-demo --since 10m
+    ```
+
+    To narrow it to blocked requests, add `--code 403`. Logs can take a few minutes to appear.
+  </Step>
+</Steps>
+
+## Part 2: Run your own app on Compute
+
+This part deploys the official `docker.io/jgraph/drawio` image with the `general-purpose` runtime class, which runs standard container images without changes. The app fits in one Instance (1 vCPU and 2 GiB of memory), stores nothing on the Instance, and needs no passwords or config files.
+
+<Steps>
+  <Step title="Request access to Compute">
+    To request Compute access for your project and wait for a decision, run the following command:
+
+    ```bash
+    datumctl compute access request --wait
+    ```
+
+    Datum approves requests manually, so the wait can outlast the command's default 30-minute timeout. If the command times out, run `datumctl compute access` to check the state of your request. Continue when the status is `Active`. You only do this once per project.
+  </Step>
+
+  <Step title="Deploy draw.io">
+    To deploy draw.io to Dallas (`us-central-1`) and publish it on a public URL, run the following command:
+
+    ```bash
+    datumctl compute deploy drawio \
+      --image=docker.io/jgraph/drawio:31.4.6 \
+      --runtime-class=general-purpose \
+      --location=us-central-1 \
+      --http-port=8080
+    ```
+
+    The flags do the following:
+
+    - `--image`: the container image to run, pinned to a draw.io release. Compute requires the registry host in the image reference, such as `docker.io`.
+    - `--runtime-class=general-purpose`: runs the image as a standard container in a lightweight virtual machine. Without this flag, Datum uses the `unikernel` class, which needs a specially packaged image.
+    - `--location=us-central-1`: runs one Instance in Dallas.
+    - `--http-port=8080`: attaches an ALB to the workload and publishes port `8080`, where draw.io serves HTTP.
+
+    The command asks you two questions:
+
+    1. The first time you deploy in a project, it asks whether to create a network named `default`. Enter `y`.
+    2. It prints a plan and asks `Apply? (Y/n)`. Enter `y`.
+
+    The command then creates the workload, waits for the Instance to start, and publishes the URL. The end of the output is similar to the following:
+
+    ```text
+    Rollout complete in 22s.
+
+    Publishing...
+      Backends     1 healthy across us-central-1
+      Edge         programmed
+      Certificate  issued
+
+      https://peril-oven-p53hn.datumproxy.net
+    ```
+
+    The last line is the hostname of the ALB attached to the workload. Your hostname is different. The command also saves the workload definition to `workload.yaml` in the current directory.
+  </Step>
+
+  <Step title="Check that draw.io is available">
+    To list the workloads in your project, run the following command:
+
+    ```bash
+    datumctl compute workloads
+    ```
+
+    Continue when `HEALTH` is `Available` and `READY` is `1/1`. The `URL` column shows the ALB hostname from the deploy output.
+  </Step>
+
+  <Step title="Open draw.io and draw a diagram">
+    In your web browser, go to the URL from the deploy output. Datum's ALB serves draw.io over HTTPS, and the app opens a blank diagram. If the browser can't find the site, wait a minute and try again.
+
+    Click the rectangle in the **General** shape panel, double-click it, and type `Hello from Datum`. To keep it, click **File** > **Export as** > **PNG...**.
+
+    The editor runs in your browser, so your diagrams stay with you even when Datum restarts or replaces the Instance.
+  </Step>
+
+  <Step title="Optional: See the Instance">
+    To list the workload's Instances, run the following command:
+
+    ```bash
+    datumctl compute instances --workload=drawio
+    ```
+
+    The `INTERNAL IP` column shows the Instance's private IPv6 address on the `default` [Galactic VPC](/galactic-vpc/overview) network. The Instance has no public address, so traffic from the internet reaches draw.io only through the ALB.
+  </Step>
+</Steps>
+
+## Clean up
+
+1. To delete the load balancer from Part 1, run the following command:
+
+   ```bash
+   datumctl alb delete quickstart-demo --yes
+   ```
+
+   This also removes its traffic protection policy.
+
+2. To delete the draw.io workload, its Instance, and its ALB, run the following command and enter `y` to confirm:
+
+   ```bash
+   datumctl compute destroy drawio
+   ```
+
+3. Delete `workload.yaml` from the current directory.
+4. Optional: If you don't plan to deploy more workloads, delete the `default` network:
+
+   ```bash
+   datumctl delete network default
+   ```
+
+## What's next
+
+- To serve traffic on a domain you own, see [Serve traffic on your own domain](/guides/alb/custom-domain).
+- To send different paths to different origins, see [Send paths to different origins](/guides/alb/routes).
+- To pass configuration and secrets to a workload, see [Compute configuration](/compute/configuration).
+- To package your own app as a fast-starting unikernel, see [Unikernels](/compute/runtimes/unikernels).
+- To run in more locations or with more Instances, see [Placement and scaling](/compute/placement-and-scaling).
+- To learn how the pieces fit together, see the [Platform architecture](/platform/architecture).

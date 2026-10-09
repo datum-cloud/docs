@@ -55,26 +55,26 @@ Compute offers two runtime classes. Both give each Instance its own kernel.
 - **General purpose (`general-purpose`):** Runs standard Linux container images without changes. Instances take several seconds to start.
 - **Unikernel (`unikernel`):** Runs a specially packaged image as a unikernel that starts in a fraction of a second, with very little overhead per Instance. You package the image with `datumctl compute build`.
 
-If you don't name a runtime class, Datum uses `unikernel`. For a detailed comparison, see [Choose a runtime class](/compute/runtime-classes).
+If you don't name a runtime class, Datum uses `unikernel`. For a detailed comparison, see [Choose a runtime class](/compute/runtimes/overview).
 
 ## Ways to work with Compute
 
 - **`datumctl compute`:** A `datumctl` plugin that deploys, publishes, scales, and deletes workloads with a single command each. The guides in this section use it. For the command reference, see [Compute commands](/datumctl/compute/overview).
-- **Manifests:** Workloads are Kubernetes-style resources. You can write them in YAML and manage them with `datumctl apply`, `datumctl get`, and `datumctl describe`, or with GitOps tooling. For more information, see [Kubernetes](/kubernetes).
+- **Manifests:** Workloads are Kubernetes-style resources. You can write them in YAML and manage them with `datumctl apply`, `datumctl get`, and `datumctl describe`, or with GitOps tooling. For more information, see [Kubernetes](/platform/kubernetes).
 
 ## What's next
 
 <CardGroup cols={2}>
-  <Card title="Quickstart" icon="rocket" href="/compute/quickstart">
-    Deploy draw.io with one command and draw a diagram in your browser through Datum's ALB.
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Deploy draw.io with one command and open it through Datum's ALB.
   </Card>
-  <Card title="Choose a runtime class" icon="scale-balanced" href="/compute/runtime-classes">
+  <Card title="Choose a runtime class" icon="scale-balanced" href="/compute/runtimes/overview">
     Compare the general-purpose and unikernel tiers.
   </Card>
-  <Card title="Run a container image" icon="box" href="/compute/containers">
+  <Card title="Run a container image" icon="box" href="/compute/runtimes/general-compute">
     Run a standard Linux container on general-purpose Instances.
   </Card>
-  <Card title="Build and deploy a unikernel" icon="bolt" href="/compute/unikernels">
+  <Card title="Build and deploy a unikernel" icon="bolt" href="/compute/runtimes/unikernels">
     Package your app as a unikernel with `datumctl compute build`.
   </Card>
   <Card title="Configure a workload" icon="sliders" href="/compute/configuration">
@@ -83,11 +83,14 @@ If you don't name a runtime class, Datum uses `unikernel`. For a detailed compar
   <Card title="Placement and scaling" icon="earth-americas" href="/compute/placement-and-scaling">
     Choose locations, set Instance counts, and roll out changes.
   </Card>
-  <Card title="Publish a workload" icon="globe" href="/compute/publish-workloads">
+  <Card title="Publish a workload" icon="globe" href="/compute/compute-and-alb">
     Serve a workload with Datum's ALB, on a generated or custom hostname.
   </Card>
-  <Card title="Manage and troubleshoot" icon="stethoscope" href="/compute/manage-workloads">
-    Check status, update, restart, and delete workloads.
+  <Card title="Operations" icon="gears" href="/compute/operations">
+    Check status, update, and delete workloads.
+  </Card>
+  <Card title="Troubleshooting" icon="stethoscope" href="/compute/troubleshooting">
+    Fix common errors and Instance failures.
   </Card>
   <Card title="Observability" icon="chart-line" href="/compute/observability">
     View CPU and memory metrics, Instance output, and ALB access logs.
@@ -96,7 +99,10 @@ If you don't name a runtime class, Datum uses `unikernel`. For a detailed compar
     Open an interactive shell from the Cloud Portal or run a command with `datumctl`.
   </Card>
   <Card title="Limits and quotas" icon="gauge" href="/compute/limits-and-quotas">
-    Request access, check quota, and review limitations.
+    Request access, check quota, and review fixed limits.
+  </Card>
+  <Card title="Limitations and roadmap" icon="map" href="/compute/limitations-and-roadmap">
+    Review what the preview doesn't support yet.
   </Card>
   <Card title="Galactic VPC" icon="network-wired" href="/galactic-vpc/overview">
     Create private networks and attach workloads to them.

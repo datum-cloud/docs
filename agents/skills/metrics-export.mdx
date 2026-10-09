@@ -3,7 +3,7 @@ title: "Metrics Export skill"
 description: "Teach agents to configure Prometheus remote write pipelines in Datum Cloud using ExportPolicy resources."
 ---
 
-The Metrics Export skill helps agents configure [metrics export](/platform/metrics-export) pipelines in Datum Cloud — defining named sources (with optional MetricsQL filters) and sinks (Prometheus remote write endpoints) to ship project metrics to external observability platforms such as Grafana Cloud. It teaches agents the correct manifest structure, credential handling via Secrets, and per-sink health validation.
+The Metrics Export skill helps agents configure [metrics export](/operations/metrics-export) pipelines in Datum Cloud — defining named sources (with optional MetricsQL filters) and sinks (Prometheus remote write endpoints) to ship project metrics to external observability platforms such as Grafana Cloud. It teaches agents the correct manifest structure, credential handling via Secrets, and per-sink health validation.
 
 ## Install
 
@@ -42,8 +42,8 @@ Once installed, the skill activates automatically when you ask an agent to work 
 
 ## How it relates to other Datum surfaces
 
-- **Product docs:** [Metrics Export](/platform/metrics-export) — the human-facing reference for the export pipeline and ExportPolicy resource
-- **Datum MCP:** [Datum MCP](/datum-mcp) — for agents that need live read/write access to export policies during a session
+- **Product docs:** [Metrics Export](/operations/metrics-export) — the human-facing reference for the export pipeline and ExportPolicy resource
+- **Datum MCP:** [Datum MCP](/agents/datum-mcp) — for agents that need live read/write access to export policies during a session
 - **`datumctl`:** [datumctl overview](/datumctl/overview) — `get`, `describe`, `apply`, `diff`, `delete` commands the skill teaches agents to use
 
 ## View the full skill

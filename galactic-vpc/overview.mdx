@@ -14,20 +14,7 @@ Galactic VPC runs on Datum's global IPv6 backbone. Datum plans the addresses, ca
 
 ## How it works
 
-A network belongs to a project, not to a location. The following list describes how a network relates to your projects, locations, workloads, and Instances:
-
-- **Networks belong to a project:** You create networks with the `Network` resource. You don't create a network for each location. When a workload runs Instances in a location, Datum gives the network address space in that location and assigns each Instance an address from it.
-- **One network for each workload:** All of a workload's Instances, in every placement, attach to the same network. You choose the network when you create the workload.
-- **Many workloads on one network:** Several workloads can name the same network. For example, a frontend workload and a backend workload can share a network.
-- **Addresses are private IPv6:** Each network gets its own private IPv6 prefix from the unique local address range. Each Instance gets an address from that prefix. The addresses aren't reachable from the internet. For more information, see [Network addressing and traffic](/galactic-vpc/addressing-and-traffic).
-- **Networks are isolated:** Each network is separate from every other network, including other networks in the same project and other customers' networks.
-- **Public traffic arrives through Datum's ALB:** To serve a workload on the internet, attach Datum's [Application Load Balancer](/alb/overview) to it. The ALB forwards each request to an Instance over the private network. For more information, see [Publish a workload](/compute/publish-workloads).
-
-## The default network
-
-You don't need to create a network before your first deploy. When you run `datumctl compute deploy` without `--network`, the command attaches the workload to a network named `default`. If the network doesn't exist, the command offers to create it. In scripts, pass `--yes` to create it without a prompt.
-
-Datum doesn't create the `default` network when it creates a project. If you apply a workload with `datumctl apply`, the network must already exist. `datumctl compute deploy -f` offers to create a missing network, as the flag-based deploy does.
+A network belongs to a project, not to a location. You attach Compute workloads to a network, and every Instance of those workloads gets a private IPv6 address on it, in whichever location the Instance runs. Networks are isolated from each other, and public traffic reaches Instances only through Datum's [Application Load Balancer](/alb/overview). For details, see [Networks overview](/galactic-vpc/networks/overview).
 
 ## Features
 
@@ -43,16 +30,16 @@ To learn what Datum is working on next, see [Planned capabilities](/galactic-vpc
 ## What's next
 
 <CardGroup cols={2}>
-  <Card title="Create and manage networks" icon="network-wired" href="/galactic-vpc/networks">
-    Create a network, attach a workload, and delete a network.
+  <Card title="Networks" icon="network-wired" href="/galactic-vpc/networks/overview">
+    How networks relate to projects, locations, and workloads.
   </Card>
-  <Card title="Addressing and traffic" icon="route" href="/galactic-vpc/addressing-and-traffic">
-    Learn how Instances get addresses and which traffic a network carries.
+  <Card title="Configuration" icon="sliders" href="/galactic-vpc/configuration">
+    Create a network and attach a workload to it.
   </Card>
   <Card title="Limitations and roadmap" icon="list-check" href="/galactic-vpc/limitations-and-roadmap">
     Review networking limitations and planned capabilities.
   </Card>
-  <Card title="Compute quickstart" icon="rocket" href="/compute/quickstart">
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
     Deploy a workload that attaches to the `default` network.
   </Card>
 </CardGroup>

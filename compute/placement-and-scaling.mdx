@@ -11,7 +11,7 @@ A workload's placements decide where its Instances run and how many run in each 
 
 ## Before you begin
 
-- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
+- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/quickstart#set-up-your-project).
 
 ## Locations
 
@@ -23,7 +23,7 @@ Compute runs in the following locations:
 | `us-east-1` | Ashburn | `IAD` | `general-purpose`, `unikernel` |
 | `us-west-1` | San Jose | `SJC` | `general-purpose`, `unikernel` |
 
-If you name a location where Compute isn't offered to your project, Datum rejects the request, and the error lists the locations that you can use. For more information about Datum locations and region codes, see [Locations](/platform/locations).
+If you name a location where Compute isn't offered to your project, Datum rejects the request, and the error lists the locations that you can use. For more information about Datum locations and region codes, see [Locations](/locations).
 
 ## Choose locations
 
@@ -43,7 +43,7 @@ datumctl compute deploy api \
   --min=2
 ```
 
-The flags put all locations in a single placement named `default`. On an existing workload, a flag-based deploy replaces every placement and some other settings. For more information, see [Update a workload](/compute/manage-workloads#update-a-workload).
+The flags put all locations in a single placement named `default`. On an existing workload, a flag-based deploy replaces every placement and some other settings. For more information, see [Update a workload](/compute/operations#update-a-workload).
 
 ### Choose locations in a manifest
 
@@ -153,6 +153,6 @@ Replace `WORKLOAD_NAME` with the name of your workload.
 
 ## What's next
 
-- To route each request to the nearest location, see [Publish a workload](/compute/publish-workloads).
-- To check status and fix problems, see [Manage and troubleshoot workloads](/compute/manage-workloads).
+- To route each request to the nearest location, see [Publish a workload](/compute/compute-and-alb).
+- To check status and fix problems, see [Compute operations](/compute/operations) and [Troubleshooting](/compute/troubleshooting).
 - For command details, see [Operations](/datumctl/compute/scaling-and-operations).

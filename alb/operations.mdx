@@ -1,0 +1,38 @@
+---
+title: "Operations"
+description: "Inspect, update, and delete Datum Application Load Balancers."
+---
+
+This page covers day-to-day operations on Application Load Balancers with the `datumctl alb` plugin. The ALB is still being built, so this page is thin for now. To install the plugin, run `datumctl plugin install alb`.
+
+## Inspect a load balancer
+
+To see a load balancer's status, hostnames, routes, traffic protection, and certificates, run the following command:
+
+```bash
+datumctl alb describe ALB_NAME
+```
+
+`Status: Active` means Datum has published the configuration. It doesn't mean a request has succeeded, so confirm with a request such as `curl -I https://HOSTNAME/`.
+
+## Update a load balancer
+
+The `datumctl alb` plugin changes one part of a load balancer at a time:
+
+- **Hostnames:** see [Serve traffic on your own domain](/guides/alb/custom-domain).
+- **Routes and origins:** see [Send paths to different origins](/guides/alb/routes).
+- **Traffic protection:** see [Roll out traffic protection safely](/guides/alb/traffic-protection).
+
+To change the underlying resources directly, edit the `HTTPProxy` and `TrafficProtectionPolicy` and apply them with `datumctl apply`. See [HTTPProxy](/alb/httpproxy/overview).
+
+## Delete a load balancer
+
+To delete a load balancer, run the following command:
+
+```bash
+datumctl alb delete ALB_NAME --yes
+```
+
+This also removes the traffic protection policy and any basic authentication attached to it. Without `--yes`, the command asks you to type the name to confirm.
+
+A load balancer that `datumctl compute deploy` attached to a workload is deleted with the workload by `datumctl compute destroy`. See [Compute operations](/compute/operations#delete-a-workload).
