@@ -15,7 +15,7 @@ datumctl compute deploy api \
 ```
 
 <Warning>
-  A new workload without `--runtime-class` runs on the `unikernel` runtime class. For that class, `--image` must point to an image produced by `datumctl compute build`, not a standard OCI image from `docker build` — see [Building images](/datumctl/compute/building-images). To run a standard container image unchanged, add `--runtime-class=general-purpose` — see [Choose a runtime class](/compute/runtime-classes).
+  A new workload without `--runtime-class` runs on the `unikernel` runtime class. For that class, `--image` must point to an image produced by `datumctl compute build`, not a standard OCI image from `docker build` — see [Building images](/datumctl/compute/building-images). To run a standard container image unchanged, add `--runtime-class=general-purpose` — see [Choose a runtime class](/compute/runtimes/overview).
 </Warning>
 
 If a workload named `api` doesn't exist, this command creates it with one placement named `default` that spans both locations, runs at least two Instances in each location, and attaches Datum's ALB to it. If you run the same command again with a new `--image`, it updates the existing workload. Like `datumctl apply`, `deploy` creates or updates.
@@ -65,7 +65,7 @@ Publishing...
   https://stark-raven-b7k2m.datumproxy.net
 ```
 
-Redeploying without `--http-port` keeps the workload's current port and its ALB. To remove the ALB, pass `--no-http`. Without an HTTP port, the workload isn't reachable from the internet. For custom domains and publishing workloads you manage with manifests, see [Publish a workload](/compute/publish-workloads).
+Redeploying without `--http-port` keeps the workload's current port and its ALB. To remove the ALB, pass `--no-http`. Without an HTTP port, the workload isn't reachable from the internet. For custom domains and publishing workloads you manage with manifests, see [Publish a workload](/compute/compute-and-alb).
 
 ## Watching the rollout
 

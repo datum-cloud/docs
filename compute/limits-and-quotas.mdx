@@ -1,9 +1,9 @@
 ---
 title: "Limits and quotas"
-description: "Request access to Compute, check your project's compute quota, and review the limits and limitations of the Compute preview."
+description: "Request access to Compute, check your project's compute quota, and review the fixed limits of the Compute preview."
 ---
 
-This page explains how to get access to Compute for a project, how quota works, and what Compute doesn't support.
+This page explains how to get access to Compute for a project, how quota works, and the fixed limits that apply to workloads. For features that Compute doesn't support yet, see [Limitations and roadmap](/compute/limitations-and-roadmap).
 
 <Note>
   Compute is in preview, and the `v1alpha` API can change.
@@ -96,42 +96,8 @@ The following table lists fixed limits:
 | Open shell sessions per Instance | 3 |
 | Open shell sessions per project | 10 by default. Datum can grant a project more. |
 
-## Limitations
-
-The Compute preview has the following limitations. For limitations of each runtime class, see [Run a container image](/compute/containers#limitations) and [Build and deploy a unikernel](/compute/unikernels#limitations). For limitations of the ALB, see [Publish a workload](/compute/publish-workloads#limitations).
-
-### Runtime and sizing
-
-- One instance type is available, and you can't set CPU or memory for each container.
-- Persistent disks, raw devices, GPUs, and custom virtual machine images aren't available. Files written at runtime are lost when Datum replaces an Instance.
-- Instances with more than one container aren't supported. Run one container per workload.
-- Health probes, such as readiness and liveness checks, aren't available. An Instance is ready when its containers are running.
-- You can't suspend, resume, or snapshot Instances. You can open a shell or run a command in a running `general-purpose` Instance; see [Instance shell sessions](/compute/instance-shell).
-- A workload's runtime class and network can't change after you create it.
-
-### Placement and scaling
-
-- Compute runs in `us-central-1` (Dallas), `us-east-1` (Ashburn), and `us-west-1` (San Jose).
-- Workloads don't scale automatically, and they can't scale to zero. Don't set `scaleSettings.maxReplicas` or `scaleSettings.metrics`.
-- Rollouts replace Instances one at a time in each location, with no option to add extra Instances during the rollout.
-
-### Networking
-
-- During the preview, Instances have private IPv6 addresses only. Private IPv4 addresses and public IP addresses are a preview limitation.
-- Outbound internet access and IPv4 destinations are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities). Image pulls aren't affected.
-- Private DNS names for Instances are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
-- Firewall rules to filter traffic between Instances on a network are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
-- Public access is HTTP and HTTPS only, served through Datum's [ALB](/alb/overview). Raw TCP and UDP exposure is a preview limitation.
-
-For more information about networking, see [Networking limitations and roadmap](/galactic-vpc/limitations-and-roadmap). To learn which networking capabilities Datum is working on, see [Planned capabilities](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
-
-### Operations
-
-- Read Instance output and ALB access logs in the Cloud Portal or with [`datumctl compute logs`](/datumctl/compute/viewing-logs).
-- Compute publishes per-Instance CPU and memory measurements. See [Observability](/compute/observability#metrics) for the metric names and queries.
-
 ## What's next
 
-- To deploy your first workload, see [Compute quickstart](/compute/quickstart).
-- To check status and fix problems, see [Manage and troubleshoot workloads](/compute/manage-workloads).
-- To open a shell in a running Instance, see [Instance shell sessions](/compute/instance-shell).
+- To deploy your first workload, see the [Quick Start](/quickstart).
+- To review what Compute doesn't support yet, see [Limitations and roadmap](/compute/limitations-and-roadmap).
+- To fix quota errors and other problems, see [Troubleshooting](/compute/troubleshooting).

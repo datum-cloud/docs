@@ -1,0 +1,18 @@
+---
+title: "Domains and DNS"
+sidebarTitle: "Overview"
+description: "Track and verify your domains in Datum, and host their DNS on Datum's global authoritative DNS."
+---
+
+Datum treats domains and DNS zones as resources in your project, managed through the Cloud Portal, `datumctl`, or [Datum MCP](/agents/datum-mcp).
+
+<CardGroup cols={2}>
+  <Card title="Domains" icon="globe" href="/domain-dns/domains">
+    Track domains wherever they are registered, and verify ownership to use them with other Datum services.
+  </Card>
+  <Card title="DNS" icon="server" href="/domain-dns/dns">
+    Host authoritative DNS for your zones on Datum's global anycast network.
+  </Card>
+</CardGroup>
+
+Domains and DNS work together with the [Application Load Balancer](/alb/overview): a verified domain can serve traffic on a load balancer, and a Datum-hosted zone can point at it. See [DNS setup for Application Load Balancer](/guides/domain-dns/alb-dns-setup).

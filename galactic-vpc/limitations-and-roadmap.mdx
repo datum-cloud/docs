@@ -12,7 +12,7 @@ This page lists what Galactic VPC networks can't do and the networking capabilit
 
 ## Limitations
 
-In addition to the [networking limitations that apply to all of Compute](/compute/limits-and-quotas#networking), networks have the following limitations:
+In addition to the [networking limitations that apply to all of Compute](/compute/limitations-and-roadmap#networking), networks have the following limitations:
 
 - Each workload attaches to exactly one network through one network interface, and it can't move to another network.
 - Instance addresses aren't reachable from the internet. To serve traffic publicly, attach an [ALB](/alb/overview) to the workload.
@@ -30,12 +30,14 @@ Datum is working on the following networking capabilities:
 - **Private DNS:** Private DNS names, so Instances can find each other without IP addresses.
 - **Networks in the portal:** Viewing and managing networks in the Datum Cloud portal.
 
+For what Datum is building next across the platform, see the [Platform roadmap](/platform/roadmap).
+
 <Note>
   Plans can change. This list isn't a commitment to deliver any feature or to meet any timeline.
 </Note>
 
 ## What's next
 
-- To learn which traffic a network carries, see [Network addressing and traffic](/galactic-vpc/addressing-and-traffic).
-- To serve a workload publicly through Datum's ALB, see [Publish a workload](/compute/publish-workloads).
+- To learn which traffic a network carries, see [Traffic and connecting](/galactic-vpc/networks/traffic).
+- To serve a workload publicly through Datum's ALB, see [Publish a workload](/compute/compute-and-alb).
 - To run Instances in more locations, see [Placement and scaling](/compute/placement-and-scaling).

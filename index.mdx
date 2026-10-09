@@ -1,52 +1,76 @@
 ---
 title: "Introduction"
-description: "Datum's approach to an open, neutral, global network cloud built for AI and focused on providers."
-sidebarTitle: "Introduction"
+sidebarTitle: "Overview"
+description: "Datum is an open and neutral network built for the AI era and focused on builders and service providers."
 ---
 
-## TLDR
+**Datum is an open and neutral network built for the AI era and focused on builders and service providers.**
 
-<CardGroup cols={3}>
-  <Card title="Overview" icon="circle-info" href="/overview" />
-  <Card title="Features" icon="list-check" href="/features" />
-  <Card title="Kubernetes" icon="dharmachakra" href="/kubernetes" />
-</CardGroup>
+Datum unlocks internet superpowers — advanced network and connectivity services — for every agent, app, and builder. Unlike a traditional CDN or hyperscaler cloud:
+
+- We are 100% focused on builders and modern, "alt cloud" service providers.
+- Our code is open source (AGPLv3), so you can run it anywhere if needed.
+- We prioritize agent-first and developer experiences.
+
+Datum is still being built. The product is evolving quickly, documentation is growing with it, and today we offer a free tier. To see where each product stands, check the [Roadmap](/platform/roadmap).
 
 ## Get started
 
 <CardGroup cols={3}>
-  <Card title="Set Up Your Account" icon="user-plus" href="/platform/setup" />
-  <Card title="Install datumctl" icon="terminal" href="/datumctl/overview" />
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Put a site behind a load balancer and run your own app.
+  </Card>
+  <Card title="Set up your account" icon="user-plus" href="/getting-started/account-setup">
+    Create an organization, a project, and invite your team.
+  </Card>
+  <Card title="Install datumctl" icon="terminal" href="/datumctl/overview">
+    The CLI for people, scripts, and agents.
+  </Card>
 </CardGroup>
 
-## Explore
+## Products
 
 <CardGroup cols={3}>
   <Card title="Galactic VPC" icon="network-wired" href="/galactic-vpc/overview">
     Private IPv6 networks for your Compute Instances, spanning every location they run in.
   </Card>
-  <Card title="ALB" icon="brain" href="/alb/overview">
-    Intelligent edge proxies and routing purpose-built for AI workloads and agent traffic.
-  </Card>
-  <Card title="Connectors" icon="arrows-left-right" href="/connectors/tunnels">
-    Secure tunnels to bridge your existing infrastructure into the Datum network.
-  </Card>
   <Card title="Compute" icon="microchip" href="/compute/overview">
     Run container images and unikernels as isolated Instances close to your users.
   </Card>
-  <Card title="Domains" icon="globe" href="/domain-dns/domains">
-    Manage custom domains for services running on Datum.
+  <Card title="ALB" icon="brain" href="/alb/overview">
+    Intelligent edge proxies and routing purpose-built for AI workloads and agent traffic.
   </Card>
-  <Card title="Authoritative DNS" icon="server" href="/domain-dns/dns">
-    Manage DNS records for your domains and services.
+  <Card title="Connectors" icon="arrows-left-right" href="/connectors/overview">
+    Secure tunnels to bridge your existing infrastructure into the Datum network.
+  </Card>
+  <Card title="Domains and DNS" icon="globe" href="/domain-dns/overview">
+    Track and verify domains, and host authoritative DNS.
   </Card>
   <Card title="Agents" icon="robot" href="/agents/overview">
     Skills, MCP, llms.txt, and datumctl — everything AI agents need to work with Datum.
   </Card>
 </CardGroup>
 
-## Tools
+## Why Datum
 
-<CardGroup cols={3}>
-  <Card title="Desktop Apps" icon="display" href="/desktop-apps" />
-</CardGroup>
+Our platform provides internet-scale primitives — intelligent edge proxies, private backbones, cloud onramps, peering, meet-me rooms — with an experience that is 100% programmatic, agent-first, and backed by AGPLv3 open source.
+
+We believe a network in the AI era is different from a traditional CDN, mainly because the use case is intelligence, not caching. We also think that open — open source and open ecosystems — is a critical requirement in a world that is increasingly fragmented and regulated.
+
+We serve builders and modern service providers, which we lovingly call [Alt Clouds](https://www.alt-cloud.org/). We aim to support thousands of them, so neutrality and transparency are important in everything we do. We started Datum because we saw three big trends:
+
+1. Intelligence and data everywhere
+2. Thousands of new providers
+3. An era of increased regulation
+
+<Note>
+  Want to learn more? Read Zac's blog post, [Every agent needs an edge](https://www.datum.net/blog/every-agent-needs-an-edge/).
+</Note>
+
+## Background
+
+We founded Datum in late 2024. Our team includes infrastructure veterans who helped build companies like Packet, Voxel, SoftLayer, StackPath, Highwinds, Zscaler, and more.
+
+We're fortunate to have support from investors at Amplify Partners, Cervin Ventures, CRV, Encoded Ventures, ex/ante, Step Function VC, and Vine Ventures.
+
+To learn how Datum is built, see [Architecture](/platform/architecture) and [Kubernetes](/platform/kubernetes). To take part, see [Get involved](/get-involved).

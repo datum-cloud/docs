@@ -1,0 +1,22 @@
+---
+title: "Limitations and roadmap"
+description: "Review what the Datum Application Load Balancer doesn't support yet and where to follow what comes next."
+---
+
+The Application Load Balancer is still being built. This page lists known limitations and where to follow what comes next.
+
+## Limitations
+
+- There is no single composite ALB API yet. An ALB is an `HTTPProxy`, a `TrafficProtectionPolicy`, and optional authentication resources. See [What an ALB is made of](/alb/overview#what-an-alb-is-made-of).
+- Public traffic is HTTP and HTTPS only. Raw TCP and UDP exposure isn't available.
+- Rule exclusions, score thresholds, rate limiting, and circuit breaking aren't available through `datumctl alb`. Use manifests. See [Web application firewall](/alb/configuration/waf).
+- A `connector` backend must be the only backend in its rule.
+- For limits on load balancers attached to Compute workloads, see [Compute and ALB](/compute/compute-and-alb#limitations).
+
+## Roadmap
+
+For what Datum is building next across the platform, see the [Platform roadmap](/platform/roadmap).
+
+<Note>
+  Plans can change. This list isn't a commitment to deliver any feature or to meet any timeline.
+</Note>

@@ -1,0 +1,39 @@
+---
+title: "Networks overview"
+sidebarTitle: "Networks overview"
+description: "What a Galactic VPC network is, how it relates to projects, locations, and workloads, and how the default network works."
+---
+
+A *network* is the core Galactic VPC resource. You create networks in a project, attach Compute workloads to them, and each Instance receives a private IPv6 address on the network.
+
+<Note>
+  Galactic VPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## How networks work
+
+A network belongs to a project, not to a location. The following list describes how a network relates to your projects, locations, workloads, and Instances:
+
+- **Networks belong to a project:** You create networks with the `Network` resource. You don't create a network for each location. When a workload runs Instances in a location, Datum gives the network address space in that location and assigns each Instance an address from it.
+- **One network for each workload:** All of a workload's Instances, in every placement, attach to the same network. You choose the network when you create the workload.
+- **Many workloads on one network:** Several workloads can name the same network. For example, a frontend workload and a backend workload can share a network.
+- **Addresses are private IPv6:** Each network gets its own private IPv6 prefix from the unique local address range. Each Instance gets an address from that prefix. The addresses aren't reachable from the internet. For more information, see [Addressing](/galactic-vpc/networks/addressing).
+- **Networks are isolated:** Each network is separate from every other network, including other networks in the same project and other customers' networks.
+- **Public traffic arrives through Datum's ALB:** To serve a workload on the internet, attach Datum's [Application Load Balancer](/alb/overview) to it. The ALB forwards each request to an Instance over the private network. For more information, see [Publish a workload](/compute/compute-and-alb).
+
+## The default network
+
+You don't need to create a network before your first deploy. When you run `datumctl compute deploy` without `--network`, the command attaches the workload to a network named `default`. If the network doesn't exist, the command offers to create it. In scripts, pass `--yes` to create it without a prompt.
+
+Datum doesn't create the `default` network when it creates a project. If you apply a workload with `datumctl apply`, the network must already exist. `datumctl compute deploy -f` offers to create a missing network, as the flag-based deploy does.
+
+## In this section
+
+<CardGroup cols={2}>
+  <Card title="Addressing" icon="list-ol" href="/galactic-vpc/networks/addressing">
+    How Instances get private IPv6 addresses.
+  </Card>
+  <Card title="Traffic and connecting" icon="route" href="/galactic-vpc/networks/traffic">
+    Which traffic a network carries and how Instances connect.
+  </Card>
+</CardGroup>

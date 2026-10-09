@@ -1,0 +1,24 @@
+---
+title: "Limits and quotas"
+description: "Fixed limits that apply to Galactic VPC networks."
+---
+
+This page lists the fixed limits for Galactic VPC networks. Galactic VPC is still being built, and network quotas are not documented yet.
+
+<Note>
+  Galactic VPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## Limits
+
+| Item | Limit |
+| --- | --- |
+| Address space for each network | A `/48` IPv6 prefix that Datum assigns |
+| Address space for each location on a network | A `/64` from the network's prefix |
+| Address block for each Instance | A `/96` from the location's `/64` |
+| Networks for each workload | 1 |
+| Network interfaces for each Instance | Exactly 1 |
+| Default MTU | `1440` |
+| Locations that carry Compute traffic | `us-central-1`, `us-east-1`, and `us-west-1` |
+
+For limits that apply to the workloads on a network, see [Compute limits and quotas](/compute/limits-and-quotas). For features that networks don't support yet, see [Limitations and roadmap](/galactic-vpc/limitations-and-roadmap).

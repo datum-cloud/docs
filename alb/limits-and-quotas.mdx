@@ -1,0 +1,20 @@
+---
+title: "Limits and quotas"
+description: "Fixed limits that apply to a Datum HTTPProxy."
+---
+
+This page lists the fixed limits of the `HTTPProxy` resource behind every Application Load Balancer. Quotas for load balancers are not documented yet.
+
+## Limits
+
+| Item | Limit |
+| --- | --- |
+| Hostnames for each `HTTPProxy` | 16 |
+| Rules for each `HTTPProxy` | 16 |
+| Matches for each rule | 64 |
+| Matches across all rules | 128 |
+| Backends for each rule | 16 |
+| Backend `weight` | 0 to 1,000,000, default `1` |
+| ALBs attached to each workload with `datumctl compute deploy` | 1, on one port |
+
+For features that load balancers don't support yet, see [Limitations and roadmap](/alb/limitations-and-roadmap).

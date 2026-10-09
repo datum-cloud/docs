@@ -47,105 +47,149 @@
         "icon": "layer-group",
         "groups": [
           {
-            "group": "Documentation",
+            "group": "Introduction",
             "pages": [
-              "index"
-            ]
-          },
-          {
-            "group": "TLDR",
-            "pages": [
-              "overview",
-              "features",
-              "kubernetes",
+              "index",
+              "quickstart",
+              {
+                "group": "Getting Started",
+                "pages": [
+                  "getting-started/account-setup",
+                  "getting-started/service-accounts"
+                ]
+              },
               "get-involved"
             ]
           },
           {
             "group": "Platform",
             "pages": [
-              {
-                "group": "Setup",
-                "pages": [
-                  "platform/setup",
-                  "platform/service-accounts",
-                  "platform/locations"
-                ]
-              },
-              {
-                "group": "Operations",
-                "pages": [
-                  "platform/metrics-export",
-                  "platform/activity-logs",
-                  "platform/project-suspension",
-                  "platform/secrets"
-                ]
-              }
+              "platform/architecture",
+              "platform/kubernetes",
+              "platform/segment-routing",
+              "platform/envoy",
+              "platform/iroh-relays",
+              "platform/compute",
+              "platform/security",
+              "platform/roadmap"
             ]
           },
           {
             "group": "Galactic VPC",
             "pages": [
               "galactic-vpc/overview",
-              "galactic-vpc/networks",
-              "galactic-vpc/addressing-and-traffic",
-              "galactic-vpc/limitations-and-roadmap"
-            ]
-          },
-          {
-            "group": "ALB",
-            "pages": [
-              "alb/overview",
-              "alb/quickstart",
-              "alb/wildcard-hostnames",
               {
-                "group": "Using datumctl",
+                "group": "Networks",
+                "root": "galactic-vpc/networks/overview",
                 "pages": [
-                  "alb/guides/datumctl-custom-domain",
-                  "alb/guides/datumctl-routes",
-                  "alb/guides/datumctl-traffic-protection",
-                  "alb/guides/datumctl-troubleshooting"
+                  "galactic-vpc/networks/addressing",
+                  "galactic-vpc/networks/traffic"
                 ]
               },
-              {
-                "group": "Guides",
-                "pages": [
-                  "alb/guides/basic-auth",
-                  "alb/guides/oidc-google",
-                  "alb/guides/oidc-auth0",
-                  "alb/guides/load-balancer-failover"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Connectors",
-            "pages": [
-              "connectors/tunnels"
+              "galactic-vpc/configuration",
+              "galactic-vpc/operations",
+              "galactic-vpc/observability",
+              "galactic-vpc/troubleshooting",
+              "galactic-vpc/limits-and-quotas",
+              "galactic-vpc/limitations-and-roadmap"
             ]
           },
           {
             "group": "Compute",
             "pages": [
               "compute/overview",
-              "compute/quickstart",
-              "compute/runtime-classes",
-              "compute/containers",
-              "compute/unikernels",
-              "compute/configuration",
+              {
+                "group": "Runtimes",
+                "root": "compute/runtimes/overview",
+                "pages": [
+                  "compute/runtimes/general-compute",
+                  "compute/runtimes/unikernels"
+                ]
+              },
               "compute/placement-and-scaling",
-              "compute/publish-workloads",
-              "compute/manage-workloads",
+              "compute/compute-and-alb",
+              "compute/configuration",
+              {
+                "group": "Operations",
+                "root": "compute/operations",
+                "pages": [
+                  "compute/instance-shell"
+                ]
+              },
               "compute/observability",
-              "compute/instance-shell",
-              "compute/limits-and-quotas"
+              "compute/troubleshooting",
+              "compute/limits-and-quotas",
+              "compute/limitations-and-roadmap"
             ]
           },
           {
-            "group": "Domains & DNS",
+            "group": "ALB",
             "pages": [
+              "alb/overview",
+              {
+                "group": "HTTPProxy",
+                "root": "alb/httpproxy/overview",
+                "pages": [
+                  "alb/httpproxy/path-routing",
+                  "alb/httpproxy/url-rewrite",
+                  "alb/httpproxy/https-redirect",
+                  "alb/httpproxy/host-header-override"
+                ]
+              },
+              {
+                "group": "Configuration",
+                "root": "alb/configuration/overview",
+                "pages": [
+                  "alb/configuration/waf",
+                  "alb/configuration/wildcard-hostnames"
+                ]
+              },
+              "alb/operations",
+              "alb/observability",
+              "alb/troubleshooting",
+              "alb/limits-and-quotas",
+              "alb/limitations-and-roadmap"
+            ]
+          },
+          {
+            "group": "Connectors",
+            "pages": [
+              "connectors/overview",
+              "connectors/tunnels",
+              "connectors/operations",
+              "connectors/observability",
+              "connectors/troubleshooting",
+              "connectors/limits-and-quotas",
+              "connectors/limitations-and-roadmap"
+            ]
+          },
+          {
+            "group": "Domains and DNS",
+            "pages": [
+              "domain-dns/overview",
               "domain-dns/domains",
-              "domain-dns/dns"
+              "domain-dns/dns",
+              "domain-dns/operations",
+              "domain-dns/observability",
+              "domain-dns/troubleshooting",
+              "domain-dns/limits-and-quotas",
+              "domain-dns/limitations-and-roadmap"
+            ]
+          },
+          {
+            "group": "Operations",
+            "pages": [
+              "operations/metrics-export",
+              "operations/activity-logs",
+              "operations/secrets",
+              "operations/project-suspension",
+              "operations/datum-assistant"
+            ]
+          },
+          {
+            "group": "Locations",
+            "pages": [
+              "locations"
             ]
           },
           {
@@ -164,8 +208,38 @@
                   "agents/skills/metrics-export"
                 ]
               },
-              "datum-mcp",
+              "agents/datum-mcp",
               "agents/llms-txt"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "icon": "book",
+        "groups": [
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/overview"
+            ]
+          },
+          {
+            "group": "ALB",
+            "pages": [
+              "guides/alb/custom-domain",
+              "guides/alb/routes",
+              "guides/alb/traffic-protection",
+              "guides/alb/basic-auth",
+              "guides/alb/oidc-google",
+              "guides/alb/oidc-auth0",
+              "guides/alb/load-balancer-failover"
+            ]
+          },
+          {
+            "group": "Domains and DNS",
+            "pages": [
+              "guides/domain-dns/alb-dns-setup"
             ]
           }
         ]
@@ -366,6 +440,74 @@
       "destination": "/alb/overview"
     },
     {
+      "source": "/ai-edge/proxy-waf",
+      "destination": "/alb/httpproxy/overview"
+    },
+    {
+      "source": "/ai-edge/path-routing",
+      "destination": "/alb/httpproxy/path-routing"
+    },
+    {
+      "source": "/ai-edge/url-rewrite",
+      "destination": "/alb/httpproxy/url-rewrite"
+    },
+    {
+      "source": "/ai-edge/https-redirect",
+      "destination": "/alb/httpproxy/https-redirect"
+    },
+    {
+      "source": "/ai-edge/host-header-override",
+      "destination": "/alb/httpproxy/host-header-override"
+    },
+    {
+      "source": "/ai-edge/waf-configuration",
+      "destination": "/alb/configuration/waf"
+    },
+    {
+      "source": "/ai-edge/wildcard-hostnames",
+      "destination": "/alb/configuration/wildcard-hostnames"
+    },
+    {
+      "source": "/ai-edge/guides/datumctl-troubleshooting",
+      "destination": "/alb/troubleshooting"
+    },
+    {
+      "source": "/ai-edge/guides/basic-auth",
+      "destination": "/guides/alb/basic-auth"
+    },
+    {
+      "source": "/ai-edge/guides/oidc-google",
+      "destination": "/guides/alb/oidc-google"
+    },
+    {
+      "source": "/ai-edge/guides/oidc-auth0",
+      "destination": "/guides/alb/oidc-auth0"
+    },
+    {
+      "source": "/ai-edge/guides/load-balancer-failover",
+      "destination": "/guides/alb/load-balancer-failover"
+    },
+    {
+      "source": "/ai-edge/guides/datumctl-custom-domain",
+      "destination": "/guides/alb/custom-domain"
+    },
+    {
+      "source": "/ai-edge/guides/datumctl-routes",
+      "destination": "/guides/alb/routes"
+    },
+    {
+      "source": "/ai-edge/guides/datumctl-traffic-protection",
+      "destination": "/guides/alb/traffic-protection"
+    },
+    {
+      "source": "/ai-edge/dns-setup",
+      "destination": "/guides/domain-dns/alb-dns-setup"
+    },
+    {
+      "source": "/ai-edge/quickstart",
+      "destination": "/quickstart"
+    },
+    {
       "source": "/ai-edge/:slug*",
       "destination": "/alb/:slug*"
     },
@@ -376,6 +518,150 @@
     {
       "source": "/compute/instance-shell-cli",
       "destination": "/compute/instance-shell"
+    },
+    {
+      "source": "/features",
+      "destination": "/platform/roadmap"
+    },
+    {
+      "source": "/kubernetes",
+      "destination": "/platform/kubernetes"
+    },
+    {
+      "source": "/platform/setup",
+      "destination": "/getting-started/account-setup"
+    },
+    {
+      "source": "/platform/service-accounts",
+      "destination": "/getting-started/service-accounts"
+    },
+    {
+      "source": "/platform/locations",
+      "destination": "/locations"
+    },
+    {
+      "source": "/platform/metrics-export",
+      "destination": "/operations/metrics-export"
+    },
+    {
+      "source": "/platform/activity-logs",
+      "destination": "/operations/activity-logs"
+    },
+    {
+      "source": "/platform/project-suspension",
+      "destination": "/operations/project-suspension"
+    },
+    {
+      "source": "/platform/secrets",
+      "destination": "/operations/secrets"
+    },
+    {
+      "source": "/datum-mcp",
+      "destination": "/agents/datum-mcp"
+    },
+    {
+      "source": "/galactic-vpc/networks",
+      "destination": "/galactic-vpc/configuration"
+    },
+    {
+      "source": "/galactic-vpc/addressing-and-traffic",
+      "destination": "/galactic-vpc/networks/addressing"
+    },
+    {
+      "source": "/compute/runtime-classes",
+      "destination": "/compute/runtimes/overview"
+    },
+    {
+      "source": "/compute/containers",
+      "destination": "/compute/runtimes/general-compute"
+    },
+    {
+      "source": "/compute/unikernels",
+      "destination": "/compute/runtimes/unikernels"
+    },
+    {
+      "source": "/compute/publish-workloads",
+      "destination": "/compute/compute-and-alb"
+    },
+    {
+      "source": "/compute/manage-workloads",
+      "destination": "/compute/operations"
+    },
+    {
+      "source": "/compute/quickstart",
+      "destination": "/quickstart"
+    },
+    {
+      "source": "/alb/proxy-waf",
+      "destination": "/alb/httpproxy/overview"
+    },
+    {
+      "source": "/alb/path-routing",
+      "destination": "/alb/httpproxy/path-routing"
+    },
+    {
+      "source": "/alb/url-rewrite",
+      "destination": "/alb/httpproxy/url-rewrite"
+    },
+    {
+      "source": "/alb/https-redirect",
+      "destination": "/alb/httpproxy/https-redirect"
+    },
+    {
+      "source": "/alb/host-header-override",
+      "destination": "/alb/httpproxy/host-header-override"
+    },
+    {
+      "source": "/alb/waf-configuration",
+      "destination": "/alb/configuration/waf"
+    },
+    {
+      "source": "/alb/wildcard-hostnames",
+      "destination": "/alb/configuration/wildcard-hostnames"
+    },
+    {
+      "source": "/alb/guides/datumctl-troubleshooting",
+      "destination": "/alb/troubleshooting"
+    },
+    {
+      "source": "/alb/guides/basic-auth",
+      "destination": "/guides/alb/basic-auth"
+    },
+    {
+      "source": "/alb/guides/oidc-google",
+      "destination": "/guides/alb/oidc-google"
+    },
+    {
+      "source": "/alb/guides/oidc-auth0",
+      "destination": "/guides/alb/oidc-auth0"
+    },
+    {
+      "source": "/alb/guides/load-balancer-failover",
+      "destination": "/guides/alb/load-balancer-failover"
+    },
+    {
+      "source": "/alb/guides/datumctl-custom-domain",
+      "destination": "/guides/alb/custom-domain"
+    },
+    {
+      "source": "/alb/guides/datumctl-routes",
+      "destination": "/guides/alb/routes"
+    },
+    {
+      "source": "/alb/guides/datumctl-traffic-protection",
+      "destination": "/guides/alb/traffic-protection"
+    },
+    {
+      "source": "/alb/dns-setup",
+      "destination": "/guides/domain-dns/alb-dns-setup"
+    },
+    {
+      "source": "/overview",
+      "destination": "/"
+    },
+    {
+      "source": "/alb/quickstart",
+      "destination": "/quickstart"
     }
   ]
 }

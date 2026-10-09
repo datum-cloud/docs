@@ -21,7 +21,7 @@ datumctl login --credentials ./datum-credentials.json
 This performs a non-interactive login: `datumctl` signs a JWT with the service account's private key, exchanges it for an access token, and stores the resulting session so subsequent commands are authenticated. No browser, no device code, no `--no-browser` device flow.
 
 <Note>
-  Create the service account and download its credentials JSON before you can log in this way. See [Service accounts](/platform/service-accounts) for creating an account, choosing a Datum-managed key, and downloading the one-time credentials file. Treat that file like a password — inject it from your CI secret store, never commit it.
+  Create the service account and download its credentials JSON before you can log in this way. See [Service accounts](/getting-started/service-accounts) for creating an account, choosing a Datum-managed key, and downloading the one-time credentials file. Treat that file like a password — inject it from your CI secret store, never commit it.
 </Note>
 
 For a self-hosted or otherwise custom environment, point login at that environment's auth host:
@@ -153,6 +153,6 @@ This is expected and harmless on an ephemeral runner. To keep it clean:
 
 - [GitHub Actions](/datumctl/cicd/github-actions) — install and authenticate `datumctl` in a GitHub workflow in a single step.
 - [Service accounts](/datumctl/auth/service-accounts) — the credentials-file format and how to use it with `datumctl login --credentials`.
-- [Create a service account in the portal](/platform/service-accounts) — generate and download the credentials this page consumes.
+- [Create a service account in the portal](/getting-started/service-accounts) — generate and download the credentials this page consumes.
 - [Output formats & scripting](/datumctl/output-and-scripting) — the `-o json` output modes, error envelope, and exit-code semantics.
 - [Using datumctl with kubectl](/datumctl/kubectl-interop) — the `datumctl auth get-token` credential-helper mode for kubectl in CI.

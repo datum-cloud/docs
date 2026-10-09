@@ -23,22 +23,27 @@ mintlify dev
 ## Structure
 
 ```
-├── docs.json           # Mintlify configuration (navigation, theme, etc.)
-├── index.mdx           # Root landing page
-├── overview.mdx        # What is Datum
-├── features.mdx        # Current capabilities and roadmap
-├── kubernetes.mdx      # Kubernetes-native approach
+├── docs.json           # Mintlify configuration (navigation, redirects, theme)
+├── index.mdx           # Landing page (Introduction > Overview)
+├── quickstart.mdx      # Quick Start (ALB + Compute)
 ├── get-involved.mdx    # Community and contributing
-├── platform/           # Platform setup, secrets, metrics, locations
-├── alb/            # Application Load Balancer proxy docs
+├── locations.mdx       # Regions and availability zones
+├── desktop-apps.mdx    # Desktop Apps tab
+├── getting-started/    # Account setup, service accounts
+├── platform/           # Architecture, Kubernetes, roadmap, and other platform topics
+├── galactic-vpc/       # Galactic VPC (networks/ holds the Networks section)
+├── compute/            # Compute (runtimes/ holds the Runtimes section)
+├── alb/                # Application Load Balancer (httpproxy/, configuration/)
 ├── connectors/         # Connectors and tunnels
-├── galactic-vpc/       # Galactic VPC docs
 ├── domain-dns/         # Domains and DNS
-├── datumctl/           # datumctl CLI guides
-├── cli/                # datumctl command reference
-├── guides/             # How-to guides
+├── operations/         # Metrics export, activity logs, secrets, suspension, assistant
+├── agents/             # Agent skills, Datum MCP, llms.txt
+├── guides/             # Guides tab, grouped by product
+├── datumctl/           # datumctl (CLI) tab
 └── images/             # Static assets
 ```
+
+Each product section follows the same layout where it applies: Overview, product-specific pages, Configuration, Operations, Observability, Troubleshooting, Limits and quotas, and Limitations and roadmap. When you move a page, add a redirect for its old path in `docs.json`.
 
 ## Contributing
 

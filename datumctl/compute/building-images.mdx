@@ -12,7 +12,7 @@ datumctl compute build .
 
 `build` is for workloads on the `unikernel` runtime class, the default. That class doesn't run the image as a normal container. It boots the image as a unikernel, which gives each Instance its own virtual machine with container-like density and startup speed. `build` packages your Dockerfile into the artifact that runtime boots from, and validates it against unikernel requirements as part of the same step — so a missing shared library or the wrong architecture shows up as a build-time error instead of a workload that never comes up.
 
-Workloads on the `general-purpose` runtime class run standard container images, so they don't need `build`. Push the image with the tools that you already use. For more information, see [Choose a runtime class](/compute/runtime-classes).
+Workloads on the `general-purpose` runtime class run standard container images, so they don't need `build`. Push the image with the tools that you already use. For more information, see [Choose a runtime class](/compute/runtimes/overview).
 
 <Info>
   `build` needs a BuildKit backend to run: Docker Desktop or Docker Engine with BuildKit enabled (the default on modern installs), a standalone `buildkitd`, or `BUILDKIT_HOST` pointing at one.

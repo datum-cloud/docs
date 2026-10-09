@@ -1,0 +1,41 @@
+---
+title: "Operations"
+description: "View, update, and delete Galactic VPC networks."
+---
+
+This page covers day-to-day operations on Galactic VPC networks. Galactic VPC is still being built, so this page is thin for now.
+
+<Note>
+  Galactic VPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## View networks
+
+To list the networks in your project, run the following command:
+
+```bash
+datumctl get networks
+```
+
+The `IPV6PREFIX` column shows the private IPv6 prefix that Datum assigned, and the `READY` column shows whether the network is ready. To see which addresses your Instances hold, see [Addressing](/galactic-vpc/networks/addressing).
+
+## Update a network
+
+A network has few settings, and Datum assigns its address space. A workload's network, and its network interface settings, can't change after you create the workload. To move a workload to another network, deploy a new workload on that network and then delete the old one. For more information, see [Compute operations](/compute/operations#update-a-workload).
+
+## Delete a network
+
+Before you delete a network, delete the workloads that are attached to it. To delete a network, run the following command:
+
+```bash
+datumctl delete network NETWORK_NAME
+```
+
+Replace `NETWORK_NAME` with the name of the network.
+
+If Instances still hold addresses on the network, the network stays in deletion and reports `RangeOccupied` until they're gone.
+
+## What's next
+
+- To fix network errors, see [Troubleshooting](/galactic-vpc/troubleshooting).
+- To create a network, see [Configuration](/galactic-vpc/configuration).

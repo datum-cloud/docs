@@ -1,0 +1,24 @@
+---
+title: "Troubleshooting"
+description: "Fix common Galactic VPC network errors."
+---
+
+This page lists common Galactic VPC errors and how to fix them. Galactic VPC is still being built, so this page will grow.
+
+<Note>
+  Galactic VPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## Common problems
+
+| Error or reason | Meaning | What to do |
+| --- | --- | --- |
+| `NetworkNotFound` | The network named in the workload's `networkInterfaces` doesn't exist, so no Instances start. | Create the network. See [Configuration](/galactic-vpc/configuration#create-a-network). |
+| `permission to use the network was denied` | You don't have the `networking.datumapis.com/networks.use` permission on the network. | Ask a project administrator for the **Network Admin** role. See [Permissions](/galactic-vpc/configuration#permissions). |
+| `RangeOccupied` | A network you're deleting still has Instances holding addresses on it. | Delete the workloads attached to the network. See [Delete a network](/galactic-vpc/operations#delete-a-network). |
+| A network is rejected for not including IPv6 | `spec.ipFamilies` doesn't include `IPv6`. | Keep the default, `[IPv6]`. |
+| Connections between locations stall | `spec.mtu` is larger than the default of `1440`. | Keep the default MTU. |
+| An Instance can't reach a peer | The app listens only on IPv4, or the URL doesn't bracket the IPv6 address. | Listen on `::` and use `http://[ADDRESS]:PORT/`. See [Traffic and connecting](/galactic-vpc/networks/traffic#connect-to-other-instances). |
+| An Instance can't reach the internet | Outbound internet access isn't available in the preview. | See [Limitations and roadmap](/galactic-vpc/limitations-and-roadmap). |
+
+For problems with the workloads on a network, see [Compute troubleshooting](/compute/troubleshooting).
