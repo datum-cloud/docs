@@ -56,7 +56,8 @@
   };
 
   // Same items as datum.net: "Get started" only when the dashboard is not the
-  // projects page (i.e. onboarding for new users).
+  // projects page (i.e. onboarding for new users), and no Projects for an org
+  // without any.
   var buildMenuItems = function (status, dashboardUrl) {
     var projectsUrl = status.org
       ? new URL('/org/' + encodeURIComponent(status.org.name) + '/projects', portal).href
@@ -65,7 +66,11 @@
     if (dashboardUrl && dashboardUrl !== projectsUrl) {
       main.appendChild(menuItem(dashboardUrl, 'Get started', 'layout-grid'));
     }
-    if (projectsUrl) main.appendChild(menuItem(projectsUrl, 'Projects', 'folder'));
+    // hasProjects is omitted when the portal's lookup fails; only an explicit
+    // false hides Projects.
+    if (projectsUrl && status.org.hasProjects !== false) {
+      main.appendChild(menuItem(projectsUrl, 'Projects', 'folder'));
+    }
     main.appendChild(
       menuItem(new URL('/account/general', portal).href, 'Account Settings', 'user')
     );
