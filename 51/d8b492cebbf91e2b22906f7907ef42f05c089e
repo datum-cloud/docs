@@ -1,0 +1,20 @@
+portal-user.js
+  s_b1b0933b685289::t_1297f047f19e75 69-73
+  s_b1b0933b685289::t_0e81e17b9609ac 59-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "51d8b492cebbf91e2b22906f7907ef42f05c089e",
+  "prompts": {},
+  "sessions": {
+    "s_b1b0933b685289": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cb07f6c8-1a49-4e93-9989-1a099ca42918",
+        "model": "unknown"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
