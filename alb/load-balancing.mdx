@@ -7,7 +7,7 @@ An Application Load Balancer can send one route's traffic to several origins. Ea
 
 ## Several origins on one route
 
-A route takes up to 16 origins. They can be any mix of public URLs and Datum compute workloads. Each URL origin is sent its own hostname as the Host header, so origins on different hostnames can share a route.
+A route takes up to 16 origins. They can be any mix of public URLs and Datum compute workloads. Datum sends each URL origin its own hostname as the Host header, so origins on different hostnames can share a route.
 
 Two things to watch:
 
@@ -16,7 +16,7 @@ Two things to watch:
 
 ## Weights
 
-Requests on a route are split across its origins in proportion to their weights. Weights are relative: origins at 1 and 3 get 25% and 75% of requests. An origin with no weight counts as 1, so a pool with no weights set splits evenly.
+The load balancer splits requests on a route across its origins in proportion to their weights. Weights are relative: origins at 1 and 3 get 25% and 75% of requests. An origin with no weight counts as 1, so a pool with no weights set splits evenly.
 
 **Weight 0 drains an origin.** It stays in the pool and gets no requests, which lets you take it out of service without deleting it. At least one origin on a route has to keep a weight above 0, or the route serves nothing.
 
@@ -37,7 +37,7 @@ With consistent hash on the client IP, a load test run from one machine sends ev
 
 ## Passive health checks
 
-Passive health checks watch real responses. When an endpoint returns a run of 5xx responses, it is ejected: it gets no requests for a while, then it is let back in. If it is still failing, it is ejected again for longer each time.
+Passive health checks watch real responses. When an endpoint returns a run of 5xx responses, the load balancer ejects it. The endpoint gets no requests for a while, then the load balancer lets it back in. If it is still failing, the load balancer ejects it again for longer each time.
 
 Health checks are off until you turn them on. When on, the defaults are:
 
@@ -57,17 +57,17 @@ There are no active probes. Datum never requests a health path, so an endpoint t
 
 **An origin with one endpoint gains little.** Once fewer than half of an origin's endpoints are left, what happens depends on the route:
 
-- If every origin on the route is a URL, requests are spread over all of that origin's endpoints again, failing ones included.
+- If every origin on the route is a URL, the load balancer spreads requests over all of that origin's endpoints again, failing ones included.
 - If any origin on the route is a compute workload, nothing is sent to the failing endpoints, and those requests fail straight away.
 
 ## In the cloud portal
 
 Open the load balancer and go to the **Backends** tab.
 
-- **Add an origin.** Click **Add backend**, pick an **Origin type** (**Public internet** or **Datum compute**), and set its **Weight**. The dialog shows the share the new origin will get. A new backend starts at the average weight of the pool, so it joins with an even share.
+- **Add an origin.** Select **Add backend**, pick an **Origin type** (**Public internet** or **Datum compute**), and set its **Weight**. The dialog shows the share the new origin will get. A new backend starts at the average weight of the pool, so it joins with an even share.
 - **Change a weight.** Use **Edit backend** on the row. **Drain backend** sets the weight to 0.
 - **Change the algorithm.** Use the **Algorithm** menu next to **Add backend**. Choosing **Consistent hash** asks what to hash on: **Client IP** or **Request header**.
-- **Turn on health checks.** Click **Edit** on the **Health checks** card, switch on **Outlier detection**, and adjust **Consecutive 5xx**, **Base ejection** and **Max ejected %** if you need to.
+- **Turn on health checks.** Select **Edit** on the **Health checks** card, switch on **Outlier detection**, and adjust **Consecutive 5xx**, **Base ejection** and **Max ejected %** if you need to.
 
 The portal manages one route: the pool of origins on `/`. If a load balancer has more routes, a path match or a per-origin filter, the Backends tab is read-only, including the algorithm and health checks. Manage that load balancer with `datumctl alb` instead.
 
