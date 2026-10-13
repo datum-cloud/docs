@@ -3,7 +3,7 @@ title: "Project Suspension"
 description: "What happens when a project is suspended, what is stopped versus retained, and how to appeal or self-remediate"
 ---
 
-Project suspension is a reversible, non-destructive stop on a project. Datum can suspend a project for policy, billing, security, or compliance reasons. Nothing about your project is deleted — running work is stopped, and your disks, configuration, and allocations are retained so the project can start back up on reinstatement.
+Project suspension is a reversible, non-destructive stop on a project. Datum can suspend a project for policy, billing, security, or compliance reasons. Nothing about your project is deleted — running work is stopped, and your configuration, IP allocations, and other resources are retained so the project can start back up on reinstatement.
 
 ## What happens when a project is suspended
 
@@ -11,7 +11,7 @@ When a project is suspended:
 
 - **The project freezes.** You can read your project and its resources, but you can no longer create new resources or change existing configuration. Deleting resources is still allowed, so you can clean up or offboard while suspended.
 - **Everything running stops — but nothing is deleted by Datum.** Compute instances are stopped, published endpoints stop serving, open connections drop, and the project stops executing work.
-- **Your data is preserved.** Disks, configuration, IP allocations, DNS records, and enabled-service state all remain in place.
+- **Your configuration and allocations are preserved.** Configuration, IP allocations, DNS records, and enabled-service state all remain in place.
 
 Think of suspension as a stop, not a deletion. The essential guarantee is **reversibility** — Datum never destroys your stored state to suspend a project.
 
@@ -25,7 +25,6 @@ Think of suspension as a stop, not a deletion. The essential guarantee is **reve
 | DNS records | Retained |
 | Configuration | Retained |
 | IP allocations | Retained |
-| Disks and data | Retained |
 | Enabled-service state | Retained |
 
 ## What to expect on reinstatement
@@ -33,7 +32,7 @@ Think of suspension as a stop, not a deletion. The essential guarantee is **reve
 When a suspended project is reinstated:
 
 - The project **unfreezes** and accepts writes again.
-- Everything **starts back up automatically** — instances boot fresh from their preserved disks and endpoints serve again. No redeploy is required.
+- Everything **starts back up automatically** — instances start fresh and endpoints serve again. No redeploy is required.
 - The full history of when and why the project was suspended and reinstated is retained for audit and appeal.
 
 Coming back up takes about as long as a normal start. Instances restart fresh rather than picking up mid-computation, so any in-memory state and open connections from before the suspension are gone.
@@ -53,6 +52,6 @@ If it's set for fraud, abuse, or compliance, you can submit an appeal for review
 
 ## Compute instances
 
-Compute instances in a suspended project are **stopped, not hibernated**. Their placement, disk attachments, and quota allocation are retained, so on reinstatement they boot fresh from their preserved disks with no redeploy.
+Compute instances in a suspended project are **stopped, not hibernated**. Their placement and quota allocation are retained, so on reinstatement they start fresh with no redeploy. Compute Instances don't have persistent disks, so any files written at runtime are lost.
 
 In-memory state and open network connections do not survive a suspension. Design anything you run on Datum to tolerate a restart.

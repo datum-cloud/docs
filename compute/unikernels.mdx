@@ -1,0 +1,171 @@
+---
+title: "Build and deploy a unikernel"
+sidebarTitle: "Unikernels"
+description: "Package your app as a unikernel image with datumctl compute build, check it for compatibility, and deploy it."
+---
+
+The `unikernel` runtime class runs each Instance as a unikernel: a single-purpose virtual machine that carries only the operating system code your app uses. Unikernel Instances start in a fraction of a second and use very little overhead.
+
+A unikernel needs a specially packaged image. You write an ordinary Dockerfile, and `datumctl compute build` turns it into an image that Compute can boot. A plain `docker build` image doesn't boot as a unikernel.
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+## Before you begin
+
+- Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
+- Run Docker with BuildKit enabled on your machine. Docker Desktop and recent Docker Engine releases enable BuildKit by default. You can also point the `BUILDKIT_HOST` environment variable at a standalone BuildKit daemon.
+- Have a container registry that you can push to, such as GitHub Container Registry or Docker Hub. `datumctl compute build` uses the registry credentials from your local Docker configuration, so run `docker login` for the registry first.
+- Have an app that listens on IPv6. Instances have IPv6 addresses only, so an app that listens only on an IPv4 address such as `0.0.0.0` is unreachable. Configure it to listen on `::` (all IPv6 addresses) instead, for example `[::]:8080`.
+
+## How a unikernel image works
+
+`datumctl compute build` builds the final stage of your Dockerfile and packages its filesystem as the unikernel's root filesystem. At boot, Compute supplies the kernel and starts your image's entrypoint with its command and arguments.
+
+Keep the following requirements in mind:
+
+- **x86_64 only:** The build always targets `linux/amd64`.
+- **Everything your program loads must be in the image:** Include the program, its dynamic loader, and every shared library it links against. For an interpreted language, include the interpreter and its libraries.
+- **The root filesystem is held in memory:** The unpacked image size counts against the Instance's 2 GiB of memory. Keep images small.
+- **No shell unless you include one:** If your entrypoint is a shell script or uses the shell form of `CMD`, the image needs that shell.
+
+Multi-stage Dockerfiles work well: build in a full toolchain image, and copy only the program and the files that it needs into a minimal final stage.
+
+## Write a Dockerfile
+
+`datumctl compute build` uses `Dockerfile.datum` in the build directory if the file exists, and `Dockerfile` otherwise. A separate `Dockerfile.datum` lets you keep a Compute-specific build next to your regular one.
+
+The following `Dockerfile.datum` builds a Go web server and copies only the binary into an empty final stage:
+
+```dockerfile
+FROM golang:1.25 AS build
+WORKDIR /src
+COPY . .
+RUN CGO_ENABLED=0 go build -o /server .
+
+FROM scratch
+COPY --from=build /server /server
+ENTRYPOINT ["/server"]
+```
+
+In Go, `http.ListenAndServe(":8080", handler)` listens on all IPv6 and IPv4 addresses.
+
+## Check the image for compatibility
+
+Before you deploy, check that the image can boot as a unikernel. To build the image locally and analyze it, run the following command in your app's directory:
+
+```bash
+datumctl compute build --analyze .
+```
+
+The analysis reports problems such as the following:
+
+- The program is built for an architecture other than x86_64.
+- A shared library or the dynamic loader is missing from the final stage.
+- The startup command needs a shell or a script interpreter that the image doesn't include.
+- The entrypoint file isn't executable.
+- A glibc program that resolves host names or users is missing the NSS modules that it loads at runtime.
+
+When a problem has a mechanical fix, the report shows the Dockerfile change. The following example shows a missing library:
+
+```text
+error[missing-libs]: /app/server requires a runtime file that is not present in the image
+ --> Dockerfile:8
+  | copy missing runtime files into the final image
+  | - COPY --from=build /app /app
+  | + COPY --from=build /app /app
+  | + COPY --from=build /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6
+```
+
+To apply these fixes to your Dockerfile and rebuild, run the following command:
+
+```bash
+datumctl compute build --fix .
+```
+
+`--fix` edits the Dockerfile in place with exact-line changes. The analysis can't detect libraries that your program loads at runtime, such as plugins loaded with `dlopen`. Copy those files into the image yourself.
+
+## Build and deploy in one step
+
+To build the image, push it, and deploy it as a workload with a public URL, run the following command in your app's directory:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME \
+  --build \
+  --image=IMAGE \
+  --runtime-class=unikernel \
+  --location=us-central-1 \
+  --http-port=PORT
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: a name for your workload, such as `hello`.
+- `IMAGE`: the image reference to push to and deploy, including the registry host, such as `ghcr.io/example/hello:1.0`.
+- `PORT`: the port that your app serves HTTP on, such as `8080`.
+
+With `--build`, the command does the following:
+
+1. Builds the image from the current directory. To build from another directory, pass it as `--build=DIRECTORY`, where `DIRECTORY` is the path to your app.
+2. Applies the same fixes as `datumctl compute build --fix`, which can rewrite your Dockerfile.
+3. Pushes the image to the registry without asking for confirmation.
+4. Deploys the image pinned by its digest, not by the tag.
+
+`--runtime-class=unikernel` is the default, so you can omit it. Naming the class makes the choice clear to anyone who reads the command later.
+
+The deployed workload pulls the image anonymously. If the image is in a private registry, give the workload registry credentials. For more information, see [Use images from a private registry](/compute/configuration#use-images-from-a-private-registry).
+
+## Build and deploy in separate steps
+
+Separate steps are useful in CI, or when you need build arguments or a specific Dockerfile stage. To build and deploy in separate steps, follow these steps:
+
+1. To build the image and push it to your registry, run the following command:
+
+   ```bash
+   datumctl compute build --push --output IMAGE .
+   ```
+
+   To pass build arguments, add `--build-arg NAME=VALUE`, where `NAME` and `VALUE` are the argument and its value. To build a stage other than the last one, add `--target STAGE`, where `STAGE` is the stage name.
+
+2. To deploy the image, run the following command:
+
+   ```bash
+   datumctl compute deploy WORKLOAD_NAME \
+     --image=IMAGE \
+     --runtime-class=unikernel \
+     --location=us-central-1 \
+     --http-port=PORT
+   ```
+
+   Replace the following:
+
+   - `IMAGE`: the image reference to push to and deploy, including the registry host, such as `ghcr.io/example/hello:1.0`.
+   - `WORKLOAD_NAME`: a name for your workload.
+   - `PORT`: the port that your app serves HTTP on.
+
+To check an image that's already in a registry, run `datumctl compute build inspect IMAGE`. For all build options, see [Building images](/datumctl/compute/building-images).
+
+## Package apps in other languages
+
+Any x86_64 Linux program can run as a unikernel if the image contains everything that the program loads. The approach depends on how the program is built:
+
+- **Compiled languages, such as Go and Rust:** Copy the compiled binary into a minimal final stage. A statically linked binary needs no other files.
+- **Dynamically linked programs:** Copy the dynamic loader and each shared library that the program links against. `datumctl compute build --analyze` lists missing libraries, and `--fix` adds `COPY` lines for them.
+- **Interpreted languages, such as Node.js and Python:** Copy the interpreter, its shared libraries, and your app into the final stage. Copy only the files that the interpreter needs, not whole system library directories, because the image must fit in memory.
+
+## Limitations
+
+In addition to the [limitations that apply to all of Compute](/compute/limits-and-quotas#limitations), the `unikernel` runtime class has the following limitations:
+
+- Images must be packaged with `datumctl compute build`, and must target x86_64.
+- The root filesystem is held in memory. The unpacked image counts against the Instance's 2 GiB of memory.
+- Environment variables from a whole ConfigMap or Secret (`envFrom`) aren't supported. Use `env[].valueFrom` for each key.
+- Linux capabilities can't be added, and container security context settings have no effect.
+- Crash details are limited. An Instance whose program exits at startup can stay `Starting` instead of reporting a crash. If an Instance stays `Starting` for more than a few minutes, run `datumctl compute build --analyze` on the image.
+
+## What's next
+
+- To set environment variables and use ConfigMaps and Secrets, see [Configure a workload](/compute/configuration).
+- To serve the workload on a public URL or your own domain, see [Publish a workload](/compute/publish-workloads).
+- To find out why an Instance doesn't start, see [Manage and troubleshoot workloads](/compute/manage-workloads).

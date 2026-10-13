@@ -18,11 +18,6 @@
       {
         "label": "Status",
         "href": "https://www.datumstatus.net/"
-      },
-      {
-        "type": "button",
-        "label": "Dashboard",
-        "href": "https://cloud.datum.net"
       }
     ]
   },
@@ -89,10 +84,21 @@
             ]
           },
           {
+            "group": "Galactic VPC",
+            "pages": [
+              "galactic-vpc/overview",
+              "galactic-vpc/networks",
+              "galactic-vpc/addressing-and-traffic",
+              "galactic-vpc/limitations-and-roadmap"
+            ]
+          },
+          {
             "group": "ALB",
             "pages": [
               "alb/overview",
               "alb/quickstart",
+              "alb/wildcard-hostnames",
+              "alb/load-balancing",
               {
                 "group": "Using datumctl",
                 "pages": [
@@ -120,9 +126,20 @@
             ]
           },
           {
-            "group": "Galactic VPC",
+            "group": "Compute",
             "pages": [
-              "galactic-vpc/overview"
+              "compute/overview",
+              "compute/quickstart",
+              "compute/runtime-classes",
+              "compute/containers",
+              "compute/unikernels",
+              "compute/configuration",
+              "compute/placement-and-scaling",
+              "compute/publish-workloads",
+              "compute/manage-workloads",
+              "compute/observability",
+              "compute/instance-shell",
+              "compute/limits-and-quotas"
             ]
           },
           {
@@ -208,6 +225,7 @@
               "datumctl/compute/building-images",
               "datumctl/compute/deploying-workloads",
               "datumctl/compute/scaling-and-operations",
+              "datumctl/compute/viewing-logs",
               "datumctl/compute/destroying-workloads"
             ]
           },
@@ -351,6 +369,14 @@
     {
       "source": "/ai-edge/:slug*",
       "destination": "/alb/:slug*"
+    },
+    {
+      "source": "/compute/instance-shell-portal",
+      "destination": "/compute/instance-shell"
+    },
+    {
+      "source": "/compute/instance-shell-cli",
+      "destination": "/compute/instance-shell"
     }
   ]
 }

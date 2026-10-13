@@ -1,0 +1,116 @@
+---
+title: "Serve a wildcard hostname"
+description: "Attach a wildcard hostname such as *.example.com to a Datum Application Load Balancer and get a certificate through a DNS record."
+---
+
+A wildcard hostname lets one load balancer serve every name under a domain you own, such as `app1.example.com` and `app2.example.com`, with one certificate. Use it when you serve many subdomains and do not want to attach each one.
+
+<Note>
+Wildcard hostnames are enabled per project by Datum. Contact Datum to turn them on for yours.
+</Note>
+
+## How it differs from an exact hostname
+
+| | Exact hostname | Wildcard hostname |
+|---|---|---|
+| Example | `app.example.com` | `*.example.com` |
+| Certificate | Issued once the name points at Datum | Issued after you add one `_acme-challenge` CNAME |
+| Domain ownership | [As in the custom domain guide](/alb/guides/datumctl-custom-domain) | Proven by a DNS TXT record |
+| Enabled by | Nothing extra | Datum, per project |
+
+A wildcard covers names one label down. `*.example.com` serves `app.example.com` but not `a.b.example.com`. It also reserves every name beneath it for your project, so another project cannot attach one of those names.
+
+## Attach it
+
+Quote the wildcard so your shell leaves the `*` alone.
+
+```bash
+datumctl alb hostname add my-app '*.example.com'
+datumctl alb describe my-app
+```
+
+`hostname add` does not wait. If the wildcard is refused, `describe` shows the reason under the hostname.
+
+## Publish the DNS records
+
+`describe` ends with the records you still need to create at your DNS provider.
+
+```text
+DNS records to publish:
+  NAME                         TYPE    CONTENT                          PURPOSE
+  *.example.com                CNAME   my-app-hrkgk.datumproxy.net      Routing
+  _acme-challenge.example.com  CNAME   k3f9q2x7.acme-dns.example.net    Certificate
+```
+
+| Purpose | What it does |
+|---|---|
+| Ownership | A TXT record proving you own the domain. A wildcard needs the domain verified by DNS; a domain verified another way does not count. |
+| Certificate | Delegates the certificate challenge to Datum, so the certificate is issued before traffic moves. |
+| Routing | Sends traffic for the wildcard to the load balancer. |
+
+Create each record exactly as shown. The values above are examples; use the ones `describe` prints for your load balancer.
+
+## See the status
+
+The same information is in the `HTTPProxy` status. This example shows a wildcard whose certificate is waiting on the project being enabled.
+
+```yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: my-app
+spec:
+  hostnames:
+    - "*.example.com"
+  rules:
+    - backends:
+        - endpoint: https://origin.example.com
+status:
+  hostnameStatuses:
+    - hostname: "*.example.com"
+      conditions:
+        - type: Available
+          status: "True"
+          reason: Claimed
+        - type: Verified
+          status: "True"
+          reason: Verified
+        - type: CertificateReady
+          status: "False"
+          reason: WildcardNotEntitled
+          message: >-
+            Wildcard hostnames are not enabled for this project, so no
+            certificate is issued. Contact Datum to enable them, or use an
+            exact hostname.
+      dnsRecords:
+        - name: "*.example.com"
+          type: CNAME
+          content: my-app-hrkgk.datumproxy.net
+          purpose: Routing
+          managedBy: User
+          state: Missing
+        - name: _acme-challenge.example.com
+          type: CNAME
+          content: k3f9q2x7.acme-dns.example.net
+          purpose: Certificate
+          managedBy: User
+          state: Missing
+```
+
+Each record's `state` is `Present` once it takes effect on the public internet, and `Missing` while it is absent or wrong. `managedBy` is `Platform` for records Datum publishes in a Datum DNS zone, and `User` for records you publish.
+
+Once everything is in place, `CertificateReady` becomes `True` with reason `CertificateIssued`.
+
+## When the certificate is not issued
+
+| `describe` shows | Cause | Fix |
+|---|---|---|
+| Wildcard hostnames are not enabled for this project | The project is not enabled | Contact Datum, or use an exact hostname |
+| Verified is `False` | The domain is not yet proven by its DNS TXT record | Publish the Ownership record |
+| `_acme-challenge` record is `Missing` | The Certificate CNAME is absent or wrong | Publish it exactly as shown, without the zone name appended twice |
+
+Exact hostnames on the same load balancer are unaffected and keep their own certificates.
+
+## If wildcards are later disabled
+
+A certificate that has already been issued keeps serving. Disabling wildcards for a project stops new wildcard certificates from being issued, not existing ones.

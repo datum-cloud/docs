@@ -10,7 +10,9 @@ description: "Turn a Dockerfile into an image Datum Compute can run, check it fo
 datumctl compute build .
 ```
 
-Compute doesn't run that image as a normal container — it boots it as a unikernel, which is what gives Compute VM-level isolation between workloads at container-like density and cold-start speed. `build` packages your Dockerfile into the artifact that runtime boots from, and validates it against unikernel requirements as part of the same step — so a missing shared library or the wrong architecture shows up as a build-time error instead of a workload that never comes up.
+`build` is for workloads on the `unikernel` runtime class, the default. That class doesn't run the image as a normal container. It boots the image as a unikernel, which gives each Instance its own virtual machine with container-like density and startup speed. `build` packages your Dockerfile into the artifact that runtime boots from, and validates it against unikernel requirements as part of the same step — so a missing shared library or the wrong architecture shows up as a build-time error instead of a workload that never comes up.
+
+Workloads on the `general-purpose` runtime class run standard container images, so they don't need `build`. Push the image with the tools that you already use. For more information, see [Choose a runtime class](/compute/runtime-classes).
 
 <Info>
   `build` needs a BuildKit backend to run: Docker Desktop or Docker Engine with BuildKit enabled (the default on modern installs), a standalone `buildkitd`, or `BUILDKIT_HOST` pointing at one.
@@ -66,12 +68,12 @@ datumctl compute build --analyze .
 Where a fix is a mechanical Dockerfile edit, the finding shows exactly what to change:
 
 ```text
-error[missing-libs]: /app/server requires 1 runtime file that is not present in the image
-   --> Dockerfile:8
-    | Copy the missing shared library into the final stage
-    | - COPY --from=build /app /app
-    | + COPY --from=build /app /app
-    | + COPY --from=build /lib/libc.so.6 /lib/libc.so.6
+error[missing-libs]: /app/server requires a runtime file that is not present in the image
+ --> Dockerfile:8
+  | copy missing runtime files into the final image
+  | - COPY --from=build /app /app
+  | + COPY --from=build /app /app
+  | + COPY --from=build /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6
 ```
 
 Reach for `--fix` once you're ready to apply changes like that automatically — it edits the selected Dockerfile in place and rebuilds. `--fix` implies `--analyze`, and only ever applies safe, exact-line edits — it will never restructure your Dockerfile.

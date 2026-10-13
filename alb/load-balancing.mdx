@@ -1,0 +1,134 @@
+---
+title: "Load balancing and health checks"
+description: "Split traffic across several origins on a Datum Application Load Balancer with weights, choose the load balancing algorithm, and turn on passive health checks."
+---
+
+An Application Load Balancer can send one route's traffic to several origins. Each origin has a weight that sets its share of requests. Two settings apply across every route: the algorithm that picks an endpoint for each request, and passive health checks.
+
+## Several origins on one route
+
+A route takes up to 16 origins. They can be any mix of public URLs and Datum compute workloads. Each URL origin is sent its own hostname as the Host header, so origins on different hostnames can share a route.
+
+Two things to watch:
+
+- **A connector origin must be the only origin on its route.**
+- **A Host override on the route sends the same Host to every origin.** In a pool spanning several hostnames, any origin that serves by hostname (Vercel, Netlify, Fly.io, Cloudflare Pages) then answers the wrong site or a 404. See [Host header override](/alb/host-header-override).
+
+## Weights
+
+Requests on a route are split across its origins in proportion to their weights. Weights are relative: origins at 1 and 3 get 25% and 75% of requests. An origin with no weight counts as 1, so a pool with no weights set splits evenly.
+
+**Weight 0 drains an origin.** It stays in the pool and gets no requests, which lets you take it out of service without deleting it. At least one origin on a route has to keep a weight above 0, or the route serves nothing.
+
+## The load balancing algorithm
+
+The algorithm decides which endpoint gets each request. It applies to every route on the load balancer.
+
+| Algorithm | Behavior |
+|---|---|
+| **Least request** | Sends each request to the endpoint with the fewest requests in flight. The default when nothing is set. |
+| **Round robin** | Cycles through endpoints in order. |
+| **Random** | Picks an endpoint at random. |
+| **Consistent hash** | Sends requests that hash the same way to the same endpoint while the pool is stable. Hash on the client IP, or on a request header such as `x-user-id`. |
+
+<Note>
+With consistent hash on the client IP, a load test run from one machine sends every request to the same origin. That is the algorithm working. Test from several addresses, or hash on a header your test varies.
+</Note>
+
+## Passive health checks
+
+Passive health checks watch real responses. When an endpoint returns a run of 5xx responses, it is ejected: it gets no requests for a while, then it is let back in. If it is still failing, it is ejected again for longer each time.
+
+Health checks are off until you turn them on. When on, the defaults are:
+
+| Setting | Default | Meaning |
+|---|---|---|
+| Consecutive 5xx | 5 | 5xx responses in a row that eject an endpoint |
+| Base ejection | 30s | How long the first ejection lasts. Each repeat lasts longer. |
+| Max ejected % | 50 | The most of one origin's endpoints that can be ejected at once |
+
+There are no active probes. Datum never requests a health path, so an endpoint that gets no requests is never judged.
+
+### What health checks do and do not do
+
+**They act inside one origin.** They move requests off a failing endpoint onto the same origin's other endpoints. A URL origin whose hostname resolves to several addresses has several endpoints. So does a compute workload with several instances.
+
+**They never move an origin's share to another origin.** Weights decide that split, whatever an origin's health. A broken origin keeps failing its share of requests until you drain or remove it.
+
+**An origin with one endpoint gains little.** Once fewer than half of an origin's endpoints are left, what happens depends on the route:
+
+- If every origin on the route is a URL, requests are spread over all of that origin's endpoints again, failing ones included.
+- If any origin on the route is a compute workload, nothing is sent to the failing endpoints, and those requests fail straight away.
+
+## In the cloud portal
+
+Open the load balancer and go to the **Backends** tab.
+
+- **Add an origin.** Click **Add backend**, pick an **Origin type** (**Public internet** or **Datum compute**), and set its **Weight**. The dialog shows the share the new origin will get. A new backend starts at the average weight of the pool, so it joins with an even share.
+- **Change a weight.** Use **Edit backend** on the row. **Drain backend** sets the weight to 0.
+- **Change the algorithm.** Use the **Algorithm** menu next to **Add backend**. Choosing **Consistent hash** asks what to hash on: **Client IP** or **Request header**.
+- **Turn on health checks.** Click **Edit** on the **Health checks** card, switch on **Outlier detection**, and adjust **Consecutive 5xx**, **Base ejection** and **Max ejected %** if you need to.
+
+The portal manages one route: the pool of origins on `/`. If a load balancer has more routes, a path match or a per-origin filter, the Backends tab is read-only, including the algorithm and health checks. Manage that load balancer with `datumctl alb` instead.
+
+## With datumctl
+
+Weights are set per origin:
+
+```bash
+datumctl alb route backend add my-app --path / --endpoint https://api-2.example.com --weight 3
+datumctl alb route backend update my-app --path / --endpoint https://api.example.com --weight 0
+datumctl alb route backend list my-app
+```
+
+`route backend add` without `--weight` gives the new origin the average weight of the pool, like the portal. `route backend list` shows each origin's `WEIGHT` and `SHARE`. A change that would leave every origin on a route at weight 0 is refused. See [Send paths to different origins](/alb/guides/datumctl-routes) for routes and pools.
+
+The algorithm and health checks are set on the load balancer:
+
+```bash
+datumctl alb update my-app --algorithm round-robin
+datumctl alb update my-app --hash-header x-user-id
+datumctl alb update my-app --algorithm default
+
+datumctl alb update my-app --health-checks
+datumctl alb update my-app --consecutive-5xx 3 --base-ejection-time 1m --max-ejection-percent 50
+datumctl alb update my-app --no-health-checks
+```
+
+`--algorithm` takes `round-robin`, `random`, `least-request` or `consistent-hash`. Plain `consistent-hash` hashes the client IP. `--hash-header` hashes a header and implies `consistent-hash`. `default` removes the setting, which leaves least request in place. Any tuning flag turns health checks on and keeps the values already set.
+
+`datumctl alb describe my-app` shows each origin's weight and share, the algorithm and the health check settings.
+
+<Note>
+These flags need a recent version of the `alb` plugin. Run `datumctl plugin upgrade alb` if `datumctl alb update --help` does not list `--algorithm`.
+</Note>
+
+## In a manifest
+
+```yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: my-app
+spec:
+  rules:
+    - backends:
+        - endpoint: https://api.example.com
+          weight: 3
+        - endpoint: https://api-2.example.com
+          weight: 1
+  loadBalancer:
+    type: ConsistentHash
+    consistentHash:
+      type: Header
+      header: x-user-id
+  healthCheck:
+    passive:
+      consecutive5xxErrors: 5
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+```
+
+- `spec.rules[].backends[].weight` is 0 to 1,000,000 and defaults to 1.
+- `spec.loadBalancer.type` is `RoundRobin`, `Random`, `LeastRequest` or `ConsistentHash`. `consistentHash` is required for `ConsistentHash`, with `type: SourceIP` or `type: Header` and a `header`. Leave `loadBalancer` out for the default.
+- `spec.healthCheck.passive: {}` turns health checks on with the defaults. Leave `healthCheck` out to turn them off.
