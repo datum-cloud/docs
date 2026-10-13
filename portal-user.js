@@ -141,22 +141,41 @@
     return link;
   };
 
+  // Loader until session-status settles, so "Start for free" doesn't flash
+  // before the user menu. Same shape as datum.net's .nav-signin-skeleton.
+  var buildSkeleton = function () {
+    var root = el('div', 'portal-user-skeleton');
+    root.setAttribute('aria-hidden', 'true');
+    root.appendChild(el('span', 'portal-user-skeleton-avatar'));
+    root.appendChild(el('span', 'portal-user-skeleton-name'));
+    return root;
+  };
+
+  var nodes = { desktop: buildSkeleton(), mobile: buildSkeleton() };
+
   // Mintlify re-renders the navbar on client-side navigation, dropping nodes it
   // doesn't own, so this runs on every DOM change. Both steps are no-ops once
   // applied.
-  var apply = function (nodes) {
+  var apply = function () {
     var links = document.querySelector(NAVBAR_LINKS_SELECTOR);
     if (links && !nodes.desktop.isConnected) links.parentElement.appendChild(nodes.desktop);
     var search = document.querySelector(MOBILE_SEARCH_SELECTOR);
     if (nodes.mobile && search && !nodes.mobile.isConnected) search.before(nodes.mobile);
   };
 
-  var mount = function (nodes) {
-    apply(nodes);
-    new MutationObserver(function () {
-      apply(nodes);
-    }).observe(document.body, { childList: true, subtree: true });
+  // Swaps the loader for the final nodes.
+  var mount = function (next) {
+    nodes.desktop.remove();
+    nodes.mobile.remove();
+    nodes = next;
+    apply();
   };
+
+  apply();
+  new MutationObserver(apply).observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
 
   fetch(new URL('/api/website/session-status', portal), {
     credentials: 'include',
