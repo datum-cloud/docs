@@ -36,7 +36,8 @@ Galactic VPC provides the following features:
 - **One network across locations:** A network is a single project-wide resource. Every workload that names it, in any location, attaches to the same network, and each Instance gets a private IPv6 address on it.
 - **Automatic addressing:** Datum assigns address space to each network and an address to each Instance. You don't plan subnets.
 - **Stable addresses when you need them:** Instances keep their addresses when Datum replaces them, and a workload can keep addresses reserved when it scales down.
-- **Declarative:** Networks are Kubernetes-style resources that you manage with `datumctl`, manifests, or GitOps tooling.
+- **Network services:** A [network service](/galactic-vpc/network-services) gives a workload's Instances a stable name and named ports, so a load balancer can send traffic to them.
+- **Declarative:** Networks are Kubernetes-style resources that you manage with the [`datumctl network` plugin](/galactic-vpc/datumctl), manifests, or GitOps tooling.
 
 To learn what Datum is working on next, see [Planned capabilities](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
 
@@ -45,6 +46,12 @@ To learn what Datum is working on next, see [Planned capabilities](/galactic-vpc
 <CardGroup cols={2}>
   <Card title="Create and manage networks" icon="network-wired" href="/galactic-vpc/networks">
     Create a network, attach a workload, and delete a network.
+  </Card>
+  <Card title="Network services" icon="diagram-project" href="/galactic-vpc/network-services">
+    Give a workload a stable name and named ports for a load balancer.
+  </Card>
+  <Card title="Manage networks with datumctl" icon="terminal" href="/galactic-vpc/datumctl">
+    Create, inspect, and delete networks and network services from the command line.
   </Card>
   <Card title="Addressing and traffic" icon="route" href="/galactic-vpc/addressing-and-traffic">
     Learn how Instances get addresses and which traffic a network carries.
