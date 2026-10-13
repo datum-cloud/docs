@@ -49,6 +49,14 @@ To create a network, follow these steps:
 
 A network has two optional settings: `spec.ipFamilies` defaults to `[IPv6]`, and `spec.mtu` defaults to `1440`. Keep the defaults unless you have a reason to change them. Datum rejects a network that doesn't include IPv6, and a larger MTU can cause connections between locations to stall.
 
+To create a network with the `network` plugin instead of a manifest, run the following command:
+
+```bash
+datumctl network create backend --wait
+```
+
+The plugin creates the same IPv6-only network. For more information, see [Manage networks with datumctl](/galactic-vpc/datumctl).
+
 ## Attach a workload to a network
 
 A workload chooses its network when you create it. You can't move a workload to a different network later.
@@ -125,15 +133,24 @@ networkInterfaces:
 
 Retained addresses stay reserved even when you scale down. You can't change `reclaimPolicy` after you create the workload.
 
+To see the interfaces that are holding retained addresses with no Instance, and to release one, run the following commands:
+
+```bash
+datumctl network interface list --kept
+datumctl network interface release INTERFACE_NAME
+```
+
+Releasing an interface gives up its addresses permanently.
+
 ## Delete a network
 
 Before you delete a network, delete the workloads that are attached to it. To delete a network, run the following command:
 
 ```bash
-datumctl delete network NETWORK_NAME
+datumctl network delete NETWORK_NAME
 ```
 
-Replace `NETWORK_NAME` with the name of the network.
+Replace `NETWORK_NAME` with the name of the network. Before it asks you to confirm, the command lists the workloads that lose their network, the network services that stop serving, and the kept interfaces whose addresses are released. Without the `network` plugin, run `datumctl delete network NETWORK_NAME`.
 
 If Instances still hold addresses on the network, the network stays in deletion and reports `RangeOccupied` until they're gone.
 
@@ -150,6 +167,8 @@ Networks use the following roles and permissions:
 
 ## What's next
 
+- To manage networks from the command line, see [Manage networks with datumctl](/galactic-vpc/datumctl).
+- To give a workload a stable name for a load balancer, see [Network services](/galactic-vpc/network-services).
 - To learn how Instances get addresses and which traffic a network carries, see [Network addressing and traffic](/galactic-vpc/addressing-and-traffic).
 - To review what networks can't do, see [Networking limitations and roadmap](/galactic-vpc/limitations-and-roadmap).
 - To serve a workload publicly through Datum's ALB, see [Publish a workload](/compute/publish-workloads).

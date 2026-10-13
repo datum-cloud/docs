@@ -3,7 +3,7 @@ title: "Overview"
 description: "Self-contained instructions that teach AI agents how to perform Datum Cloud tasks."
 ---
 
-Skills are folders containing a `SKILL.md` file with metadata and step-by-step instructions. Agents discover and load them on demand — no scaffolding, no config files. Datum's official skills cover the most common operations across Application Load Balancer, DNS, Domains, and Metrics Export, with more on the way.
+Skills are folders containing a `SKILL.md` file with metadata and step-by-step instructions. Agents discover and load them on demand — no scaffolding, no config files. Datum's official skills cover the most common operations across Application Load Balancer, DNS, Domains, Metrics Export, and Networks, with more on the way.
 
 These skills work with any agent with support for Skills like but not limited to: Claude, Codex, Cursor, Pi, OpenCode, Mistral Vibe.
 
@@ -39,6 +39,7 @@ npx skills add https://github.com/datum-cloud/skills
 | [Domains](/agents/skills/domains) | Domain attachment and verification | Domain |
 | [HTTPRoute](/agents/skills/httproute) | Path routing, traffic splitting, redirects, rewrites | HTTPRoute, Gateway |
 | [Metrics Export](/agents/skills/metrics-export) | Prometheus remote write pipelines | ExportPolicy |
+| [Networks](/agents/skills/networks) | Networks, network services, and Instances' network interfaces | Network, NetworkService, NetworkInterface |
 
 ## How skills work alongside Datum MCP and datumctl
 
