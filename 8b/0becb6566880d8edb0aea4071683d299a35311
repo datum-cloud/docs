@@ -1,0 +1,30 @@
+style.css
+  s_3761e5f7f0b8a0::t_74db1497963681 160-196
+portal-user.js
+  s_3761e5f7f0b8a0::t_37d80be430ef97 144-155,159,166-171,174-178
+  s_bd23938ea69a4e::t_ff75939d52ced9 179
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8b0becb6566880d8edb0aea4071683d299a35311",
+  "prompts": {},
+  "sessions": {
+    "s_3761e5f7f0b8a0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0d398e43-4637-4823-aaa0-67e304e7651c",
+        "model": "unknown"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    },
+    "s_bd23938ea69a4e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6b6ef34a-d1d1-469b-877a-ba9526ec5dcc",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
