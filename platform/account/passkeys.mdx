@@ -1,0 +1,86 @@
+---
+title: "Manage passkeys"
+sidebarTitle: "Manage passkeys"
+description: "Add, name, and remove the passkeys you use to sign in to Datum Cloud, and keep a backup sign-in method."
+---
+
+A passkey lets you sign in to Datum Cloud with your fingerprint, face, or device PIN instead of a password. You can add passkeys on several devices and remove the ones you no longer use. You do both on the **Passkeys** page.
+
+<Note>
+  If you last signed in more than 10 minutes ago, Datum asks you to confirm it's you before it shows the **Passkeys** page.
+</Note>
+
+## Open the Passkeys page
+
+To open the **Passkeys** page, follow these steps:
+
+1. In the Cloud Portal, click your avatar or initials in the top right, and click **Account Settings**.
+2. Click the **Security** tab.
+3. In **Sign-in Methods**, next to **Passkeys**, click **Add** if you have no passkeys, or **Manage** if you have at least one.
+4. If **Confirm it's you** opens, choose one of your sign-in methods, such as **Passkey**, and confirm.
+
+The **Passkeys** page opens in a new browser tab. It lists each passkey with its name and the date you added it. Close the tab to return to the portal.
+
+## Add a passkey
+
+Each device or password manager holds one passkey for your account. To add a passkey on the device you're using, follow these steps:
+
+<Steps>
+  <Step title="Start setup">
+    On the **Passkeys** page, click **Add passkey**.
+  </Step>
+
+  <Step title="Register the passkey">
+    On **Set up passkey**, click **Register passkey**, and confirm with your device.
+
+    If the device already has a passkey for your account, Datum shows "You already have a passkey for this account on this device." Use a different device instead.
+  </Step>
+
+  <Step title="Name the passkey">
+    On **Name your passkey**, keep the suggested name or enter your own in **Passkey name**, and click **Save**.
+
+    The name is optional and can be up to 200 characters. You can't rename a passkey later, so pick a name that tells you which device it's on, such as `Work laptop`.
+  </Step>
+</Steps>
+
+Datum sends you an email with the subject "New passkey added to your Datum account".
+
+To add a passkey on another device, such as your phone, sign in to the Cloud Portal on that device and repeat these steps.
+
+## Remove a passkey
+
+To remove a passkey, follow these steps:
+
+1. On the **Passkeys** page, click the trash icon next to the passkey.
+2. In **Remove this passkey?**, click **Remove passkey**. The passkey stops working for sign-in, and you can't undo this.
+3. In **Passkey removed**, choose one of the following:
+   - To sign out every other device that's signed in to your account, click **Sign out other sessions**. Do this if you removed the passkey because you lost the device.
+   - To stay signed in on your other devices, click **Not now**.
+
+Datum sends you an email with the subject "A passkey was removed from your Datum account".
+
+The passkey stays in your device or password manager until you delete it there.
+
+## Keep a backup sign-in method
+
+You can't remove your only sign-in method. If you try, the **Passkeys** page shows "You can't remove your only sign-in method. Add another method first."
+
+To keep a way in if you lose a device, do one or both of the following:
+
+- Add passkeys on more than one device.
+- Link your Google or GitHub account: on the **Security** tab, in **Sign-in Methods**, click **Connect** next to Google or GitHub. On **Linked accounts**, under **Available accounts to link**, click the provider and sign in to that account.
+
+If you lose access to every sign-in method, see [Recover your account](/platform/account/recover-account).
+
+## If you get an email about a change you didn't make
+
+If you get a passkey email that you don't expect, do the following:
+
+1. Open the **Passkeys** page and remove any passkey you don't recognize.
+2. In the Cloud Portal, go to **Account Settings** > **Active Sessions** and click the trash icon (**Revoke**) next to any session you don't recognize.
+3. Contact [support@datum.net](mailto:support@datum.net).
+
+## What's next
+
+- To sign in with a passkey, including one on your phone, see [Sign in](/platform/account/sign-in).
+- To get back into your account when you can't use any of your passkeys, see [Recover your account](/platform/account/recover-account).

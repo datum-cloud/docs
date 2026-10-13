@@ -73,6 +73,15 @@
                 ]
               },
               {
+                "group": "Account access",
+                "pages": [
+                  "platform/account/create-account",
+                  "platform/account/sign-in",
+                  "platform/account/passkeys",
+                  "platform/account/recover-account"
+                ]
+              },
+              {
                 "group": "Operations",
                 "pages": [
                   "platform/metrics-export",
