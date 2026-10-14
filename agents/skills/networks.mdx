@@ -1,0 +1,78 @@
+---
+title: "Networks skill"
+description: "Teach agents to create and manage Galactic VPC networks and network services with datumctl, and to read why one is not working."
+---
+
+The Networks skill teaches agents to work with [Galactic VPC](/galactic-vpc/overview) networks and [network services](/galactic-vpc/network-services) through `datumctl network`: create a network, attach workloads to it, give a workload a stable name and named ports for a load balancer, release addresses kept after an Instance is gone, and delete a network without surprising anyone.
+
+## Install
+
+<CodeGroup>
+
+```bash Claude Code
+/plugin marketplace add datum-cloud/skills
+/plugin install datum-cloud@datum-cloud
+```
+
+```bash npx skills
+npx skills add https://github.com/datum-cloud/skills
+```
+
+```bash Cursor
+# Settings → Rules → Add Rule → Remote Rule (GitHub)
+# Repository: datum-cloud/skills
+```
+
+</CodeGroup>
+
+<Note>
+Once installed, the skill activates automatically when you ask an agent to work with networks on Datum.
+</Note>
+
+<Warning>
+The skill teaches the `datumctl network` commands, which come from a plugin that is not installed by default. Install it before an agent follows this skill, or every command it runs will fail:
+
+```bash
+datumctl plugin install network
+datumctl network version
+```
+</Warning>
+
+## Capabilities
+
+- Create, list, describe, change and delete networks
+- Create network services for a workload and point a load balancer at them
+- Change what a network service selects, or its ports
+- List Instances' network interfaces and release the ones kept after their Instance went away
+- Read why a network or a network service is not working, and who has to act
+- Preview every change before applying it
+
+It also teaches the readings that trip up a naive agent: a new network with no locations is normal, a service with no ready Instances is a workload problem rather than a network one, and networks never carry IPv4 — including for a workload that asks for a public IPv4 address.
+
+## How it relates to other Datum surfaces
+
+- **Product docs:** [Galactic VPC](/galactic-vpc/overview) and [Manage networks with datumctl](/galactic-vpc/datumctl) — the human-facing reference
+- **Datum MCP:** [Datum MCP](/datum-mcp) — for agents that need to read and write Datum resources during a session
+- **Datum's own assistant** — a separate surface with read-only network tools of its own, entitled through the platform catalog. It answers questions about a network in the portal without anything being installed; this skill is for driving `datumctl` yourself
+- **[Application Load Balancer skill](/agents/skills/alb)** — for putting a network service on the internet
+
+## View the full skill
+
+The canonical SKILL.md lives in the [datum-cloud/skills](https://github.com/datum-cloud/skills) repo:
+
+<CardGroup cols={2}>
+  <Card
+    title="On GitHub"
+    icon="github"
+    href="https://github.com/datum-cloud/skills/blob/main/skills/networks/SKILL.md"
+  >
+    Browse the skill source, including frontmatter and full instructions.
+  </Card>
+  <Card
+    title="Raw SKILL.md"
+    icon="file-code"
+    href="https://raw.githubusercontent.com/datum-cloud/skills/main/skills/networks/SKILL.md"
+  >
+    Direct URL for agents that fetch skills by URL.
+  </Card>
+</CardGroup>

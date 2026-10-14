@@ -214,6 +214,43 @@ a.nav-anchor {
   text-overflow: ellipsis;
 }
 
+/* Loader while session-status is pending (portal-user.js), like datum.net's
+   .nav-signin-skeleton */
+.portal-user-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+}
+
+.portal-user-skeleton-avatar,
+.portal-user-skeleton-name {
+  background-color: #d1d5dc;
+  animation: portal-user-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.portal-user-skeleton-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+}
+
+.portal-user-skeleton-name {
+  width: 64px;
+  height: 16px;
+}
+
+.dark .portal-user-skeleton-avatar,
+.dark .portal-user-skeleton-name {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+@keyframes portal-user-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
 /* Mobile header has little room next to the search/assistant icons */
 #portal-user-menu-mobile .portal-user-name {
   max-width: 96px;

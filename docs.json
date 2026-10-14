@@ -102,6 +102,8 @@
                 "pages": [
                   "galactic-vpc/overview",
                   "galactic-vpc/networks",
+                  "galactic-vpc/network-services",
+                  "galactic-vpc/datumctl",
                   "galactic-vpc/addressing-and-traffic",
                   "galactic-vpc/limitations-and-roadmap"
                 ]
@@ -181,7 +183,8 @@
                       "agents/skills/dns",
                       "agents/skills/domains",
                       "agents/skills/httproute",
-                      "agents/skills/metrics-export"
+                      "agents/skills/metrics-export",
+                      "agents/skills/networks"
                     ]
                   },
                   "datum-mcp",
