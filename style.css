@@ -89,6 +89,63 @@ img.nav-logo {
   margin-top: 10px !important;
 }
 
+/* Uppercase sidebar section titles (Documentation, TLDR, Explore, ...) */
+#navigation-items .sidebar-title {
+  text-transform: uppercase !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.08em !important;
+}
+
+/* Collapsible groups: chevron on the left, label after it.
+   Label text sits 1.25rem (chevron + gap) in from the button's left edge, and
+   each nesting level steps in by 1rem. Plain pages (no chevron) are indented
+   to the same label column, so labels line up whether or not a row has one. */
+#navigation-items li[data-group-tag] > button {
+  flex-direction: row-reverse !important;
+  justify-content: flex-end !important;
+  gap: 0.5rem !important;
+}
+
+/* Higher-contrast chevrons (default is gray-400, too faint) */
+#navigation-items li[data-group-tag] > button svg {
+  color: #4b5563 !important;
+}
+
+#navigation-items li[data-group-tag] > button:hover svg {
+  color: #111827 !important;
+}
+
+.dark #navigation-items li[data-group-tag] > button svg {
+  color: #d1d5db !important;
+}
+
+.dark #navigation-items li[data-group-tag] > button:hover svg {
+  color: #fff !important;
+}
+
+/* Level 1 */
+#navigation-items .sidebar-group > li > a {
+  padding-left: 2.25rem !important;
+}
+
+/* Level 2 */
+#navigation-items .sidebar-group > li > ul > li > button {
+  padding-left: 2rem !important;
+}
+
+#navigation-items .sidebar-group > li > ul > li > a {
+  padding-left: 3.25rem !important;
+}
+
+/* Level 3 */
+#navigation-items .sidebar-group > li > ul > li > ul > li > button {
+  padding-left: 3rem !important;
+}
+
+#navigation-items .sidebar-group > li > ul > li > ul > li > a {
+  padding-left: 4.25rem !important;
+}
+
 /* Muted auto-generated footer text */
 .mdx-content h6:last-child {
   font-size: 0.8rem !important;

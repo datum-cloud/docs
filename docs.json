@@ -62,123 +62,135 @@
             ]
           },
           {
-            "group": "Platform",
+            "group": "Explore",
             "pages": [
               {
-                "group": "Setup",
+                "group": "Platform",
+                "expanded": false,
                 "pages": [
-                  "platform/setup",
-                  "platform/service-accounts",
-                  "platform/locations"
+                  {
+                    "group": "Setup",
+                    "pages": [
+                      "platform/setup",
+                      "platform/service-accounts",
+                      "platform/locations"
+                    ]
+                  },
+                  {
+                    "group": "Account access",
+                    "pages": [
+                      "platform/account/create-account",
+                      "platform/account/sign-in",
+                      "platform/account/passkeys",
+                      "platform/account/recover-account"
+                    ]
+                  },
+                  {
+                    "group": "Operations",
+                    "pages": [
+                      "platform/metrics-export",
+                      "platform/activity-logs",
+                      "platform/project-suspension",
+                      "platform/secrets"
+                    ]
+                  }
                 ]
               },
               {
-                "group": "Account access",
+                "group": "Galactic VPC",
+                "expanded": false,
                 "pages": [
-                  "platform/account/create-account",
-                  "platform/account/sign-in",
-                  "platform/account/passkeys",
-                  "platform/account/recover-account"
+                  "galactic-vpc/overview",
+                  "galactic-vpc/networks",
+                  "galactic-vpc/network-services",
+                  "galactic-vpc/datumctl",
+                  "galactic-vpc/addressing-and-traffic",
+                  "galactic-vpc/limitations-and-roadmap"
                 ]
               },
               {
-                "group": "Operations",
+                "group": "ALB",
+                "expanded": false,
                 "pages": [
-                  "platform/metrics-export",
-                  "platform/activity-logs",
-                  "platform/project-suspension",
-                  "platform/secrets"
+                  "alb/overview",
+                  "alb/quickstart",
+                  "alb/wildcard-hostnames",
+                  "alb/load-balancing",
+                  {
+                    "group": "Using datumctl",
+                    "pages": [
+                      "alb/guides/datumctl-custom-domain",
+                      "alb/guides/datumctl-routes",
+                      "alb/guides/datumctl-traffic-protection",
+                      "alb/guides/datumctl-troubleshooting"
+                    ]
+                  },
+                  {
+                    "group": "Guides",
+                    "pages": [
+                      "alb/guides/basic-auth",
+                      "alb/guides/oidc-google",
+                      "alb/guides/oidc-auth0",
+                      "alb/guides/load-balancer-failover"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Connectors",
+                "expanded": false,
+                "pages": [
+                  "connectors/tunnels"
+                ]
+              },
+              {
+                "group": "Compute",
+                "expanded": false,
+                "pages": [
+                  "compute/overview",
+                  "compute/quickstart",
+                  "compute/runtime-classes",
+                  "compute/containers",
+                  "compute/unikernels",
+                  "compute/configuration",
+                  "compute/placement-and-scaling",
+                  "compute/publish-workloads",
+                  "compute/manage-workloads",
+                  "compute/observability",
+                  "compute/instance-shell",
+                  "compute/limits-and-quotas"
+                ]
+              },
+              {
+                "group": "Domains & DNS",
+                "expanded": false,
+                "pages": [
+                  "domain-dns/domains",
+                  "domain-dns/dns"
+                ]
+              },
+              {
+                "group": "Agents",
+                "expanded": false,
+                "pages": [
+                  "agents/overview",
+                  {
+                    "group": "Skills",
+                    "pages": [
+                      "agents/skills/index",
+                      "agents/skills/alb",
+                      "agents/skills/client-traffic",
+                      "agents/skills/dns",
+                      "agents/skills/domains",
+                      "agents/skills/httproute",
+                      "agents/skills/metrics-export",
+                      "agents/skills/networks"
+                    ]
+                  },
+                  "datum-mcp",
+                  "agents/llms-txt"
                 ]
               }
-            ]
-          },
-          {
-            "group": "Galactic VPC",
-            "pages": [
-              "galactic-vpc/overview",
-              "galactic-vpc/networks",
-              "galactic-vpc/network-services",
-              "galactic-vpc/datumctl",
-              "galactic-vpc/addressing-and-traffic",
-              "galactic-vpc/limitations-and-roadmap"
-            ]
-          },
-          {
-            "group": "ALB",
-            "pages": [
-              "alb/overview",
-              "alb/quickstart",
-              "alb/wildcard-hostnames",
-              "alb/load-balancing",
-              {
-                "group": "Using datumctl",
-                "pages": [
-                  "alb/guides/datumctl-custom-domain",
-                  "alb/guides/datumctl-routes",
-                  "alb/guides/datumctl-traffic-protection",
-                  "alb/guides/datumctl-troubleshooting"
-                ]
-              },
-              {
-                "group": "Guides",
-                "pages": [
-                  "alb/guides/basic-auth",
-                  "alb/guides/oidc-google",
-                  "alb/guides/oidc-auth0",
-                  "alb/guides/load-balancer-failover"
-                ]
-              }
-            ]
-          },
-          {
-            "group": "Connectors",
-            "pages": [
-              "connectors/tunnels"
-            ]
-          },
-          {
-            "group": "Compute",
-            "pages": [
-              "compute/overview",
-              "compute/quickstart",
-              "compute/runtime-classes",
-              "compute/containers",
-              "compute/unikernels",
-              "compute/configuration",
-              "compute/placement-and-scaling",
-              "compute/publish-workloads",
-              "compute/manage-workloads",
-              "compute/observability",
-              "compute/instance-shell",
-              "compute/limits-and-quotas"
-            ]
-          },
-          {
-            "group": "Domains & DNS",
-            "pages": [
-              "domain-dns/domains",
-              "domain-dns/dns"
-            ]
-          },
-          {
-            "group": "Agents",
-            "pages": [
-              "agents/overview",
-              {
-                "group": "Skills",
-                "pages": [
-                  "agents/skills/index",
-                  "agents/skills/alb",
-                  "agents/skills/client-traffic",
-                  "agents/skills/dns",
-                  "agents/skills/domains",
-                  "agents/skills/httproute",
-                  "agents/skills/metrics-export",
-                  "agents/skills/networks"
-                ]
-              },
-              "datum-mcp",
-              "agents/llms-txt"
             ]
           }
         ]
