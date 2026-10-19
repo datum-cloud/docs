@@ -150,7 +150,7 @@ Before you delete a network, delete the workloads that are attached to it. To de
 datumctl network delete NETWORK_NAME
 ```
 
-Replace `NETWORK_NAME` with the name of the network. Before it asks you to confirm, the command lists the workloads that lose their network, the network services that stop serving, and the kept interfaces whose addresses are released. Without the `network` plugin, run `datumctl delete network NETWORK_NAME`.
+Replace `NETWORK_NAME` with the name of the network. Before it asks you to confirm, the command lists the workloads that lose their network, the network services that stop serving, and the kept interfaces whose addresses Datum releases. Without the `network` plugin, run `datumctl delete network NETWORK_NAME`.
 
 If Instances still hold addresses on the network, the network stays in deletion and reports `RangeOccupied` until they're gone.
 

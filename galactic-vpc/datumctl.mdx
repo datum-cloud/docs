@@ -46,7 +46,7 @@ datumctl compute deploy api --image=ghcr.io/example/api:1.4.2 --location=us-east
 datumctl network describe backend
 ```
 
-Before it deletes a network, `datumctl network delete` lists the workloads that lose their network, the network services that stop serving, and the kept interfaces whose addresses are released. If Instances are still on the network, the network stays in deletion until they're gone.
+Before it deletes a network, `datumctl network delete` lists the workloads that lose their network, the network services that stop serving, and the kept interfaces whose addresses Datum releases. If Instances are still on the network, the network stays in deletion until they're gone.
 
 ## Manage network services
 
