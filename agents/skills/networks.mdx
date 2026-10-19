@@ -3,7 +3,7 @@ title: "Networks skill"
 description: "Teach agents to create and manage Galactic VPC networks and network services with datumctl, and to read why one is not working."
 ---
 
-The Networks skill teaches agents to work with [Galactic VPC](/galactic-vpc/overview) networks and [network services](/galactic-vpc/network-services) through `datumctl network`: create a network, attach workloads to it, give a workload a stable name and named ports for a load balancer, release addresses kept after an Instance is gone, and delete a network without surprising anyone.
+The Networks skill teaches agents to work with [Galactic VPC](/galactic-vpc/overview) networks and [network services](/galactic-vpc/network-services) through `datumctl network`. Agents learn to create a network, attach workloads to it, give a workload a stable name and named ports for a load balancer, release addresses kept after an Instance is gone, and delete a network without surprising anyone.
 
 ## Install
 
@@ -30,7 +30,7 @@ Once installed, the skill activates automatically when you ask an agent to work 
 </Note>
 
 <Warning>
-The skill teaches the `datumctl network` commands, which come from a plugin that is not installed by default. Install it before an agent follows this skill, or every command it runs will fail:
+The skill teaches the `datumctl network` commands, which come from a plugin that `datumctl` doesn't install by default. Install it before an agent follows this skill, or every command it runs will fail:
 
 ```bash
 datumctl plugin install network
@@ -47,7 +47,7 @@ datumctl network version
 - Read why a network or a network service is not working, and who has to act
 - Preview every change before applying it
 
-It also teaches the readings that trip up a naive agent: a new network with no locations is normal, a service with no ready Instances is a workload problem rather than a network one, and networks never carry IPv4 — including for a workload that asks for a public IPv4 address.
+It also teaches the readings that trip up a naive agent: a new network with no locations is normal, a service with no ready Instances is a workload problem rather than a network one, and networks never carry IPv4. That holds even for a workload that asks for a public IPv4 address.
 
 ## How it relates to other Datum surfaces
 
