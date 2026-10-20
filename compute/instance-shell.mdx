@@ -108,6 +108,16 @@ datumctl compute exec api-dfw-0 -c worker -- ps aux
 
 Without `-c`, the command runs in the Instance's only container. `general-purpose` Instances run exactly one container today, so you only need `-c` once an Instance runs more than one.
 
+### Set the session time limit
+
+A command can run for up to 15 minutes by default. Use `--ttl` to choose a limit from 1 minute to 1 hour. The time starts when the command starts running:
+
+```bash
+datumctl compute exec api-dfw-0 --ttl 30m -it -- sh
+```
+
+The flag accepts durations such as `1m`, `30m`, and `1h`. If you omit it, the API's 15-minute default applies. A session still ends when its command exits or you close it, even if its time limit has not been reached.
+
 ### Exit codes
 
 `datumctl compute exec` passes through the result of the command or the session:
@@ -153,7 +163,7 @@ The **Shell** tab and `datumctl compute exec` both report why a session ended. T
 | `Completed` | The command exited on its own. The exit code is included. | Nothing. This is a normal end. |
 | `ClosedByUser` | You closed the shell, or left or closed the page. | Nothing. Open a new session to continue. |
 | `Disconnected` | The connection broke before the command exited, so the platform stopped it. | Check your network connection and reconnect. |
-| `Expired` | The session reached its time limit. | Open a new session. To run longer, request a longer `ttl` next time; see [Open a shell with datumctl](#datumctl). |
+| `Expired` | The session reached its time limit. | Open a new session. With `datumctl`, use `--ttl` for a longer limit, up to 1 hour; see [Set the session time limit](#set-the-session-time-limit). |
 | `Revoked` | The session was closed from elsewhere, such as another client deleting it. | Open a new session if you still need one. |
 | `NotConnected` | Nothing connected within 60 seconds of creating the session. | Try again. If it keeps happening, check your network connection to Datum. |
 | `TooManySessions` | The Instance already has 3 open sessions. | Close another shell into the same Instance, then try again. |
