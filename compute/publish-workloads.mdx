@@ -15,6 +15,7 @@ Datum's [Application Load Balancer (ALB)](/alb/overview) serves public HTTP and 
 - Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
 - Make sure that you have permission to create networking resources in the project, in addition to compute resources. The **Network Admin** role includes the permissions that publishing needs. The **Gateway Admin** role alone isn't enough.
 - Make sure that your app serves plain HTTP, not HTTPS, on the port that you publish, and listens on IPv6.
+- To serve gRPC or another HTTP/2 app, see [Serve HTTP/2 and gRPC](#serve-http2-and-grpc).
 
 ## Attach an ALB with datumctl
 
@@ -56,6 +57,31 @@ Your hostname is different.
 A new hostname can take a few minutes to resolve. If a request fails with a name resolution error, wait and try again.
 
 If you press Control+C while the command publishes, publishing continues in the background.
+
+## Serve HTTP/2 and gRPC
+
+By default, Datum connects to your Instances over HTTP/1.1. gRPC needs HTTP/2 on every connection, so to serve a gRPC API, or any app that speaks HTTP/2, tell Datum to connect to your port over HTTP/2. Your app serves HTTP/2 without TLS on that port, which is also called h2c.
+
+To serve HTTP/2 on your workload's port, run `datumctl compute deploy` with `--http-port` and `--http2`:
+
+```bash
+datumctl compute deploy WORKLOAD_NAME \
+  --image=IMAGE \
+  --location=LOCATION \
+  --http-port=PORT \
+  --http2
+```
+
+Replace the following:
+
+- `WORKLOAD_NAME`: the name of your workload.
+- `IMAGE`: the full image reference, including the registry host.
+- `LOCATION`: one or more locations, separated by commas.
+- `PORT`: the port that your container serves HTTP/2 on, such as `50051`.
+
+Later deploys keep the setting. To go back to HTTP/1.1, run `datumctl compute deploy` with `--http2=false`. `datumctl compute workloads describe` shows `HTTP/2` next to the port when the setting is on.
+
+gRPC clients connect to the ALB hostname on port 443 over TLS, such as `grpcurl HOSTNAME:443 list`, where `HOSTNAME` is the hostname without `https://`.
 
 ## Find your workload's ALB hostname
 
@@ -135,6 +161,7 @@ In addition to the [limitations that apply to all of Compute](/compute/limits-an
 
 - Clients always connect over HTTPS. Datum connects to your Instances over plain HTTP, and TLS between Datum and your Instances isn't supported.
 - `datumctl compute deploy` attaches one ALB to each workload, on one port.
+- With `--http2`, WebSocket connections also reach your Instances over HTTP/2, and most servers accept WebSockets only over HTTP/1.1. To serve WebSockets alongside gRPC, serve them on a separate port through a [network service](/galactic-vpc/network-services).
 
 ## What's next
 

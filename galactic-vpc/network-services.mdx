@@ -51,6 +51,8 @@ Replace the following:
 
 To add more ports, repeat `--port`. A service takes up to 16 ports, and each name and number must be unique.
 
+By default, a load balancer connects to a port over HTTP/1.1. For a port that serves gRPC or another HTTP/2 app without TLS (h2c), use the long form of `--port` with `app-protocol=h2c`, such as `--port=name=grpc,port=9090,app-protocol=h2c`. The load balancer then sends every request on that port as HTTP/2. Most servers accept WebSockets only over HTTP/1.1, so serve WebSockets on a different port.
+
 To select Instances by label instead of by workload, use `--selector`, such as `--selector app=web`. The labels must be on the Instances' network interfaces, not only on the workload.
 
 ## Send load balancer traffic to a network service
