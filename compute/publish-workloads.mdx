@@ -15,7 +15,6 @@ Datum's [Application Load Balancer (ALB)](/alb/overview) serves public HTTP and 
 - Select a project, install the `compute` plugin, and get access to Compute. For more information, see [Set up your project](/compute/quickstart#set-up-your-project).
 - Make sure that you have permission to create networking resources in the project, in addition to compute resources. The **Network Admin** role includes the permissions that publishing needs. The **Gateway Admin** role alone isn't enough.
 - Make sure that your app serves plain HTTP, not HTTPS, on the port that you publish, and listens on IPv6.
-- To serve gRPC or another HTTP/2 app, see [Serve HTTP/2 and gRPC](#serve-http2-and-grpc).
 
 ## Attach an ALB with datumctl
 
@@ -58,30 +57,7 @@ A new hostname can take a few minutes to resolve. If a request fails with a name
 
 If you press Control+C while the command publishes, publishing continues in the background.
 
-## Serve HTTP/2 and gRPC
-
-By default, Datum connects to your Instances over HTTP/1.1. gRPC needs HTTP/2 on every connection, so to serve a gRPC API, or any app that speaks HTTP/2, tell Datum to connect to your port over HTTP/2. Your app serves HTTP/2 without TLS on that port, which is also called h2c.
-
-To serve HTTP/2 on your workload's port, run `datumctl compute deploy` with `--http-port` and `--http2`:
-
-```bash
-datumctl compute deploy WORKLOAD_NAME \
-  --image=IMAGE \
-  --location=LOCATION \
-  --http-port=PORT \
-  --http2
-```
-
-Replace the following:
-
-- `WORKLOAD_NAME`: the name of your workload.
-- `IMAGE`: the full image reference, including the registry host.
-- `LOCATION`: one or more locations, separated by commas.
-- `PORT`: the port that your container serves HTTP/2 on, such as `50051`.
-
-Later deploys keep the setting. To go back to HTTP/1.1, run `datumctl compute deploy` with `--http2=false`. `datumctl compute workloads describe` shows `HTTP/2` next to the port when the setting is on.
-
-gRPC clients connect to the ALB hostname on port 443 over TLS, such as `grpcurl HOSTNAME:443 list`, where `HOSTNAME` is the hostname without `https://`.
+If your app speaks HTTP/2, such as a gRPC server, also add `--http2` to the command, and serve HTTP/2 without TLS (h2c) on `PORT`. Without the flag, Datum connects to your Instances over HTTP/1.1, which most apps expect. gRPC needs HTTP/2 on every connection, so with the flag, Datum connects to your Instances over HTTP/2 too. Clients connect to the ALB hostname on port 443, such as `grpcurl stark-raven-b7k2m.datumproxy.net:443 list`. Later deploys keep the setting, and `--http2=false` turns it off.
 
 ## Find your workload's ALB hostname
 
