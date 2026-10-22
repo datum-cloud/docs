@@ -1,0 +1,21 @@
+---
+title: "Datum Assistant"
+description: "Ask Patch, the Datum Cloud assistant, about your resources in natural language, and let it diagnose problems for you."
+---
+
+Patch uses diagnostic tools from the Datum services your project uses, so it can work out why a Compute workload isn't available, why a load balancer isn't serving, or why a network isn't ready. It never changes anything on its own: it proposes a change as a plan, shows you the exact manifests, and applies them only when you approve.
+
+Patch is available in the terminal with `datumctl assistant`. Conversations are kept by Datum, so you can pick one up from any machine you're signed in on.
+
+```bash
+datumctl plugin install assistant
+datumctl assistant chat "Why is the api-backend workload not available?"
+```
+
+Usage is metered by messages and tokens. See your organization's [Usage](/organizations/usage).
+
+<Card title="datumctl AI assistant" icon="terminal" href="/datumctl/ai/assistant">
+  Start a conversation, choose the project, and manage your conversations.
+</Card>
+
+To connect your own AI tools to Datum instead, see [Datum MCP](/agents/datum-mcp) and the [Agents overview](/agents/overview).

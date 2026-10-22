@@ -1,0 +1,124 @@
+---
+title: "Galactic"
+description: "Galactic is the SRv6 network that gVPC runs on. Learn how it works, how Datum runs it as a service, and how it lets you connect many kinds of things to one private network."
+---
+
+Galactic is the networking software underneath [gVPC](/galactic-vpc/overview). It builds private networks on Datum's IPv6 backbone with segment routing ([SRv6](/platform/segment-routing)), and it keeps each network separate from every other one. Galactic is open source under the AGPL-3.0 license, at [github.com/datum-cloud/galactic](https://github.com/datum-cloud/galactic).
+
+You don't install or run Galactic to use gVPC. Datum runs it for you. This page explains what happens underneath, so you can understand how your traffic moves and what the network can grow into.
+
+## The Galactic stack
+
+Galactic has four layers. Kubernetes resources describe every layer, so the whole network is configured the same way the rest of Datum is.
+
+<Frame caption="Galactic's four layers, and the Kubernetes resources that configure them">
+  ![Four stacked layers. Attach: pods, VMs, ingress addresses and internet egress. Control: BGP EVPN routes through route reflectors. Datapath: VRF isolation and eBPF programs in each node's kernel. Underlay: the eBGP transit network. A side panel lists the Kubernetes resources that configure them.](/images/galactic-stack.png)
+</Frame>
+
+| Layer    | What it does                                                                                               | Main components                                      |
+| -------- | ---------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Attach   | Connects something to a network: a container, a VM, a public ingress address, or an internet egress point. | `galactic-cni`, `galactic-gateway`, `galactic-nat`   |
+| Control  | Tells every node where each address on each network lives.                                                 | `galactic-router` with an embedded BGP speaker       |
+| Datapath | Wraps, forwards and unwraps packets in each node's Linux kernel.                                           | eBPF programs, one VRF per network on each node      |
+| Underlay | Carries the wrapped packets between nodes and locations.                                                   | `fabric-router` (FRR) running eBGP                    |
+
+## How a connection works
+
+When something attaches to a network, Galactic gives it an address and tells every other node in that network how to reach it. The following figure follows one attachment from start to finish.
+
+<Frame caption="Steps 1 to 5 publish a new attachment's address. Steps 6 to 8 deliver a packet to it from another node.">
+  ![Two compute nodes, Node A and Node B, connected through a route reflector and an SRv6 underlay. Control-plane arrows go from the attach chain to the router to the route reflector to Node B. A dashed data path goes from the pod on Node B through the underlay to the pod on Node A.](/images/galactiv-attach-e2e.png)
+</Frame>
+
+1. The attach plugins create the node's side of the connection. They place it in the network's own routing table (a VRF) and register it with the node's eBPF datapath.
+2. They record the new address as a `BGPAdvertisement` resource.
+3. The node's router turns that resource into a BGP EVPN route. The route carries the node's SRv6 address for this network.
+4. Route reflectors pass the route to every node. Only nodes that host the same network import it.
+5. Those nodes install the route in their copy of the network's routing table.
+6. When a workload sends a packet, its node wraps the packet in an outer IPv6 header addressed to the destination node's SRv6 address.
+7. The backbone forwards the wrapped packet like any other IPv6 packet. It never sees your network's addresses.
+8. The destination node's eBPF program unwraps the packet and hands it to the right network's routing table, which delivers it.
+
+The figure shows Galactic in general, so it uses both IPv4 and IPv6 addresses. gVPC networks use IPv6 only. See [Addressing](/galactic-vpc/networks/addressing).
+
+### The address carries the instructions
+
+Each SRv6 address that Galactic uses tells the network where the packet goes, what to do when it gets there, and which private network it belongs to.
+
+<Frame caption="The 128-bit layout of a Galactic SRv6 address">
+  ![A bar divided into fields: uSID Block 48 bits, Node-ID 16 bits, Function 4 bits, Argument 12 bits, Slot 16 bits and Padding 32 bits.](/images/sid-anatomy.png)
+</Frame>
+
+- **Block and Node-ID** identify the destination node. The backbone routes on this 64-bit prefix only.
+- **Function** says what the node does with the packet, such as unwrapping it into a private network.
+- **Argument** identifies which private network on that node receives the packet.
+
+Because isolation is encoded in the address and enforced in the kernel, two networks can't reach each other even when they share a node. Isolation comes from the topology, not from a shared VLAN with rules on top.
+
+## How Datum runs Galactic as a service
+
+gVPC is Galactic run as a managed service. You work with a small set of resources, such as a network and the workloads attached to it. Datum operates everything else.
+
+What Datum runs for you:
+
+- **The backbone.** Datum runs the underlay routers in every location, the routes between locations, and the configuration of each router. Configuration changes roll out through the API in stages, so a bad change can be stopped before it reaches the whole fleet.
+- **The routing control plane.** Every node runs a Galactic router. Datum runs the route reflectors that connect them, so a new attachment becomes reachable from every location without anyone touching a router.
+- **The edges.** Datum runs the edge nodes that bring public traffic into a network, through the [Application Load Balancer](/alb/overview) and anycast ingress addresses. They also take traffic out to the internet.
+- **Identity and addressing.** Datum allocates network identities and address space centrally, so two networks never collide. This is why you don't plan subnets.
+- **Visibility.** Datum monitors every BGP session, route and datapath counter. Its operators can ask any router for its view of the network, and can run ping and traceroute from inside the backbone.
+
+What you do:
+
+- Create a network.
+- Attach things to it.
+
+The rest of this page describes what "attach things to it" can grow to include.
+
+## One network, many attachments
+
+<Note>
+  This section describes where gVPC is headed. Only the attachments marked **Available** below work today. Plans can change, and this isn't a commitment to deliver any feature or to meet any timeline.
+</Note>
+
+In Galactic, everything that joins a network does it the same way. It gets a place in the network's routing table and an address, and it announces that address with a `BGPAdvertisement`. A container, a virtual machine, a public ingress address and an internet egress point already join this way. The rest of the network doesn't need to know what kind of thing an attachment is.
+
+So adding a new kind of connection doesn't need a new network. It needs a new way to attach. That makes a gVPC network work like a [virtual meet-me room](https://www.datum.net/blog/galactic-vpc-backbone/): a single private place where all your connections meet, whatever they are and wherever they come from.
+
+| You want to connect                              | How it attaches                                                    | Status      |
+| ------------------------------------------------ | ------------------------------------------------------------------ | ----------- |
+| Datum Compute Instances                          | Each Instance gets a private address on the network                | Available   |
+| Public HTTP and HTTPS traffic                    | Through the [Application Load Balancer](/alb/overview)             | Available   |
+| The internet, outbound                           | Through egress points on Datum's edge, IPv6 and IPv4               | Available   |
+| Laptops, desktop apps and containers anywhere    | Through a [Connector](/connectors/overview) tunnel                 | Planned     |
+| Your own servers and VPNs                        | Through a WireGuard peer or a VPN                                  | Exploring   |
+| Your data center or another cloud's VPC          | Through a BGP session, a VLAN, or a carrier interconnect           | Exploring   |
+
+## Words we use for this
+
+These terms describe gVPC in plain language. Each one corresponds to something the platform does.
+
+| We say                         | It means                                                                                                                     |
+| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| **One network, anywhere**      | A network belongs to your project, not to a location. It spans every location where something is attached to it.          |
+| **Attach it**                  | Anything that joins a network, whether an Instance, a tunnel or a data center, joins the same way and gets an address on it. |
+| **Private by default**         | Nothing on a network is reachable from the internet unless you publish it, for example through an ALB.                       |
+| **Isolation is the topology**  | Networks are separated by the routing itself, in every node's kernel, not by rules that someone has to keep correct.        |
+| **A network per anything**     | Networks cost nothing to plan, so you can create one per customer, per environment, per agent or per workload.               |
+| **Datum runs the backbone**    | You don't manage routers, routes, tunnels or addresses. You declare a network, and Datum keeps it working.                   |
+
+## What's next
+
+<CardGroup cols={2}>
+  <Card title="gVPC" icon="network-wired" href="/galactic-vpc/overview">
+    Create a network and attach workloads to it.
+  </Card>
+  <Card title="Traffic and connecting" icon="arrow-right-arrow-left" href="/galactic-vpc/networks/traffic">
+    Learn which traffic a network carries today.
+  </Card>
+  <Card title="Networking roadmap" icon="list-check" href="/galactic-vpc/limitations-and-roadmap">
+    Review what gVPC can't do yet and what's planned.
+  </Card>
+  <Card title="Galactic on GitHub" icon="github" href="https://github.com/datum-cloud/galactic">
+    Read the source code and architecture documents.
+  </Card>
+</CardGroup>

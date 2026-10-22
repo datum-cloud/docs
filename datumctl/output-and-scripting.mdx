@@ -4,6 +4,10 @@ sidebarTitle: "Output & scripting"
 description: "Machine-readable output, structured errors, exit codes, and patterns for wrapping datumctl in CI pipelines and AI agents."
 ---
 
+<Note>
+**Working with this CLI via an AI agent?** This page is the contract an agent should code against: request `-o json`, read data from standard output and diagnostics from standard error, and branch on exit codes. See also [Agents Overview](/agents/overview).
+</Note>
+
 `datumctl` prints human-friendly tables by default, but it is built to be scripted. Every read command can emit JSON or YAML, errors can be serialized into a structured envelope, and exit codes are predictable. This page shows you how to drive `datumctl` from shell scripts, CI pipelines, and AI agents.
 
 <Info>

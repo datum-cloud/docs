@@ -1,0 +1,25 @@
+---
+title: "Projects"
+description: "Projects group the resources you create on Datum within an organization."
+---
+
+A Project belongs to an [organization](/organizations/overview) and holds the resources you create, such as load balancers, workloads, networks, and DNS zones. Most `datumctl` commands run against a Project.
+
+## Projects in the Cloud Portal
+
+To see your organization's projects, select your organization in the [Cloud Portal](https://cloud.datum.net), then select **Projects**. Each project shows its ID, which you use with `datumctl`, such as in `datumctl ctx use ORG_ID/PROJECT_ID`. To create a project, select **Add project**.
+
+An organization can have up to 10 projects. To request more, contact [support@datum.net](mailto:support@datum.net).
+
+<Frame caption="Your organization's projects">
+  ![The Projects page listing a Default project with its project ID, an Add project button, and an Understanding Projects panel](/images/projects-list.png)
+</Frame>
+
+## In this section
+
+- [Service accounts](/projects/service-accounts) — non-human identities for applications, CI/CD pipelines, and agents.
+
+## Related
+
+- [Account setup](/getting-started/account-setup) — create an organization and a Project.
+- [Contexts and scoping](/datumctl/contexts-and-scoping) — choose which organization or Project `datumctl` works in.

@@ -1,0 +1,157 @@
+---
+title: "ALB observability"
+sidebarTitle: "Observability"
+description: "Status, metrics, and access logs for Datum Application Load Balancers."
+---
+
+This page covers how to see what an [Application Load Balancer](/alb/overview) is doing. [Envoy](/platform/envoy) in every Datum location serves your load balancer, and the views on this page bring what each location sees together in one place.
+
+## Status and metrics
+
+The load balancer's overview in the [Cloud Portal](https://cloud.datum.net) shows whether it is serving, the live request rate, error rate, latency, and requests blocked by the firewall. Its **Metrics** tab breaks these down by location, response code, and firewall rule. With `datumctl`, run `datumctl alb describe ALB_NAME` for status, hostnames, and certificates:
+
+```text
+$ datumctl alb describe api
+Name:               api
+Status:             Active
+Status detail:      The HTTPProxy has been programmed
+Default hostname:   bright-oak-4f7k2.datumproxy.net
+Force HTTPS:        yes
+Routes:
+  /
+    api:http (network-service)
+Traffic protection: Enforce (paranoia 1)
+Certificates:       True (AllCertificatesReady)
+```
+
+Datum also publishes the measurements behind these charts to your project's metrics store. To query them in your own tools, [export them to Grafana Cloud](/operations/metrics-export) or any Prometheus remote-write endpoint.
+
+## Metrics
+
+### Traffic and latency
+
+Envoy, the proxy that serves your load balancer, records every request it sends to your origin.
+
+| Metric | Type | What it measures |
+| --- | --- | --- |
+| `envoy_vhost_vcluster_upstream_rq` | Counter | Requests sent to your origin, with the response code. Use `rate()` for requests per second. |
+| `envoy_vhost_vcluster_upstream_rq_time_bucket` | Histogram | Time for your origin to respond, in milliseconds. Use `histogram_quantile()` for percentiles. |
+
+| Label | Meaning |
+| --- | --- |
+| `gateway_name` | The load balancer's name, as shown by `datumctl alb list`. |
+| `envoy_response_code` | The HTTP response code, such as `200` or `503`. |
+| `label_topology_kubernetes_io_region` | The Datum location that served the request, such as `us-west-1`. |
+| `resourcemanager_datumapis_com_project_name` | Your project ID. |
+
+### Firewall
+
+The [web application firewall](/alb/configuration/waf) records one event for each request that matches a rule.
+
+| Metric | Type | What it measures |
+| --- | --- | --- |
+| `coraza_envoy_filter_request_events_total` | Counter | Firewall events, with the outcome and the rule that matched. |
+
+| Label | Meaning |
+| --- | --- |
+| `coraza_outcome` | `allowed`, `blocked`, or `dropped`. |
+| `coraza_rule_id`, `coraza_rule_file` | The [OWASP Core Rule Set](https://coreruleset.org/) rule that matched, and the file it comes from. |
+| `coraza_rule_severity` | The rule's severity, such as `critical`. |
+| `http_method` | The request's HTTP method. |
+| `label_topology_kubernetes_io_region` | The Datum location that served the request. |
+
+### Status
+
+| Metric | What it reports |
+| --- | --- |
+| `datum_cloud_networking_http_proxy_status_condition` | `1` when a condition is true. The `condition` label is `Accepted` or `Programmed`, and `reason` explains it. `resource_name` is the load balancer's name. |
+| `datum_cloud_networking_http_proxy_custom_hostname` | One series for each custom hostname, in the `hostname` label. |
+
+### Example queries
+
+Replace `PROJECT_ID` and `ALB_NAME`. These use [MetricsQL](https://docs.victoriametrics.com/victoriametrics/metricsql/), which also accepts standard PromQL.
+
+Requests per second, by location:
+
+```promql
+sum by (label_topology_kubernetes_io_region) (
+  rate(envoy_vhost_vcluster_upstream_rq{resourcemanager_datumapis_com_project_name="PROJECT_ID", gateway_name="ALB_NAME"}[5m])
+)
+```
+
+Share of responses that are errors (`4xx` and `5xx`):
+
+```promql
+sum(rate(envoy_vhost_vcluster_upstream_rq{resourcemanager_datumapis_com_project_name="PROJECT_ID", gateway_name="ALB_NAME", envoy_response_code=~"[45].."}[5m]))
+/
+sum(rate(envoy_vhost_vcluster_upstream_rq{resourcemanager_datumapis_com_project_name="PROJECT_ID", gateway_name="ALB_NAME"}[5m]))
+```
+
+95th percentile origin response time, in milliseconds:
+
+```promql
+histogram_quantile(0.95,
+  sum by (le) (rate(envoy_vhost_vcluster_upstream_rq_time_bucket{resourcemanager_datumapis_com_project_name="PROJECT_ID", gateway_name="ALB_NAME"}[5m]))
+)
+```
+
+Requests the firewall blocked in the last hour, by rule:
+
+```promql
+sum by (coraza_rule_id, coraza_rule_severity) (
+  increase(coraza_envoy_filter_request_events_total{resourcemanager_datumapis_com_project_name="PROJECT_ID", gateway_name="ALB_NAME", coraza_outcome="blocked"}[1h])
+)
+```
+
+Datum also publishes prebuilt Grafana dashboards for these metrics. See [Datum dashboards in Grafana Cloud](/operations/metrics-export#datum-dashboards-in-grafana-cloud).
+
+## Access logs
+
+To see the requests that reached a load balancer, including the ones the firewall blocked, run the following command:
+
+```text
+$ datumctl alb logs api --since 30m --limit 5
+TIME       METHOD   STATUS   PATH                    HOST                              DURATION
+01:29:34   GET      404      /does-not-exist-116     bright-oak-4f7k2.datumproxy.net   3ms
+01:29:34   GET      302      /                       bright-oak-4f7k2.datumproxy.net   4ms
+01:29:34   GET      403      /?id=1'%20OR%20'1'='1   bright-oak-4f7k2.datumproxy.net   2ms
+01:29:34   GET      404      /does-not-exist-104     bright-oak-4f7k2.datumproxy.net   3ms
+01:29:34   GET      302      /                       bright-oak-4f7k2.datumproxy.net   7ms
+```
+
+In the Cloud Portal, a load balancer's **Logs** tab shows the same requests, with filters for time range, method, status code, and host.
+
+<Frame caption="Access logs in the Cloud Portal, including a request the firewall blocked with 403">
+  ![The Logs tab of a load balancer, with filters on the left and a table of requests showing time, status, host, and path, including 404 responses and a 403 for a SQL injection attempt](/images/alb-logs-portal.png)
+</Frame>
+
+Logs can take a few minutes to appear. Useful flags:
+
+- `--code 403` narrows the logs to one response code, such as the requests the firewall blocked. Repeat it for several codes.
+- `--follow` keeps querying for new requests as they arrive.
+- `--method` and `--host` narrow the logs to one HTTP method or one hostname.
+- `-o wide` adds the request ID and the upstream that served the request. An upstream of `-` means Envoy answered without reaching your origin, as it does when the firewall blocks a request. See [An origin that cannot be reached](/alb/troubleshooting#an-origin-that-cannot-be-reached).
+- `-o json` returns the logs as JSON for scripts.
+
+```text
+$ datumctl alb logs api --since 30m --code 403 --limit 2 -o wide
+TIME       METHOD   STATUS   PATH                    HOST                              DURATION   REQUEST ID                             UPSTREAM
+01:29:34   GET      403      /?id=1'%20OR%20'1'='1   bright-oak-4f7k2.datumproxy.net   2ms        eae36a5d-01ca-49a0-b2e7-2d6235de5e77   -
+01:29:33   GET      403      /?id=1'%20OR%20'1'='1   bright-oak-4f7k2.datumproxy.net   2ms        1d3064a3-5698-4c13-abc6-aa1b43fba4fc   -
+```
+
+### Query access logs across load balancers
+
+The `telemetry` plugin queries every log line in your project, including load balancer access logs, with a [LogQL](https://grafana.com/docs/loki/latest/query/) stream selector. To install it, run `datumctl plugin install telemetry`. For example, to see every request that any load balancer in the project answered with `403`:
+
+```bash
+datumctl telemetry logs '{response_code="403"}' --since 1h
+```
+
+Each access log line carries fields such as `authority` (the hostname), `method`, `path`, `response_code`, `response_flags`, `duration`, `upstream_host`, `user_agent`, `request_id`, and `zone_name` (the Datum location that served the request). To list every label you can match on, run `datumctl telemetry labels`.
+
+For a load balancer attached to a Compute workload, `datumctl compute logs WORKLOAD_NAME --alb` shows the same access logs. See [Compute observability](/compute/observability).
+
+## Activity
+
+To see who changed a load balancer and when, see [Activity logs](/operations/activity-logs).

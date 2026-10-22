@@ -4,7 +4,7 @@ sidebarTitle: "Interactive console"
 description: "Browse, inspect, and monitor Datum Cloud resources in a full-screen, keyboard-driven terminal interface."
 ---
 
-The interactive console is a full-screen terminal UI for browsing and inspecting your Datum Cloud resources. Instead of running one command at a time, you navigate resource types in a sidebar, scroll through resources in a table, and drill into details, quota, activity, and change history — all without leaving the keyboard.
+The interactive console is a full-screen terminal UI for browsing and inspecting your Datum Cloud resources. Instead of running one command at a time, you navigate resource types in a sidebar, scroll through resources in a table, and drill into details, quota, activity, and change history — all without leaving the keyboard. For why Datum built it, see [A terminal for everyone](https://www.datum.net/blog/a-terminal-for-everyone/) on the Datum blog.
 
 <Info>
   Reach for the console when you want to *explore* — to see what exists, check quota headroom, or review recent activity at a glance. Reach for plain commands (`datumctl get`, `datumctl apply`, and friends) when you want to *script*, pipe output to JSON or YAML, or make precise, repeatable changes.
@@ -114,11 +114,7 @@ Press `4` to open the activity dashboard — a rollup of recent human activity a
 
 ## AI assistant
 
-Press `a` from any view to open the built-in AI chat pane, where you can ask questions about your resources in natural language. Type your message and press `Enter` to send; `Tab` switches focus to the conversation history sidebar, and `Ctrl+E` exports the current conversation to a Markdown file. `Esc` returns to the view you came from.
-
-<Note>
-  The assistant needs a model API key configured before it can respond. Configure one with `datumctl ai config` before opening the chat pane — see the [AI assistant](/datumctl/ai/assistant) guide.
-</Note>
+The console no longer has a built-in chat pane. To ask questions about your resources in natural language, run [`datumctl assistant`](/datumctl/ai/assistant) in another terminal.
 
 ## Logging in from the console
 
@@ -161,5 +157,5 @@ The console logs in against the same auth endpoint your active session last used
 - [Logging in](/datumctl/auth/logging-in) — learn how authentication and stored credentials work.
 - [Reading resources](/datumctl/resources/reading) — the `get` and `describe` commands behind the console's list and detail views.
 - [Output formats & scripting](/datumctl/output-and-scripting) — machine-readable output and automation for everything you browse here.
-- [AI assistant](/datumctl/ai/assistant) — the assistant behind the console's chat pane.
+- [AI assistant](/datumctl/ai/assistant) — chat with Patch, the Datum Cloud assistant, from the terminal.
 

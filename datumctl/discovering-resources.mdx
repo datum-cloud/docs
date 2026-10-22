@@ -159,6 +159,30 @@ Discovery feeds directly into authoring manifests for `datumctl apply` and
   belong under `spec` when you are filling out a new manifest.
 </Tip>
 
+## Search across your resources
+
+When you know roughly what you're looking for but not its kind or exact name, use the `search` plugin. It searches your resources by name and kind, and returns the best matches first. To install it, run `datumctl plugin install search`.
+
+```text
+$ datumctl search api
+KIND        NAME              NAMESPACE   TENANT       SCORE   AGE
+Workload    api               default     my-project   0.99    3d
+HTTPProxy   api               default     my-project   0.97    3d
+Workload    api-postgres      default     my-project   0.82    3d
+```
+
+To narrow the results to one or more kinds, add `--kind`, such as `--kind Workload --kind HTTPProxy`. To see which kinds are searchable, run `datumctl search kinds`. For scripts, add `-o json`.
+
+## Check which services your project can use
+
+Some Datum services, such as Compute, must be enabled for a project before you can create their resources. To see every service and whether it's enabled for your current project, run the following command:
+
+```bash
+datumctl services list
+```
+
+The state of each service is `Active`, pending approval, `NotRequested`, or denied. To request a service, run `datumctl services enable SERVICE_NAME`. Some services need approval from Datum, so add `--wait` to wait for the answer, or check back later with `datumctl services status SERVICE_NAME`. To explain why you need a service, add `--message`.
+
 ## Related
 
 - [Changing resources](/datumctl/resources/changing) — author, apply, and edit

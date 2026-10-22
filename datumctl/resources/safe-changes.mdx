@@ -28,11 +28,21 @@ datumctl diff -f ./proxy.yaml --project my-project
 cat dnszone.yaml | datumctl diff -f - --project my-project
 ```
 
-The diff exits `0` when there are no differences, `1` when there are, and greater than `1` on error — handy for gating an apply in a script:
+Review the diff, then apply the manifest as a separate step:
 
 ```bash
-datumctl diff -f ./proxy.yaml --project my-project && \
-  datumctl apply -f ./proxy.yaml --project my-project
+datumctl apply -f ./proxy.yaml --project my-project
+```
+
+The diff exits `0` when there are no differences, `1` when there are, and greater than `1` on error. Exit code `1` doesn't mean failure, so don't chain `diff && apply` — the apply would run only when there is nothing to change. In a script, handle each exit code explicitly:
+
+```bash
+datumctl diff -f ./proxy.yaml --project my-project
+case $? in
+  0) echo "No changes." ;;
+  1) echo "Changes found. Review the diff above, then run apply." ;;
+  *) echo "diff failed." >&2; exit 1 ;;
+esac
 ```
 
 <Tip>
