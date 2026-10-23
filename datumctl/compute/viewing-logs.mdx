@@ -26,7 +26,7 @@ datumctl compute logs WORKLOAD_NAME --since=1h
 datumctl compute logs WORKLOAD_NAME --since=1h --tail=100
 ```
 
-To narrow the output, use the location, Instance, or container name. `--instance` accepts a full name or the short name shown in line prefixes. `--container` applies to standard container Instances; unikernel logs aren't split by container.
+To narrow the output, use the location, Instance, or container name. `--instance` accepts a full name or the short name shown in line prefixes. `--container` applies to standard container Instances; [unikernel](/compute/runtimes/unikernels) logs aren't split by container.
 
 ```bash
 datumctl compute logs WORKLOAD_NAME --location=us-central-1 --since=15m

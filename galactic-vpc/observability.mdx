@@ -1,0 +1,58 @@
+---
+title: "gVPC observability"
+sidebarTitle: "Observability"
+description: "See the state of your gVPC networks, the private addresses of your Instances, and the metrics Datum publishes for them."
+---
+
+This page covers how to see what your [gVPC](/galactic-vpc/overview) networks are doing: whether each network is ready, which private addresses your Instances have, and the metrics Datum publishes for them.
+
+## Is a network ready?
+
+To list your networks with their address space and status, run the following command:
+
+```text
+$ datumctl get networks
+NAME      IPV6PREFIX       READY   REASON   AGE
+default   fd20:0:36::/48   True    Ready    45m
+api       fd20:0:37::/48   True    Ready    18m
+```
+
+`IPV6PREFIX` is the `/48` that Datum assigned to the network. A network is ready to use when `READY` is `True`. For more detail, including each condition and its reason, run `datumctl describe network NETWORK_NAME`.
+
+## Which addresses do my Instances have?
+
+To see each Instance's private address on its network, run the following command:
+
+```text
+$ datumctl compute instances --workload=api
+NAME                            WORKLOAD   LOCATION       INTERNAL IP            TYPE      AGE   STATUS
+api-us-central-us-central-1-0   api        us-central-1   fd20:0:37:2:0:1::/96   sandbox   17m   Available
+api-us-east-us-east-1-0         api        us-east-1      fd20:0:37::2:0:0/96    sandbox   17m   Available
+api-us-west-us-west-1-0         api        us-west-1      fd20:0:37:1:0:1::/96   sandbox   17m   Available
+```
+
+Each Instance owns the `/96` block shown in `INTERNAL IP`, taken from the network's prefix. The first address in the block is the Instance's private IPv6 address. Instances in different locations get addresses from different parts of the prefix, but they're all on the same network. See [Addressing](/galactic-vpc/networks/addressing).
+
+## Metrics
+
+Datum publishes the state of your networks and your Instances' addresses to your project's metrics store. To query them in your own tools, [export them](/operations/metrics-export).
+
+| Metric | What it reports |
+| --- | --- |
+| `datum_cloud_network_status_condition` | `1` when a network condition is true. The `condition` label is the condition, such as `Ready`, and `reason` explains it. `resource_name` is the network's name. |
+| `datum_cloud_network_info` | One series for each network. |
+| `datum_cloud_compute_instance_network_interface_info` | One series for each Instance network interface, with its private address in `network_ip`. |
+
+To find networks that aren't ready, replace `PROJECT_ID`:
+
+```promql
+datum_cloud_network_status_condition{resourcemanager_datumapis_com_project_name="PROJECT_ID", condition="Ready"} == 0
+```
+
+Datum doesn't publish traffic metrics for networks yet, such as bytes or packets between Instances. For CPU, memory, and logs of the Instances on a network, see [Compute observability](/compute/observability). For traffic that reaches your network through a load balancer, see [ALB metrics](/alb/observability#metrics).
+
+## Follow the roadmap
+
+<Card title="gVPC limitations and roadmap" icon="map" href="/galactic-vpc/limitations-and-roadmap">
+  See what gVPC doesn't support yet and what Datum is building next.
+</Card>

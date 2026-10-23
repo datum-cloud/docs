@@ -1,0 +1,114 @@
+---
+title: "Network services"
+sidebarTitle: "Network services"
+description: "Give a workload's Instances a stable name and named ports on a gVPC network, and send load balancer traffic to them."
+---
+
+A network service gives a workload's Instances on one network a stable name and named ports. Datum keeps the service's membership current as Instances start, stop, and move between locations, and sends each request to the nearest location that has a ready Instance. Datum's [Application Load Balancer](/alb/overview) reaches a workload through a network service.
+
+<Note>
+  gVPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## How network services work
+
+A network service is a `NetworkService` resource with two parts:
+
+- **A selector:** labels that an Instance's network interface must carry to belong to the service. Every Instance of a workload carries the workload's name as a label, so a service usually selects one workload.
+- **Ports:** the ports the Instances listen on, each with a name, such as `http` on port `8080`. A load balancer refers to a port by its name, not its number.
+
+Keep the following points in mind:
+
+- **One network:** A service covers Instances on one network. If the selector matches Instances on more than one network, the service serves none of them.
+- **Ready Instances only:** A service sends traffic only to Instances that report themselves ready. An Instance that is starting, failing, or shutting down doesn't receive traffic.
+- **Nearest location first:** Each request goes to the nearest location with a ready Instance. If that location has none, the request goes to the next nearest.
+- **Created before the workload:** You can create a service before its workload exists. The service starts serving when matching Instances are ready.
+
+When you publish a workload with `datumctl compute deploy --http-port`, the command creates a network service named after the workload. For more information, see [Compute and ALB](/compute/compute-and-alb).
+
+## Before you begin
+
+- Install `datumctl`, log in, and select a project. For more information, see [Install datumctl](/datumctl/install).
+- Install the `network` plugin. For more information, see [Install the plugin](/galactic-vpc/operations#install-the-plugin).
+- To create, change, or delete network services, you need the **Network Admin** role in the project.
+
+## Create a network service
+
+To create a network service for a workload, run the following command:
+
+```bash
+datumctl network service create SERVICE_NAME \
+  --workload=WORKLOAD_NAME \
+  --port=PORT_NAME:PORT_NUMBER
+```
+
+Replace the following:
+
+- `SERVICE_NAME`: a name for the service. You can't change the name later.
+- `WORKLOAD_NAME`: the name of the workload whose Instances answer for the service.
+- `PORT_NAME`: a name for the port, such as `http`. Use lowercase letters, numbers, and hyphens.
+- `PORT_NUMBER`: the port that your Instances listen on, such as `8080`.
+
+To add more ports, repeat `--port`. A service takes up to 16 ports, and each name and number must be unique.
+
+To select Instances by label instead of by workload, use `--selector`, such as `--selector app=web`. The labels must be on the Instances' network interfaces, not only on the workload.
+
+## Send load balancer traffic to a network service
+
+To send a load balancer's traffic to a network service, name the service and one of its port names:
+
+```bash
+datumctl alb create LOAD_BALANCER_NAME \
+  --network-service=SERVICE_NAME \
+  --port=PORT_NAME
+```
+
+For more information, see [Create a load balancer](/alb/operations/overview#create-a-load-balancer).
+
+## Check a network service
+
+To see what a service selects, its ports, and where it's serving, run the following command:
+
+```bash
+datumctl network service describe SERVICE_NAME
+```
+
+The output ends with a diagnosis. If the service isn't serving, the output also lists the Instances that aren't ready and what each one reports. The following table describes the most common reasons that a service isn't serving:
+
+| Reason | Meaning | What to do |
+| --- | --- | --- |
+| `NoMatchingInterfaces` | No Instance matches what the service selects. | Start the workload, or fix the selector. The output lists the workloads in your project so that you can compare names. |
+| `MultipleNetworks` | The selector matches Instances on more than one network. | Narrow the selector so that it matches Instances on one network. |
+| `NoServingLocations` | The service has Instances, and none of them is ready. | Check the workload. Its Instances might be starting or failing. |
+
+## Change a network service
+
+To change which workload a service selects, run the following command:
+
+```bash
+datumctl network service update SERVICE_NAME --workload=WORKLOAD_NAME
+```
+
+To change a service's ports, run the following command:
+
+```bash
+datumctl network service update SERVICE_NAME --port=http:8080 --port=metrics:9100
+```
+
+`--port` replaces the whole port list, so name every port that the service should keep. A load balancer that refers to a port name that you remove stops reaching the service.
+
+## Delete a network service
+
+To delete a network service, run the following command:
+
+```bash
+datumctl network service delete SERVICE_NAME
+```
+
+Before it asks you to confirm, the command lists the load balancers that send traffic to the service. Those load balancers stop reaching anything on that route.
+
+## What's next
+
+- To manage networks and Instances' network interfaces from the command line, see [Operations](/galactic-vpc/operations).
+- To publish a workload with a load balancer in one step, see [Compute and ALB](/compute/compute-and-alb).
+- To learn how Instances connect privately, see [Traffic and connecting](/galactic-vpc/networks/traffic).

@@ -177,6 +177,38 @@ a.nav-anchor {
   color: #4D6356 !important;
   text-shadow: none !important;
 }
+/* Cards: subtle Datum-palette tint on every card. Cards in a group cycle
+   rose, green, lime, slate; className="dc-<color>" picks one explicitly.
+   :where() keeps the defaults at zero specificity so dc-* classes win. */
+.card {
+  background-image: linear-gradient(135deg, var(--dc-tint) 0%, transparent 65%) !important;
+  border-color: var(--dc-edge) !important;
+}
+.card [data-component-part="card-icon"] svg {
+  background-color: var(--dc-icon) !important;
+}
+:where(.card),
+:where(.card-group > .card:nth-child(4n+1)),
+.dc-rose  { --dc-tint: rgba(191, 149, 149, 0.22); --dc-edge: rgba(191, 149, 149, 0.45); --dc-icon: #BF9595; }
+:where(.card-group > .card:nth-child(4n+2)),
+.dc-green { --dc-tint: rgba(77, 99, 86, 0.20);    --dc-edge: rgba(77, 99, 86, 0.45);    --dc-icon: #4D6356; }
+:where(.card-group > .card:nth-child(4n+3)),
+.dc-lime  { --dc-tint: rgba(230, 245, 159, 0.45); --dc-edge: rgba(190, 205, 110, 0.55); --dc-icon: #8A9A2E; }
+:where(.card-group > .card:nth-child(4n)),
+.dc-slate { --dc-tint: rgba(12, 29, 49, 0.12);    --dc-edge: rgba(12, 29, 49, 0.25);    --dc-icon: #3B5B82; }
+.dc-red   { --dc-tint: rgba(196, 64, 52, 0.18);   --dc-edge: rgba(196, 64, 52, 0.45);   --dc-icon: #C44034; }
+
+:where(.dark .card),
+:where(.dark .card-group > .card:nth-child(4n+1)),
+.dark .dc-rose  { --dc-tint: rgba(191, 149, 149, 0.20); --dc-edge: rgba(191, 149, 149, 0.40); --dc-icon: #D4A9A9; }
+:where(.dark .card-group > .card:nth-child(4n+2)),
+.dark .dc-green { --dc-tint: rgba(110, 145, 125, 0.22); --dc-edge: rgba(110, 145, 125, 0.45); --dc-icon: #8FB09E; }
+:where(.dark .card-group > .card:nth-child(4n+3)),
+.dark .dc-lime  { --dc-tint: rgba(230, 245, 159, 0.14); --dc-edge: rgba(230, 245, 159, 0.35); --dc-icon: #E6F59F; }
+:where(.dark .card-group > .card:nth-child(4n)),
+.dark .dc-slate { --dc-tint: rgba(120, 160, 210, 0.16); --dc-edge: rgba(120, 160, 210, 0.35); --dc-icon: #8FB0D8; }
+.dark .dc-red   { --dc-tint: rgba(230, 100, 88, 0.18);  --dc-edge: rgba(230, 100, 88, 0.45);  --dc-icon: #E66458; }
+
 /* Signed-in user menu in navbar (portal-user.js), styled after datum.net */
 .portal-user {
   position: relative;

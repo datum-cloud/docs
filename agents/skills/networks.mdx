@@ -1,9 +1,9 @@
 ---
 title: "Networks skill"
-description: "Teach agents to create and manage Galactic VPC networks and network services with datumctl, and to read why one is not working."
+description: "Teach agents to create and manage gVPC networks and network services with datumctl, and to read why one is not working."
 ---
 
-The Networks skill teaches agents to work with [Galactic VPC](/galactic-vpc/overview) networks and [network services](/galactic-vpc/network-services) through `datumctl network`: create a network, attach workloads to it, give a workload a stable name and named ports for a load balancer, release addresses kept after an Instance is gone, and delete a network without surprising anyone.
+The Networks skill teaches agents to work with [gVPC](/galactic-vpc/overview) networks and [network services](/galactic-vpc/networks/network-services) through `datumctl network`: create a network, attach workloads to it, give a workload a stable name and named ports for a load balancer, release addresses kept after an Instance is gone, and delete a network without surprising anyone.
 
 ## Install
 
@@ -51,9 +51,9 @@ It also teaches the readings that trip up a naive agent: a new network with no l
 
 ## How it relates to other Datum surfaces
 
-- **Product docs:** [Galactic VPC](/galactic-vpc/overview) and [Manage networks with datumctl](/galactic-vpc/datumctl) — the human-facing reference
-- **Datum MCP:** [Datum MCP](/datum-mcp) — for agents that need to read and write Datum resources during a session
-- **Datum's own assistant** — a separate surface with read-only network tools of its own, entitled through the platform catalog. It answers questions about a network in the portal without anything being installed; this skill is for driving `datumctl` yourself
+- **Product docs:** [gVPC](/galactic-vpc/overview) and [gVPC operations](/galactic-vpc/operations) — the human-facing reference
+- **Datum MCP:** [Datum MCP](/agents/datum-mcp) — its `network` and `vpc` toolsets give an agent live access to networks during a session
+- **[Patch](/operations/datum-assistant)**, Datum's own assistant — a separate surface with read-only network tools of its own, entitled through the platform catalog. It answers questions about a network directly; this skill is for driving `datumctl` yourself
 - **[Application Load Balancer skill](/agents/skills/alb)** — for putting a network service on the internet
 
 ## View the full skill

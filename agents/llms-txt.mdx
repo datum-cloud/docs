@@ -1,43 +1,39 @@
 ---
 title: "llms.txt"
-description: "A single-file index agents can fetch to discover Datum's full documentation surface."
+description: "Give an AI agent Datum's documentation in one fetch: llms.txt for an index of every page, llms-full.txt for the full text, and a Markdown version of every page."
 ---
 
-`llms.txt` is a small, machine-readable file at the root of the docs site that lists every page agents should know about. It's the lowest-friction way for an agent to bootstrap context about Datum without crawling — a single fetch, a complete map.
+[`llms.txt`](https://llmstxt.org/) is a convention for giving AI agents and LLMs a map of a site in plain Markdown. Instead of crawling the docs, an agent fetches one file and gets a list of every page, with a one-line description of each, linked to a clean Markdown version of the page.
 
-## Where it lives
+Datum publishes three forms of its documentation for agents:
 
-The canonical URL: **[https://datum.net/docs/llms.txt](https://datum.net/docs/llms.txt)**
+| URL | What it is | Use it when |
+| --- | --- | --- |
+| [`datum.net/docs/llms.txt`](https://datum.net/docs/llms.txt) | An index of every docs page, with its title, a one-line description, and a link to its Markdown version. | An agent needs to find the right page for a task. This is the best place to start. |
+| [`datum.net/docs/llms-full.txt`](https://datum.net/docs/llms-full.txt) | The full text of every docs page in one file. | An agent needs the whole documentation set in its context at once. It's large, so prefer `llms.txt` and fetch only the pages you need. |
+| Any page URL with `.md` added | The Markdown version of one page, such as [`datum.net/docs/alb/overview.md`](https://datum.net/docs/alb/overview.md). | An agent needs one page without the site's navigation and layout. |
 
-It's regenerated automatically on every docs deploy, so the index always matches the live site.
+All three are generated from the docs on every deploy, so they always match the live site.
 
-## Using it from an agent
+Datum also publishes [`datum.net/llms.txt`](https://www.datum.net/llms.txt), an overview of what Datum is and when to use it, written for agents deciding whether Datum fits a task.
 
-Most modern agents will fetch this automatically when given a Datum-related task. To prompt explicitly:
+## Use it from an agent
 
+Many agents look for `llms.txt` on their own. To point an agent at it explicitly, add an instruction like the following to your prompt, project instructions, or agent configuration:
+
+```text
+Before answering questions about Datum, fetch https://datum.net/docs/llms.txt.
+Use it to find the relevant pages, then fetch each page's .md URL.
 ```
-Fetch https://datum.net/docs/llms.txt before answering.
-Use it to discover relevant pages.
-```
 
-## What's in it
+To give an agent a single page, use the **Copy page** or **Open in Claude** menu at the top of any docs page, or add `.md` to the page's URL.
 
-The file is organized into two sections:
+To let an agent search the docs instead of fetching files, add the hosted [Datum Docs MCP](/agents/datum-mcp#datum-docs-mcp) server, at `https://www.datum.net/docs/mcp`.
 
-- **Docs** — the full set of documentation pages, including:
-  - Application Load Balancer (WAF, HTTPProxy, traffic protection)
-  - CLI commands (`datumctl` reference pages)
-  - Connectors / Tunnels
-  - Datum MCP
-  - `datumctl` guides (authentication, activity, overview)
-  - Desktop Apps
-  - DNS and Domains
-  - Galactic VPC
-  - Platform (account setup, service accounts, metrics export, secrets, locations, activity logs)
-  - Overview, Features, Kubernetes, Get Involved
-- **Optional** — community links (Discord, YouTube, GitHub)
+## Choose the right tool
 
-## Related
+`llms.txt` gives an agent knowledge about Datum. To let an agent work with your resources, use one of these as well:
 
-- [Skills](/agents/skills) — pre-packaged procedural knowledge agents load on demand
-- [Datum MCP](/datum-mcp) — live API access via Model Context Protocol
+- [Skills](/agents/skills/index) — procedural knowledge an agent loads on demand, such as how to create a load balancer or a DNS record correctly.
+- [Datum MCP](/agents/datum-mcp) — live, authenticated access to your Datum resources from an MCP client.
+- [`datumctl`](/datumctl/overview) — the CLI, which agents can run directly, with [machine-readable output](/datumctl/output-and-scripting).

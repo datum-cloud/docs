@@ -1,0 +1,24 @@
+---
+title: "ALB configuration"
+sidebarTitle: "Configuration"
+description: "The settings that make up a Datum Application Load Balancer, and where to configure each one."
+---
+
+An Application Load Balancer is configured through a few platform resources: an `HTTPProxy` for hostnames, routes, and origins, a `TrafficProtectionPolicy` for the web application firewall, and an optional `SecurityPolicy` for authentication. For how they fit together, see [What an ALB is made of](/alb/overview#what-an-alb-is-made-of).
+
+In the [Cloud Portal](https://cloud.datum.net), a load balancer's **Configuration** tab gathers its settings in one place: general details, custom hostnames, the backend pool, TLS and certificates, security and the web application firewall, and access control.
+
+<Frame caption="A load balancer's settings in the Cloud Portal">
+  ![The Configuration tab of a load balancer with sections for General, Custom Hostnames, Backend pool, TLS and Certificates, Security and WAF in Enforce mode, and Access Control](/images/alb-configuration.png)
+</Frame>
+
+| To configure | See |
+| --- | --- |
+| The web application firewall | [Web application firewall](/alb/configuration/waf) |
+| A wildcard hostname, such as `*.example.com` | [Wildcard hostnames](/alb/configuration/wildcard-hostnames) |
+| Routes, redirects, rewrites, and headers on the proxy | [HTTPProxy](/alb/httpproxy/overview) |
+| A custom domain with `datumctl` | [Serve traffic on your own domain](/alb/operations/custom-domains) |
+| Several origins and path routes with `datumctl` | [Send paths to different origins](/alb/operations/routes) |
+| Origin weights, the load balancing algorithm, and passive health checks | [Load balancing and health checks](/alb/configuration/load-balancing) |
+| Basic or OIDC authentication | [Authentication](/alb/authentication/overview) |
+| Failover between a primary and a fallback origin | [Failover](/alb/configuration/failover) |

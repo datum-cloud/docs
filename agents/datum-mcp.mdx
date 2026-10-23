@@ -1,0 +1,209 @@
+---
+title: "Datum MCP"
+description: "Connect Claude, Cursor, and other AI tools to your Datum projects with Datum's official MCP server: manage resources and run Datum's own diagnostic tools."
+sidebarTitle: "Datum MCP"
+---
+
+Datum offers two [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) servers for AI tools:
+
+| Server | What it does | Where it runs | Sign-in |
+| --- | --- | --- | --- |
+| [Datum MCP](#install) | Reads and changes your resources, and diagnoses problems with them. | On your machine, as the `datum-mcp` binary | Your Datum account |
+| [Datum Docs MCP](#datum-docs-mcp) | Searches and reads Datum's documentation. | Hosted by Datum at `https://www.datum.net/docs/mcp` | None |
+
+Most agents benefit from both: Docs MCP to learn how Datum works, and Datum MCP to act on your projects.
+
+Datum's official [MCP server](https://github.com/datum-cloud/datum-mcp) connects AI tools to your Datum projects. It gives an agent tools to read and change your resources, and to diagnose problems with them, with the same permissions as your own account.
+
+Datum MCP covers:
+
+- **Organizations, projects, and users.**
+- **Networking:** domains, load balancers and their routes, gateways, traffic protection, DNS zones and records, and gVPC networks.
+- **Compute** workloads and Instances.
+- **IP address management, IAM, billing, and services.**
+- **Activity**, to search your project's audit history.
+- **Any other Datum resource**, through a generic escape hatch.
+
+For load balancers, networks, Compute, DNS, and activity, Datum MCP also gives the agent each service's own diagnostic tools and guides. These are the same tools that [Patch](/datumctl/ai/assistant), Datum's own assistant, uses.
+
+<Info>
+  Prefer the terminal? `datumctl assistant` answers questions in natural language without a separate MCP client. See [AI assistant](/datumctl/ai/assistant). For how the CLI docs frame this server, see [Connecting an AI client with the MCP server](/datumctl/ai/mcp-server).
+</Info>
+
+## Install
+
+<Tabs>
+  <Tab title="Homebrew (macOS / Linux)">
+
+  ```bash
+  brew tap datum-cloud/tap
+  brew install datum-mcp
+  ```
+
+  To upgrade later, run `brew upgrade datum-mcp`.
+
+  </Tab>
+  <Tab title="Install script (macOS / Linux)">
+
+  ```bash
+  curl -fsSL https://github.com/datum-cloud/datum-mcp/releases/latest/download/install.sh | sh
+  ```
+
+  </Tab>
+  <Tab title="Download">
+
+  Download a binary for macOS, Linux, or Windows, on amd64 or arm64, from the [latest release](https://github.com/datum-cloud/datum-mcp/releases/latest). Rename it to `datum-mcp` (`datum-mcp.exe` on Windows), and put it on your `PATH`.
+
+  </Tab>
+</Tabs>
+
+## Add it to your AI client
+
+<Tabs>
+  <Tab title="Claude Code">
+
+  ```bash
+  claude mcp add --scope user datum-mcp -- datum-mcp
+  ```
+
+  `--scope user` makes it available in every project. Leave it off to add it to the current project only.
+
+  </Tab>
+  <Tab title="Claude Desktop">
+
+  Add this to your MCP configuration:
+
+  ```json
+  {
+    "datum-mcp": {
+      "command": "datum-mcp",
+      "args": []
+    }
+  }
+  ```
+
+  </Tab>
+  <Tab title="Cursor">
+
+  [Add Datum MCP to Cursor](https://cursor.com/en-US/install-mcp?name=datum-mcp&config=eyJ0eXBlIjoic3RkaW8iLCJlbnYiOnt9LCJjb21tYW5kIjoiL3Vzci9sb2NhbC9iaW4vZGF0dW0tbWNwICJ9) with one click.
+
+  </Tab>
+</Tabs>
+
+On Windows, point your client's configuration at the full path, such as `"command": "C:\\tools\\datum-mcp.exe"`.
+
+## Sign in
+
+The first time an agent uses Datum MCP, the server opens your browser to sign in with OAuth 2.1 (PKCE), and stores the credentials in your system keychain. After that, it refreshes the token automatically.
+
+To run without a browser or keychain, such as in CI or an agent-hosted deployment, set both `DATUM_TOKEN` and `DATUM_API_HOSTNAME` (for example, `api.datum.net`). With a [service account](/projects/service-accounts)'s token, the server works in that service account's own project automatically.
+
+## Get started in a conversation
+
+Ask your agent to set up its context first. It checks what's already selected, then picks an organization and project:
+
+1. `context` shows the current organization and project.
+2. `organizations` lists your organizations and selects one.
+3. `projects` lists the organization's projects and selects one.
+
+The `onboard-to-project` prompt does all three for you. After that, ask for what you need, such as "why is my load balancer not serving?" or "create a DNS zone for example.com".
+
+## Toolsets
+
+To keep the agent's tool list short, Datum MCP loads only its core tools and the `alb`, `dns`, and `network` toolsets when it starts. The agent loads others, such as `compute`, `vpc`, `activity`, `ipam`, `iam`, `billing`, `services`, `search`, or `resource`, with the `toolsets` tool when a task needs them, without a restart.
+
+To see every toolset, run `datum-mcp --list-toolsets`. To change what loads at startup, set `DATUM_MCP_ENABLE_TOOLSETS`, such as `dns,compute` or `all`. To rule a toolset out entirely, set `DATUM_MCP_DISABLE_TOOLSETS`, such as `billing,iam`.
+
+## Prompts
+
+Datum MCP includes ready-made prompts for common tasks, such as:
+
+- `deploy-http-proxy` — put a load balancer in front of a backend.
+- `configure-dns` — create a DNS zone for a domain.
+- `alb-not-serving`, `alb-certificate-not-issued`, `alb-hostname-not-working`, and other diagnostic prompts for load balancers, networks, Compute, DNS, and activity.
+
+For every tool and prompt, see the [tool reference](https://github.com/datum-cloud/datum-mcp/blob/main/docs/TOOLS.md).
+
+## Hand off to Patch
+
+For an open-ended diagnostic question, or a risky change that touches several resources, Patch can be a better fit than the MCP server's resource tools. The Datum MCP repository includes a [Claude Code skill](https://github.com/datum-cloud/datum-mcp/tree/main/.claude/skills/datum-cloud-assistant) that teaches an agent when to hand a task to Patch through `datumctl assistant`. To use it, copy it into your project's `.claude/skills/` directory, or `~/.claude/skills/` to use it everywhere.
+
+## Run over HTTP
+
+By default, your AI client starts Datum MCP and talks to it over standard input and output. To serve it over streamable HTTP instead, so a client connects by URL, run the following command:
+
+```bash
+datum-mcp --mode http --host localhost --port 9000
+```
+
+<Warning>
+  The HTTP mode has no authentication of its own. Every request runs with this process's Datum credentials, so it listens only on localhost unless you add `--allow-non-loopback`. Only do that behind your own access control.
+</Warning>
+
+## Datum Docs MCP
+
+Datum also hosts a read-only MCP server for its documentation, at `https://www.datum.net/docs/mcp`. It needs no installation and no sign-in, and it only reads published docs. Add it to an agent so that it can answer questions about Datum from the current documentation instead of from what it remembers.
+
+It provides three tools:
+
+- `search_datum_cloud_docs` — search the documentation, including code examples, API references, and guides.
+- `query_docs_filesystem_datum_cloud_docs` — read pages and Datum's OpenAPI specs through a read-only, virtual filesystem.
+- `submit_feedback` — report a page that's wrong, outdated, or confusing to the docs team.
+
+<Tabs>
+  <Tab title="Claude Code">
+
+  ```bash
+  claude mcp add --transport http datum-cloud-docs https://www.datum.net/docs/mcp
+  ```
+
+  </Tab>
+  <Tab title="Claude Desktop">
+
+  In **Settings** > **Connectors**, add a custom connector with the URL `https://www.datum.net/docs/mcp`.
+
+  </Tab>
+  <Tab title="Cursor">
+
+  Add this to `.cursor/mcp.json`:
+
+  ```json
+  {
+    "mcpServers": {
+      "datum-cloud-docs": {
+        "url": "https://www.datum.net/docs/mcp"
+      }
+    }
+  }
+  ```
+
+  </Tab>
+  <Tab title="VS Code">
+
+  Add this to `.vscode/mcp.json`:
+
+  ```json
+  {
+    "servers": {
+      "datum-cloud-docs": {
+        "type": "http",
+        "url": "https://www.datum.net/docs/mcp"
+      }
+    }
+  }
+  ```
+
+  </Tab>
+  <Tab title="Codex">
+
+  Add this to `~/.codex/config.toml`:
+
+  ```toml
+  [mcp_servers.datum-cloud-docs]
+  url = "https://www.datum.net/docs/mcp"
+  ```
+
+  </Tab>
+</Tabs>
+
+For other clients, use the streamable HTTP transport with the URL `https://www.datum.net/docs/mcp`. To fetch the docs without MCP, see [llms.txt](/agents/llms-txt).
