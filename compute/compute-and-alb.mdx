@@ -57,6 +57,8 @@ A new hostname can take a few minutes to resolve. If a request fails with a name
 
 If you press Control+C while the command publishes, publishing continues in the background.
 
+If your app speaks HTTP/2, such as a gRPC server, also add `--http2` to the command, and serve HTTP/2 without TLS (h2c) on `PORT`. Without the flag, Datum connects to your Instances over HTTP/1.1, which most apps expect. gRPC needs HTTP/2 on every connection, so with the flag, Datum connects to your Instances over HTTP/2 too. Clients connect to the ALB hostname on port 443, such as `grpcurl stark-raven-b7k2m.datumproxy.net:443 list`. Later deploys keep the setting, and `--http2=false` turns it off.
+
 ## Find your workload's ALB hostname
 
 To see the ALB hostname of every workload in your project, run the following command:
@@ -141,6 +143,7 @@ In addition to the [limitations that apply to all of Compute](/compute/limitatio
 
 - Clients always connect over HTTPS. Datum connects to your Instances over plain HTTP, and TLS between Datum and your Instances isn't supported.
 - `datumctl compute deploy` attaches one ALB to each workload, on one port.
+- With `--http2`, WebSocket connections also reach your Instances over HTTP/2, and most servers accept WebSockets only over HTTP/1.1. To serve WebSockets alongside gRPC, serve them on a separate port through a [network service](/galactic-vpc/networks/network-services).
 
 ## What's next
 
