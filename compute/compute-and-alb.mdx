@@ -143,7 +143,7 @@ In addition to the [limitations that apply to all of Compute](/compute/limitatio
 
 - Clients always connect over HTTPS. Datum connects to your Instances over plain HTTP, and TLS between Datum and your Instances isn't supported.
 - `datumctl compute deploy` attaches one ALB to each workload, on one port.
-- With `--http2`, WebSocket connections also reach your Instances over HTTP/2, and most servers accept WebSockets only over HTTP/1.1. To serve WebSockets alongside gRPC, serve them on a separate port through a [network service](/galactic-vpc/network-services).
+- With `--http2`, WebSocket connections also reach your Instances over HTTP/2, and most servers accept WebSockets only over HTTP/1.1. To serve WebSockets alongside gRPC, serve them on a separate port through a [network service](/galactic-vpc/networks/network-services).
 
 ## What's next
 
