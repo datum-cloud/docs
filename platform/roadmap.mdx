@@ -1,0 +1,50 @@
+---
+title: "Roadmap"
+description: "What Datum offers today, what is in preview, and where to follow and influence what comes next."
+---
+
+Datum is still being built. We are building a public cloud with a generous "forever free" tier, and working closely with design partners on managed cloud and BYOC approaches. This page summarizes where each product stands.
+
+## Available today
+
+Our public cloud is opinionated, but powered by key partners. We call these our "house brand" services:
+
+- **[Application Load Balancer](/alb/overview):** an [Envoy](/platform/envoy) edge proxy and AI gateway, with a built-in [web application firewall](/alb/configuration/waf).
+- **[Connectors](/connectors/overview):** a way to orchestrate connections, starting with QUIC tunnels powered by [Iroh](/platform/iroh-relays).
+- **[Domains and DNS](/domain-dns/overview):** domain tracking and verification, plus global authoritative DNS.
+- **Essentials:** [metrics export](/operations/metrics-export), [activity logs](/operations/activity-logs), [secrets](/operations/secrets), and team collaboration.
+
+## In preview
+
+- **[Compute](/compute/overview):** isolated Instances that run container images or fast-starting [unikernels](/compute/runtimes/unikernels) in Datum locations.
+- **[gVPC](/galactic-vpc/overview):** private IPv6 networks for your Instances that span every location they run in, on Datum's [SRv6](/platform/segment-routing) backbone.
+
+## What we're working on
+
+- **More Connectors:** developer options such as Tailscale tailnets and WireGuard VPNs, and telco options such as AWS Direct Connect, Equinix Fabric, and Megaport onramps.
+- **vMMR:** a virtual "meet me room" for interacting with diverse connections.
+- **Networking for Instances:** firewall rules and private DNS. See [gVPC planned capabilities](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
+
+## Product roadmaps
+
+Each product has its own limitations and roadmap page:
+
+- [gVPC](/galactic-vpc/limitations-and-roadmap)
+- [Compute](/compute/limitations-and-roadmap)
+- [Application Load Balancer](/alb/limitations-and-roadmap)
+- [Connectors](/connectors/limitations-and-roadmap)
+- [Domains and DNS](/domain-dns/limitations-and-roadmap)
+
+## Follow along and get involved
+
+The best place to track our roadmap is our [website and milestones](https://www.datum.net/roadmap/). To suggest a feature, visit our [GitHub discussions](https://github.com/orgs/datum-cloud/discussions/categories/feature-requests). For more ways to take part, see [Get involved](/get-involved).
+
+### Enhancement proposals
+
+Datum designs major changes in the open, in the [datum-cloud/enhancements](https://github.com/datum-cloud/enhancements) repository on GitHub. It holds proposals for significant architectural changes, cross-cutting work such as security and performance, and long-term roadmap items that span several releases. Each proposal starts as an issue, is refined with maintainers and the community, and becomes an enhancement document. Proposals move from `Backlog` to `In Progress` to `Completed`.
+
+To follow the design behind what's coming, browse the [open enhancements](https://github.com/datum-cloud/enhancements/issues). To propose one of your own, open a new issue there. For smaller ideas and feature requests, use [GitHub discussions](https://github.com/orgs/datum-cloud/discussions/categories/feature-requests) instead.
+
+<Note>
+  Plans can change. This page isn't a commitment to deliver any feature or to meet any timeline.
+</Note>

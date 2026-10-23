@@ -1,272 +1,127 @@
 ---
 title: "AI assistant"
 sidebarTitle: "AI assistant"
-description: "Ask datumctl about your Datum Cloud resources in natural language, from a one-shot question or an interactive session."
+description: "Chat with Patch, the Datum Cloud assistant, from the terminal: ask about your resources in plain language, diagnose problems, and review changes before they're applied."
 ---
 
-`datumctl ai` translates natural language into Datum Cloud operations. Ask it a
-question — "list all DNS zones", "which projects am I in?" — and the assistant
-figures out which resources to read and shows you the answer. When it wants to
-make a change, it always pauses and asks you to confirm first.
+Patch is the Datum Cloud assistant. Ask it about your resources in plain language, such as "why is my workload not available?" or "is my load balancer serving?", and it answers using the same permissions your account already has. There's no API key to bring and nothing to configure.
 
-<Info>
-  The assistant reasons over your resources through a large language model, so
-  you supply your own model API key (Anthropic, OpenAI, or Gemini). Your key and
-  requests go directly to the provider you choose.
-</Info>
-
-## Before you start
-
-You need two things:
-
-1. **A logged-in `datumctl`.** The assistant reads and writes real Datum Cloud
-   resources, so you must be authenticated. Run `datumctl login` first.
-2. **A model API key** for the [Anthropic Console](https://console.anthropic.com/),
-   [OpenAI](https://platform.openai.com/api-keys), or
-   [Google Gemini](https://ai.google.dev/gemini-api/docs/api-key).
-
-## Quick start
-
-<Steps>
-  <Step title="Log in">
-    ```bash
-    datumctl login
-    ```
-  </Step>
-  <Step title="Save a model API key">
-    Store the key once so you don't have to export it in every shell:
-
-    ```bash
-    datumctl ai config set anthropic_api_key sk-ant-...
-    ```
-  </Step>
-  <Step title="Set a default scope (optional)">
-    Point the assistant at the organization or project you work in most:
-
-    ```bash
-    datumctl ai config set organization my-org-id
-    ```
-  </Step>
-  <Step title="Ask a question">
-    ```bash
-    datumctl ai "list all DNS zones"
-    ```
-  </Step>
-</Steps>
-
-## Asking questions
-
-### One-shot questions
-
-Pass your question as an argument to get a single answer and return to your
-shell:
+`datumctl assistant` is a [plugin](/datumctl/plugins/using-plugins), so it updates on its own schedule. To install it, run the following command:
 
 ```bash
-datumctl ai "how many projects are in my organization?"
+datumctl plugin install assistant
 ```
 
-You can also pipe a question in on standard input, which is handy in scripts:
-
-```bash
-echo "list projects" | datumctl ai
-```
-
-<Note>
-  When input is piped in (no terminal attached), the assistant answers questions
-  but will not perform any write — mutating actions are skipped because they
-  can't be confirmed. See [The confirmation gate](#the-confirmation-gate).
-</Note>
-
-### Interactive session
-
-Run `datumctl ai` with no question to start an interactive REPL. The assistant
-keeps conversation context, so you can ask follow-up questions that build on
-earlier answers:
-
-```bash
-datumctl ai --project my-project-id
-```
-
-At the `>` prompt, type your next question. Type `exit` or `quit` (or press
-Enter on an empty line) to leave the session.
-
-## Choosing scope
-
-The assistant needs to know which control plane to operate against. You can set
-scope three ways, from most to least specific:
+## Start a conversation
 
 <Tabs>
-  <Tab title="Per-invocation flags">
-    ```bash
-    datumctl ai "list projects" --organization other-org-id
-    datumctl ai --project my-project-id
-    ```
+  <Tab title="Full-screen chat">
+
+  ```bash
+  datumctl assistant
+  ```
+
+  Opens the full-screen chat for your current project. Add `-c` to open your most recent conversation instead of a new one.
+
   </Tab>
-  <Tab title="Active datumctl context">
-    If you've selected a context with `datumctl ctx use`, the assistant uses it
-    automatically — no flags needed.
+  <Tab title="One question">
+
+  ```bash
+  datumctl assistant chat "Why is the api-backend workload not available?"
+  ```
+
+  Sends one message, streams the answer, and exits. This is the form to use in scripts and pipes. The conversation ID is printed on standard error.
+
   </Tab>
-  <Tab title="Saved ai defaults">
-    ```bash
-    datumctl ai config set organization my-org-id
-    datumctl ai config set project my-project-id
-    ```
+  <Tab title="Pick up where you left off">
+
+  ```bash
+  datumctl assistant resume
+  ```
+
+  Opens a searchable list of your past conversations. Add `--last` to go straight to the most recent one.
+
   </Tab>
 </Tabs>
 
-Scope is resolved in this order: **command-line flags → environment variables →
-active `datumctl` context → saved `ai` config defaults.** Because the active
-context wins over saved `ai` defaults, switching with `datumctl ctx use` is
-respected without having to clear your `ai config` values. This mirrors how every
-other command resolves scope.
-
-A few rules:
-
-- `--organization` and `--project` are mutually exclusive — set one, not both.
-- `--namespace` sets the default namespace for the session (defaults to
-  `default`).
-- `--platform-wide` targets the platform root instead of a single org or
-  project. This is a staff-only mode and can't be combined with
-  `--organization` or `--project`.
-
-If no scope is set at all, the assistant still runs, but without resource tools —
-it can chat, but can't read or change anything until you give it an organization
-or project.
-
-## The confirmation gate
-
-Reads and writes are treated very differently:
-
-- **Read operations run immediately.** Listing, getting, and describing
-  resources happen without a prompt.
-- **Write operations always pause for confirmation.** Before creating, updating,
-  or deleting anything, the assistant prints a preview of the exact action and
-  asks you to approve it.
-
-The preview shows the tool and the full arguments, then waits for your answer:
-
-```text
---- Proposed action ---
-Tool:    ...
-Details:
-{
-  ...
-}
------------------------
-Apply changes? [y/N]:
-```
-
-Only an explicit `y` proceeds; anything else declines.
-
-<Warning>
-  When `datumctl ai` is run without an attached terminal (for example, with a
-  piped question or in CI), write operations are automatically declined and
-  skipped. Perform mutations only from an interactive terminal session.
-</Warning>
-
-## Built-in tools
-
-Behind the scenes the assistant works through a fixed set of tools scoped to the
-current organization or project. Read tools run on their own; the two write tools
-are gated by the confirmation prompt above.
-
-| Tool | What it does | Gated? |
-| --- | --- | --- |
-| `list_resource_types` | Lists the Datum Cloud resource types available in the current context | No |
-| `get_resource_schema` | Returns the schema for a resource type so the assistant knows its fields | No |
-| `list_resources` | Lists resources of a given type | No |
-| `get_resource` | Retrieves a single resource by kind and name | No |
-| `validate_manifest` | Validates a manifest with a server-side dry run, without persisting changes | No |
-| `apply_manifest` | Creates or updates a resource by applying a manifest (upsert) | Yes |
-| `delete_resource` | Deletes a resource by kind and name | Yes |
-| `change_context` | Switches the active organization, project, or namespace for the session | No |
-
-<Note>
-  Before proposing a write, the assistant can run `validate_manifest` to check
-  your change with a server-side dry run — the same safety net as
-  `datumctl apply --dry-run=server` — so you see problems before you approve
-  anything.
-</Note>
-
-## Configuration
-
-Saved settings provide defaults for every `datumctl ai` invocation, so you don't
-have to repeat flags or export environment variables. Manage them with
-`datumctl ai config`:
+To continue a conversation from a script, pass the ID it printed, or `-c` for the most recent one:
 
 ```bash
-# Set a value
-datumctl ai config set organization my-org-id
-
-# Show the current configuration (API keys are redacted)
-datumctl ai config show
-
-# Remove a value
-datumctl ai config unset organization
+datumctl assistant chat -c "and the edge-cache one?"
+datumctl assistant chat "and the edge-cache one?" --context-id CONTEXT_ID
 ```
 
-### Configuration keys
+For terminals that can't run the full-screen chat, use `datumctl assistant chat --interactive` for a line-based session.
 
-| Key | Purpose |
+## Choose the project
+
+Patch works in your current context. To ask about another project, select it first with `datumctl ctx use`, or pass `--project PROJECT_ID`. See [Contexts and scoping](/datumctl/contexts-and-scoping).
+
+## What Patch can do
+
+Patch answers questions about your project and its resources, and uses diagnostic tools from the Datum services your project uses. For example, it can:
+
+- **Diagnose a Compute workload** that isn't available, explain a status reason, check quota, and list Instances and instance types.
+- **Diagnose a load balancer** that isn't serving, and summarize its traffic, certificates, hostnames, and traffic protection.
+- **Diagnose a network** that isn't ready, and its network services.
+
+To see exactly which services and tools Patch can use in your project, run the following command:
+
+```bash
+datumctl assistant card
+```
+
+## Making changes
+
+Patch never changes anything on its own. It proposes a change as a plan: the exact manifests it intends to apply, shown before anything happens. Applying a plan is a separate, explicit step, and the service refuses any manifest that differs from the one you were shown.
+
+## Manage conversations
+
+Conversations are kept by the assistant service, not on your machine, so you can continue one from anywhere you're logged in.
+
+| Command | What it does |
 | --- | --- |
-| `organization` | Default organization ID (overridden by `--organization`) |
-| `project` | Default project ID (overridden by `--project`) |
-| `namespace` | Default namespace (defaults to `default`) |
-| `provider` | LLM provider: `anthropic`, `openai`, or `gemini` |
-| `model` | Model override, e.g. `claude-sonnet-4-6`, `gpt-4o`, `gemini-2.0-flash` |
-| `max_iterations` | Agentic loop iteration cap (default `20`) |
-| `anthropic_api_key` | Anthropic API key |
-| `openai_api_key` | OpenAI API key |
-| `gemini_api_key` | Gemini API key |
+| `datumctl assistant conversations list` | List the conversations in the project. Add `--archived` to include archived ones. |
+| `datumctl assistant conversations show CONTEXT_ID` | Print one conversation's transcript. |
+| `datumctl assistant conversations rename CONTEXT_ID` | Name a conversation. |
+| `datumctl assistant conversations archive CONTEXT_ID` | Hide a conversation from the list without deleting it. It stays resumable by ID. |
+| `datumctl assistant conversations delete CONTEXT_ID` | Permanently delete a conversation and its transcript. |
 
-Run `datumctl ai config show` to print the resolved config path along with your
-current values; API keys are shown redacted.
+## Use Patch from your own agent
 
-### Precedence and environment variables
+Your own AI agent can hand questions to Patch, which brings Datum's own diagnostic tools and guidance:
 
-- **Flags always win** over config file values for a single invocation.
-- **API keys** can also come from environment variables, which override any key
-  stored in the config file:
+- **From a script or another agent,** run `datumctl assistant chat "QUESTION"`. It streams the answer to standard output and prints the conversation ID on standard error, so the agent can continue with `--context-id`.
+- **From Claude Code,** the [Datum MCP repository](https://github.com/datum-cloud/datum-mcp) includes a skill that teaches Claude when an open-ended diagnostic question, or a risky change across several resources, is better handed to Patch than done with [Datum MCP](/agents/datum-mcp)'s own tools.
+- **Over the A2A protocol,** Patch publishes an agent card that describes its endpoint, its skills, and the Datum services it can use in your project. To see it, run `datumctl assistant card`.
+
+## Moving from datumctl ai
+
+`datumctl ai` was a local assistant that needed your own Anthropic, OpenAI, or Gemini key. It has been replaced by Patch. The `datumctl ai` command still works and now runs the `assistant` plugin, so existing scripts keep going.
+
+Nothing reads your old provider key anymore, but it's still on disk. Delete it:
+
+<Tabs>
+  <Tab title="macOS / Linux">
 
   ```bash
-  export ANTHROPIC_API_KEY=sk-ant-...
-  export OPENAI_API_KEY=...
-  export GEMINI_API_KEY=...
+  rm ~/.config/datumctl/ai.yaml
   ```
 
-This lets you keep a default key in the config file for everyday use and
-temporarily override it per shell when needed.
+  </Tab>
+  <Tab title="Windows">
 
-## Choosing a provider and model
+  ```powershell
+  del %AppData%\datumctl\ai.yaml
+  ```
 
-You don't have to set a `provider` explicitly — the assistant selects one using
-this order:
+  </Tab>
+</Tabs>
 
-1. **Model name prefix.** `claude-*` → Anthropic, `gpt-*` / `o1*` / `o3*` →
-   OpenAI, `gemini-*` → Gemini.
-2. **An explicit `provider` setting**, if you set one.
-3. **Whichever API key is available** (environment variable first, then config
-   file).
-
-Set a model per invocation with `--model`, or save one as a default:
-
-```bash
-datumctl ai config set model claude-sonnet-4-6
-datumctl ai "list dnszones" --model gpt-4o
-```
-
-Each provider has a sensible default model if you don't pick one:
-`claude-sonnet-4-6` for Anthropic, `gpt-4o` for OpenAI, and `gemini-2.0-flash`
-for Gemini.
+The chat pane in the [interactive console](/datumctl/console) ran on the same local assistant and has also been removed. Use `datumctl assistant` for chat. Chats you held in the console were saved to `~/.datumctl/conversations`, and nothing reads them now either.
 
 ## Next steps
 
-- [Logging in](/datumctl/auth/logging-in) — authenticate `datumctl` before your first question.
-- [MCP server](/datumctl/ai/mcp-server) — prefer a graphical AI client? Connect Claude
-  Desktop, Cursor, or another MCP-aware app to the Datum MCP server.
-- [Datum MCP](/datum-mcp) — install the standalone MCP server and get its full tool catalog.
-- [Contexts & scoping](/datumctl/contexts-and-scoping) — how scope resolution decides which
-  organization or project the assistant operates against.
-- [Reading resources](/datumctl/resources/reading) — the `get` and `describe` commands the
-  assistant runs on your behalf.
-- [datumctl overview](/datumctl/overview) — new to the CLI? See how `datumctl` is structured.
+- [Connecting an AI client with the MCP server](/datumctl/ai/mcp-server) — use Datum from Claude, Cursor, or another MCP client instead of the terminal.
+- [Agent skills](/agents/skills/index) — teach your own agents how to work with Datum resources.
+- [`datumctl` overview](/datumctl/overview) — everything else the CLI can do.

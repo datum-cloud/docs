@@ -5,7 +5,7 @@ description: "Deploy and manage containerized workloads on Datum Cloud with the 
 ---
 
 <Note>
-  Compute is in preview, and each project needs approved access before it can deploy. For product guides, including a quickstart, see [Compute](/compute/overview).
+  Compute is in preview, and each project needs approved access before it can deploy. For product guides, see [Compute](/compute/overview). To deploy your first app, see [Deploy an app](/getting-started/first-workload).
 </Note>
 
 `datumctl compute` deploys a container image as a *workload* that runs in one or more Datum Cloud locations, and provides the day-to-day commands to scale, restart, and delete it. It's a first-party plugin instead of a built-in command. After you install it, its commands behave like the rest of the CLI.
@@ -16,7 +16,7 @@ datumctl compute --help
 ```
 
 <Info>
-  New to plugins? [Using plugins](/datumctl/plugins/using-plugins) covers installation, upgrades, and how a plugin inherits your active context and credentials. Not installed `datumctl` itself yet? Start with the [Quickstart](/datumctl/quickstart).
+  New to plugins? [Using plugins](/datumctl/plugins/using-plugins) covers installation, upgrades, and how a plugin inherits your active context and credentials. Not installed `datumctl` itself yet? Start with [Install](/datumctl/install).
 </Info>
 
 ## Core concepts
@@ -25,7 +25,7 @@ A handful of terms recur across every `compute` command:
 
 | Term | Meaning |
 |------|---------|
-| **Workload** | The thing you deploy — a container image plus its runtime configuration (ports, env, instance type) and one or more placements. |
+| **Workload** | The thing you deploy — a container image plus its runtime configuration (ports, env, instance type) and one or more [placements](/compute/placement-and-scaling). |
 | **Placement** | A named group of locations and a scale policy (minimum replica count) in a workload. A flag-based `deploy` creates a single placement named `default`. |
 | **Location** | A Datum Cloud region a workload can run in, for example `us-central-1`. The `--city` flag selects every location in a city by its code, such as `DFW`. |
 | **Instance** | One running copy of a workload's container in one location. A placement with `--min=2` across two locations produces four Instances. |

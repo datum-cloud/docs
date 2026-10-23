@@ -8,7 +8,7 @@ sidebarTitle: "DNS"
 **Working with this resource via an AI agent?** Datum publishes a [DNS skill](/agents/skills/dns) that teaches agents the canonical patterns for this resource.
 </Note>
 
-We offer authoritative DNS hosting for your domains that you can manage through our portal as well as CLI.
+To manage zones and records from the terminal with the `datumctl dns` plugin, see [Operations](/domain-dns/operations).
 
 ## Current features
 
@@ -30,7 +30,7 @@ Datum DNS doesn't currently support DNSSEC. If DNSSEC is turned on for your doma
 
 ## DNSSEC
 
-Datum DNS doesn't currently support DNSSEC. Zones hosted on Datum aren't signed, and you can't create `DS`, `DNSKEY`, `RRSIG`, `NSEC`, or `NSEC3` records.
+Zones hosted on Datum aren't signed, and you can't create `DS`, `DNSKEY`, `RRSIG`, `NSEC`, or `NSEC3` records.
 
 This matters most when you move an existing domain to Datum. If your registrar still publishes a `DS` record for the domain, validating resolvers (Google Public DNS, Cloudflare 1.1.1.1, Quad9, and most ISP resolvers) expect signed answers. Datum's answers aren't signed, so those resolvers treat them as tampered with and return `SERVFAIL`. To your users, the domain looks like it has gone offline.
 

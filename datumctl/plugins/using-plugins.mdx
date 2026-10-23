@@ -4,7 +4,7 @@ sidebarTitle: "Using plugins"
 description: "Install, run, and manage datumctl plugins that extend the CLI with additional commands."
 ---
 
-Plugins extend `datumctl` with additional commands without changing the core CLI. A plugin is an independent binary that datumctl runs on your behalf — once installed, you invoke it exactly like a built-in command.
+Plugins extend `datumctl` with additional commands without changing the core CLI. A plugin is an independent binary that datumctl runs on your behalf — once installed, you invoke it exactly like a built-in command. For the thinking behind plugins, see [Extending our CLI with plugins](https://www.datum.net/blog/extending-our-cli-with-plugins/) on the Datum blog.
 
 <Info>
   Plugins are optional. You never need one to use `datumctl`, and the core CLI works the same whether or not you have any installed.
@@ -139,6 +139,8 @@ datumctl plugin upgrade compute
 datumctl plugin remove compute
 ```
 
+To upgrade every plugin you have installed at once, run `datumctl plugin upgrade --all`. `datumctl plugin list` shows `update` in the `STATUS` column for any plugin with a newer version.
+
 `plugin upgrade` runs the same verified install flow as a fresh install.
 
 ## How plugins stay trustworthy
@@ -171,5 +173,5 @@ Trusting records the binary's path and fingerprint. If the binary changes afterw
 
 - [Adding catalogs](/datumctl/plugins/adding-catalogs) — register additional or internal marketplaces
 - [Building plugins](/datumctl/plugins/building-plugins) — write your own plugin with the Go SDK
-- [Quickstart](/datumctl/quickstart) — new to `datumctl`? Install and log in first
+- [Install](/datumctl/install) — new to `datumctl`? Install and log in first
 - [Contexts & scoping](/datumctl/contexts-and-scoping) — the organization and project a plugin inherits when it runs

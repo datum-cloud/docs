@@ -1,0 +1,376 @@
+---
+title: "Basic authentication"
+sidebarTitle: "Basic auth"
+description: "Require a username and password before requests reach your origin, with datumctl alb auth or an Envoy Gateway SecurityPolicy."
+---
+
+HTTP basic authentication protects a load balancer with a username and password. [Envoy](/platform/envoy) checks the credentials on every request, at the edge, before the request reaches your origin. Requests without valid credentials get `401 Unauthorized`.
+
+There are two ways to set it up:
+
+- **`datumctl alb auth`** is the quickest. One command sets the users, creates the Secret, and attaches the policy.
+- **A `SecurityPolicy` manifest** gives you full control, for example to keep the configuration in Git or to protect a single route.
+
+## Set up basic auth with datumctl alb
+
+To protect a load balancer, pass one or more users, and give their password on standard input:
+
+<Tabs>
+  <Tab title="macOS / Linux">
+
+  ```bash
+  read -s -p "Password: " password && echo
+  printf '%s' "$password" | datumctl alb auth set ALB_NAME --user admin --password-stdin
+  ```
+
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+
+  ```powershell
+  $password = Read-Host "Password" -MaskInput
+  $password | datumctl alb auth set ALB_NAME --user admin --password-stdin
+  ```
+
+  </Tab>
+</Tabs>
+
+To admit several users with the same password, repeat `--user`, as in `--user admin --user editor`. To check a change without applying it, add `--dry-run`.
+
+To see which usernames are allowed, run the following command:
+
+```bash
+datumctl alb auth list ALB_NAME
+```
+
+`datumctl alb describe ALB_NAME` also shows whether basic auth is on. To turn basic auth off, run the following command:
+
+```bash
+datumctl alb auth unset ALB_NAME
+```
+
+To confirm that it works, request the load balancer with and without credentials:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' https://HOSTNAME/            # 401
+curl -s -o /dev/null -w '%{http_code}\n' -u admin https://HOSTNAME/   # prompts for the password, then 200
+```
+
+## Set up basic auth with a SecurityPolicy
+
+The rest of this page shows how to configure the same thing with [Envoy Gateway](https://gateway.envoyproxy.io/) resources, using `datumctl apply`.
+
+---
+
+### How it works
+
+At a high level, this setup:
+
+1. Generates credentials in **htpasswd (SHA)** format
+2. Stores credentials in a **Kubernetes Secret**
+3. Labels the Secret so it is synced to edge clusters
+4. Attaches a **SecurityPolicy** to an `HTTPRoute`
+5. Verifies authentication behavior
+
+---
+
+## Prerequisites
+
+- `datumctl` installed and authenticated
+- A valid **Project**
+- Existing:
+  - `Gateway`
+  - `HTTPRoute`
+- Permission to create:
+  - `Secret`
+  - `SecurityPolicy`
+
+Verify access:
+
+```bash
+datumctl get gateway
+datumctl get httproute
+```
+
+---
+
+## Critical requirement: secret syncing
+
+Secrets and ConfigMaps referenced by gateway configurations are **not automatically synced** to edge clusters.
+
+To make a Secret available to edge gateways, it **must** include the following label:
+
+```yaml
+networking.datumapis.com/gateway-sync: "true"
+```
+
+### Why this matters
+
+- Without this label, the gateway receives the policy but **not the Secret**
+- Envoy fails to load the Basic Auth credentials
+- All requests return **HTTP 500** instead of a login prompt
+
+This requirement exists to prevent accidental replication of unrelated secrets.
+
+---
+
+## Configuration steps
+
+### Step 1: Set variables
+
+<Tabs>
+  <Tab title="macOS / Linux">
+
+  ```bash
+  project="your-project-id"
+  namespace="default"
+  route="your-route-name"
+  username="demo"
+  password="ChangeMe123!"
+  ```
+
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+
+  ```powershell
+  $project   = "your-project-id"
+  $namespace = "default"
+  $route     = "your-route-name"
+  $username  = "demo"
+  $password  = "ChangeMe123!"
+  ```
+
+  </Tab>
+</Tabs>
+
+---
+
+### Step 2: Generate htpasswd entry (SHA)
+
+Envoy Gateway currently supports **SHA-based htpasswd entries only**.
+
+Other formats (bcrypt, APR1) are **not supported** and will cause failures.
+
+<Tabs>
+  <Tab title="macOS / Linux">
+
+  ```bash
+  hash=$(printf "%s" "$password" | shasum | awk '{print $1}' | xxd -r -p | base64)
+  htpasswd=$(printf "%s:{SHA}%s\n" "$username" "$hash")
+  b64=$(printf "%s" "$htpasswd" | base64)
+  ```
+
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+
+  ```powershell
+  $bytes = [Text.Encoding]::UTF8.GetBytes($password)
+  $sha1  = [System.Security.Cryptography.SHA1]::Create().ComputeHash($bytes)
+  $hash  = [Convert]::ToBase64String($sha1)
+
+  $htpasswd = "${username}:{SHA}${hash}`n"
+  $b64 = [Convert]::ToBase64String(
+    [Text.Encoding]::UTF8.GetBytes($htpasswd)
+  )
+  ```
+
+  </Tab>
+</Tabs>
+
+---
+
+### Step 3: Create the secret
+
+The Secret must:
+
+- Use the key `.htpasswd`
+- Exist in the same namespace as the `SecurityPolicy`
+- Include the **gateway-sync** label
+
+<Tabs>
+  <Tab title="macOS / Linux">
+
+  ```bash
+  cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: ${route}-basic-auth
+    labels:
+      networking.datumapis.com/gateway-sync: "true"
+  type: Opaque
+  data:
+    .htpasswd: $b64
+  EOF
+  ```
+
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+
+  ```powershell
+  @"
+  apiVersion: v1
+  kind: Secret
+  metadata:
+    name: ${route}-basic-auth
+    labels:
+      networking.datumapis.com/gateway-sync: "true"
+  type: Opaque
+  data:
+    .htpasswd: $b64
+  "@ | datumctl apply --project $project --namespace $namespace -f -
+  ```
+
+  </Tab>
+</Tabs>
+
+---
+
+### Step 4: Attach Basic Auth using a SecurityPolicy
+
+Attach the policy to the **HTTPRoute**. This is the most reliable attachment point.
+
+<Tabs>
+  <Tab title="macOS / Linux">
+
+  ```bash
+  cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
+  apiVersion: gateway.envoyproxy.io/v1alpha1
+  kind: SecurityPolicy
+  metadata:
+    name: ${route}-basic-auth
+  spec:
+    targetRefs:
+      - group: gateway.networking.k8s.io
+        kind: HTTPRoute
+        name: $route
+    basicAuth:
+      users:
+        kind: Secret
+        name: ${route}-basic-auth
+  EOF
+  ```
+
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+
+  ```powershell
+  @"
+  apiVersion: gateway.envoyproxy.io/v1alpha1
+  kind: SecurityPolicy
+  metadata:
+    name: ${route}-basic-auth
+  spec:
+    targetRefs:
+      - group: gateway.networking.k8s.io
+        kind: HTTPRoute
+        name: $route
+    basicAuth:
+      users:
+        kind: Secret
+        name: ${route}-basic-auth
+  "@ | datumctl apply --project $project --namespace $namespace -f -
+  ```
+
+  </Tab>
+</Tabs>
+
+---
+
+## Verification
+
+### Unauthenticated request
+
+```bash
+curl -I https://your-app.example.com
+```
+
+Expected response:
+
+```
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Basic
+```
+
+Browsers will display a login prompt.
+
+---
+
+### Authenticated request
+
+```bash
+curl -I -u demo:ChangeMe123! https://your-app.example.com
+```
+
+Expected response:
+
+```
+HTTP/1.1 200 OK
+```
+
+---
+
+## Cleanup / disable Basic Auth
+
+<Tabs>
+  <Tab title="macOS / Linux">
+
+  ```bash
+  datumctl delete securitypolicy ${route}-basic-auth \
+    --project $project --namespace $namespace --ignore-not-found
+
+  datumctl delete secret ${route}-basic-auth \
+    --project $project --namespace $namespace --ignore-not-found
+  ```
+
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+
+  ```powershell
+  datumctl delete securitypolicy ${route}-basic-auth `
+    --project $project --namespace $namespace --ignore-not-found
+
+  datumctl delete secret ${route}-basic-auth `
+    --project $project --namespace $namespace --ignore-not-found
+  ```
+
+  </Tab>
+</Tabs>
+
+---
+
+## Troubleshooting
+
+### Common failure modes
+
+| Symptom | Root cause | Resolution |
+|---------|------------|------------|
+| HTTP 500 on all requests | Secret not synced to edge | Add `gateway-sync` label |
+| 500 even with credentials | Secret missing at edge | Re-apply Secret with label |
+| No login prompt | Policy not attached | Verify `targetRefs` |
+| Works after deleting policy | Invalid Secret reference | Fix Secret and label |
+
+### Useful debug commands
+
+```bash
+datumctl get secret --project $project --namespace $namespace
+datumctl get securitypolicy --project $project --namespace $namespace
+datumctl get httproute --project $project --namespace $namespace
+```
+
+---
+
+## Best practices
+
+- Use Basic Auth for development, demos, and staging environments
+- Rotate credentials regularly
+- Store credentials securely using CI secrets or a secret manager
+- Use JWT, OIDC, or SSO for production authentication
+
+---
+
+## Summary
+
+- HTTP Basic Auth is configured using **Envoy Gateway `SecurityPolicy`**
+- Secrets **must be explicitly synced** to edge clusters using the `gateway-sync` label
+- `{SHA}` htpasswd format is required — bcrypt and APR1 are not supported
+- Attaching policies to `HTTPRoute` is the most reliable approach

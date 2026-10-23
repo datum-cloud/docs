@@ -1,0 +1,77 @@
+---
+title: "DNS troubleshooting"
+sidebarTitle: "Troubleshooting"
+description: "Fix common problems with Datum DNS zones, records, delegation, and DNSSEC."
+---
+
+This page covers common DNS problems and how to fix them. The examples use the `datumctl dns` plugin. To install it, see [Operations](/domain-dns/operations#before-you-begin). Add `--verbose` to any `datumctl dns` command to see the underlying cause of an error.
+
+## My domain doesn't resolve
+
+Work through these checks in order.
+
+1. **Check delegation.** Run `datumctl dns zone nameservers example.com --check`. If delegation is `Incomplete` or `Partial`, set Datum's nameservers at your registrar. If it's `Unknown`, the zone is new; wait a few minutes and check again.
+2. **Check for DNSSEC.** If the domain resolves with `dig +cd example.com` but returns `SERVFAIL` with `dig example.com`, a leftover `DS` record at your registrar is the cause. Datum DNS doesn't support DNSSEC yet. Remove the `DS` record at your registrar, and resolvers recover as their cached copy expires. See [DNSSEC](/domain-dns/dns#dnssec).
+3. **Check the record.** Run `datumctl dns record list example.com --name www`. If the record isn't there, or isn't `Programmed`, see the sections below.
+4. **Check Datum's answer.** Run `dig www.example.com @ns1.datumdomains.net`. If Datum answers correctly but your resolver doesn't, it's holding an old answer. Wait for the old record's TTL.
+
+## A record is stuck at Pending
+
+`Pending` is normal for a few moments after a change. If it lasts, ask Datum why:
+
+```bash
+datumctl dns record describe example.com www
+```
+
+`describe` shows the reason for each value. Use the reason to find the fix in the table below.
+
+## A record reports Conflict or Not owner
+
+| Status | What it means | What to do |
+| --- | --- | --- |
+| `Conflict` | Another record already occupies that name. | The name is usually outside the zone. Check for `www.example.com` where you meant `www`: names are relative to the zone. |
+| `Not owner` | Another record set already owns that name. `describe` names it. | Change the record through the record set that owns it, or delete that record set first. |
+
+Records that Datum manages for you, such as a zone's `SOA` and apex `NS` records and the records an [Application Load Balancer](/alb/overview) creates, change back if you edit them by hand. To see which records Datum manages, run `datumctl dns record list example.com --managed`.
+
+## I can't create a zone for my domain
+
+A domain can belong to only one zone on Datum. If another zone already claims the domain, the new zone isn't accepted. Check whether the zone already exists in another of your projects. If you can't find it, contact [support@datum.net](mailto:support@datum.net).
+
+A zone's domain name can't be changed after you create it. To use a different domain, create a new zone.
+
+## My zone has no nameservers
+
+If `datumctl dns zone create` reports `Waiting for domain ownership verification before provisioning DNS`, the zone exists, but Datum won't serve it until you prove you own the domain. Until then, the zone has no nameservers and its records stay `Rejected`. You don't need to recreate the zone. [Verify the domain](/domain-dns/domains#verify-a-domain), and Datum provisions the zone and its records.
+
+## DNS isn't enabled for my project
+
+If a command fails with exit code `3` (`DNS_FORBIDDEN`), either your account isn't allowed to manage DNS in the project, or DNS isn't enabled for it. To enable DNS, run the following command:
+
+```bash
+datumctl services enable dns.networking.miloapis.com --wait
+```
+
+If DNS is already enabled, ask your project's administrator for access.
+
+## No project is set
+
+The `dns` plugin never guesses a project. Run `datumctl ctx use ORG_ID/PROJECT_ID`, or add `--project PROJECT_ID` to the command.
+
+## Import skipped some records
+
+When you import a zone, the importer skips `DS`, `DNSKEY`, `RRSIG`, `NSEC`, and `NSEC3` records and lists them in a warning. That's expected, because Datum DNS doesn't support DNSSEC yet. Before you move your domain to Datum, turn off DNSSEC at your registrar. See [DNSSEC](/domain-dns/dns#dnssec).
+
+## A record that points at a load balancer doesn't work
+
+See [Point a domain at a load balancer](/domain-dns/point-to-alb#troubleshooting).
+
+## ExternalDNS doesn't create records
+
+If you use [ExternalDNS](/domain-dns/operations#automate-records-with-externaldns) with the Datum webhook:
+
+- The webhook manages only hostnames inside one of your `DNSZone` resources. Create the zone first.
+- The webhook only changes records labeled with its own `--owner-id`. A record created by hand, or by another ExternalDNS instance, isn't changed. The `datum_dns_ownership_conflicts_total` metric counts these.
+- The webhook needs permission to read `dnszones` and to manage `dnsrecordsets` in your project.
+
+For the webhook's metrics, see [Observability](/domain-dns/observability#externaldns-webhook-metrics).

@@ -1,0 +1,127 @@
+---
+title: "DNS observability"
+sidebarTitle: "Observability"
+description: "Check whether your DNS zones and records are live, whether your domain is delegated to Datum, and who changed what."
+---
+
+This page covers how to see the state of your zones and records: whether Datum is serving them, whether the internet is asking Datum for them, and who changed them. The examples use the `datumctl dns` plugin. To install it, see [Operations](/domain-dns/operations#before-you-begin).
+
+## Is a zone or record live?
+
+Every zone and record reports two conditions:
+
+| Condition | What it means |
+| --- | --- |
+| `Accepted` | The zone or record is valid, and everything it depends on exists. |
+| `Programmed` | Datum's authoritative DNS is serving it. |
+
+A record is live once it's `Programmed`. To see the status of every record in a zone, run the following command:
+
+```bash
+datumctl dns record list example.com
+```
+
+The `STATUS` column shows each value as `Programmed`, `Pending`, `Conflict`, `Not owner`, `Error`, or `Rejected`, with a count below the table. To list only the records that aren't live, filter by status:
+
+```bash
+datumctl dns record list example.com --status pending
+datumctl dns record list example.com --status error
+```
+
+`Pending` is normal for a few moments after a change. If it lasts, ask why:
+
+```bash
+datumctl dns record describe example.com www
+```
+
+`describe` shows each value, its fields, and the reason it is or isn't live. For what each reason means, see [Troubleshooting](/domain-dns/troubleshooting).
+
+For zones, `datumctl dns zone list` shows each zone's status and record count, with a summary such as `3 zones — 2 OK, 1 Pending, 0 Rejected, 0 Error`.
+
+## Is the internet asking Datum?
+
+A zone can be fully `Programmed` and still not answer for your domain, because your registrar decides which nameservers the internet asks. To check delegation against public DNS, run the following command:
+
+```bash
+datumctl dns zone nameservers example.com --check
+```
+
+`--check` queries Datum's nameservers for your zone and asks the public DNS where your domain is delegated, so it reports whether resolution actually works. A delegation of `Complete` means your registrar publishes all of Datum's nameservers. The `DELEGATED` column of `datumctl dns zone list` shows the same for every zone.
+
+To see exactly what Datum answers for a name, ask one of Datum's nameservers directly:
+
+```bash
+dig www.example.com @ns1.datumdomains.net
+```
+
+To see what the rest of the internet sees, ask a public resolver:
+
+```bash
+dig www.example.com @1.1.1.1
+```
+
+A resolver can keep an old answer until its TTL expires. If Datum's nameserver has the new answer and a public resolver doesn't, wait for the old record's TTL.
+
+## Check for drift
+
+If you keep a zone in a BIND zone file, `record apply --dry-run` shows any difference between the file and the live zone without changing anything:
+
+```bash
+datumctl dns record apply example.com -f example.com.zone --dry-run
+```
+
+An unchanged zone reports `No changes.` Run it on a schedule, or in CI, to catch changes made outside your file. To capture the live zone as a file, run `datumctl dns zone export example.com`.
+
+For zones that you manage with manifests, `datumctl diff -f dns.yaml` does the same. See [Manage DNS with manifests](/domain-dns/operations#manage-dns-with-manifests).
+
+## Who changed what
+
+Every change to a zone or record is recorded with who made it and when. To review changes, see [Activity logs](/operations/activity-logs).
+
+## Metrics
+
+Datum publishes the state of your zones, records, and domains to your project's metrics store, so you can alert when something stops serving or a domain loses verification. To query them in your own tools, [export them](/operations/metrics-export).
+
+| Metric | What it reports |
+| --- | --- |
+| `dns_zone_status_condition` | `1` when a zone condition is true. The `condition` label is `Accepted` or `Programmed`, and `reason` explains it. |
+| `dns_zone_info` | One series for each zone, with its `domain_name`. |
+| `dns_record_set_status_condition` | `1` when a record set condition is true, with `condition` and `reason` labels. |
+| `dns_record_set_info` | One series for each record set, with its `dns_zone_name` and `record_type`. |
+| `datum_cloud_networking_domain_status_condition` | `1` when a domain condition is true. `condition="Verified"` reports whether you've proven you own the domain. |
+| `datum_cloud_networking_domain_info` | One series for each domain, with its `domain_name`. |
+| `datum_cloud_networking_domain_status_next_verification_attempt` | When Datum will next check a domain's verification, as a Unix timestamp. |
+
+On these series, `resource_name` is the zone, record set, or domain name, and `resourcemanager_datumapis_com_project_name` is your project ID.
+
+To find record sets that Datum isn't serving, replace `PROJECT_ID`:
+
+```promql
+dns_record_set_status_condition{resourcemanager_datumapis_com_project_name="PROJECT_ID", condition="Programmed"} == 0
+```
+
+To find domains that aren't verified:
+
+```promql
+datum_cloud_networking_domain_status_condition{resourcemanager_datumapis_com_project_name="PROJECT_ID", condition="Verified"} == 0
+```
+
+## ExternalDNS webhook metrics
+
+If you use [ExternalDNS](/domain-dns/operations#automate-records-with-externaldns) to manage records, the Datum webhook exposes Prometheus metrics at `/metrics` on its metrics port (`8080` by default):
+
+| Metric | Type | What it counts |
+| --- | --- | --- |
+| `datum_dns_zones_discovered` | Gauge | `DNSZone` resources the webhook found |
+| `datum_dns_recordsets_managed` | Gauge | `DNSRecordSet` resources the webhook manages |
+| `datum_dns_operations_total` | Counter | Record creates, updates, and deletes |
+| `datum_dns_translation_errors_total` | Counter | ExternalDNS records the webhook couldn't translate |
+| `datum_dns_ownership_conflicts_total` | Counter | Records owned by someone else that the webhook left alone |
+| `datum_dns_http_requests_total` | Counter | Requests from ExternalDNS to the webhook |
+| `datum_dns_http_request_duration_seconds` | Histogram | How long those requests took |
+
+The same port serves `/healthz` for liveness and `/readyz`, which reports ready once the webhook has discovered your zones.
+
+## Query metrics
+
+The metrics above report the state of your zones and records. Datum doesn't publish metrics about the DNS queries it answers yet, such as query volume or response codes. See [Limitations and roadmap](/domain-dns/limitations-and-roadmap).

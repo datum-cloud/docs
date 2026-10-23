@@ -1,0 +1,115 @@
+---
+title: "Envoy"
+description: "How Datum uses the Envoy proxy and Envoy Gateway as the data plane for the Application Load Balancer."
+---
+
+[Envoy](https://www.envoyproxy.io/) is the open source, high-performance proxy that handles Layer 7 traffic on Datum. You use it as Datum's [Application Load Balancer (ALB)](/alb/overview). The ALB is built on Envoy and configured through [Envoy Gateway](https://gateway.envoyproxy.io/) and the Kubernetes [Gateway API](https://gateway-api.sigs.k8s.io/). The ALB started life as Datum's "AI Gateway", and it's still built for AI and agent traffic as much as for websites and APIs.
+
+<Columns cols={2}>
+  <Frame caption="Clients reach Envoy in their nearest Datum location. Envoy serves each request from an Instance in the same location, or from the nearest location that has one.">
+    ![Three clients across the top: a browser on the West Coast, an AI agent in the central US and a mobile app on the East Coast. Each reaches Envoy over anycast HTTPS in its nearest Datum location: us-west-1 in San Jose, us-central-1 in Dallas and us-east-1 in Ashburn. Below them, a gVPC network holds Compute Instances in Dallas and Ashburn, with no Instance in us-west-1. Envoy in Dallas and Ashburn connects to the local Instance over plain HTTP on the private network. A dashed path shows Envoy in San Jose sending its request to the Dallas Instance, the nearest healthy one.](/images/envoy-locations.png)
+  </Frame>
+
+  ```mermaid
+  %%{init: {"flowchart": {"subGraphTitleMargin": {"top": 6, "bottom": 18}}}}%%
+  flowchart TB
+    B["① browser · West Coast<br/>anycast HTTPS · app.example.com"]
+    A["① AI agent · Central US<br/>anycast HTTPS · api.example.com"]
+    M["① mobile app · East Coast<br/>anycast HTTPS · api.example.com"]
+
+    subgraph west["us-west-1 · SJC"]
+      EW["② Envoy · ALB<br/>TLS · WAF · routes · auth<br/><i>no Instance in this location</i>"]
+    end
+    subgraph central["us-central-1 · DFW"]
+      EC["② Envoy · ALB<br/>TLS · WAF · routes · auth"]
+    end
+    subgraph east["us-east-1 · IAD"]
+      EE["② Envoy · ALB<br/>TLS · WAF · routes · auth"]
+    end
+
+    subgraph vpc["Your gVPC network"]
+      ID["③ Instance · Dallas<br/>private address :8080"]
+      IA["③ Instance · Ashburn<br/>private address :8080"]
+    end
+
+    B --> EW
+    A --> EC
+    M --> EE
+    EW -.->|"④ nearest healthy Instance"| ID
+    EC -->|HTTP · private| ID
+    EE -->|HTTP · private| IA
+
+    classDef box fill:#E6E6E6,stroke:#8A8E99,color:#222
+    class B,A,M,EW,EC,EE,ID,IA box
+    style west fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
+    style central fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
+    style east fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
+    style vpc fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
+    linkStyle 0,1,2,4,5 stroke:#5A5F6B,stroke-width:1.4px
+    linkStyle 3 stroke:#B5605E,stroke-width:1.6px,stroke-dasharray:6 5
+  ```
+</Columns>
+
+## How Datum runs Envoy
+
+Datum runs Envoy as a shared fleet, deployed in every Datum location:
+
+- **One fleet, every customer.** Every location runs a pool of Envoy proxies that serves the ALBs of every customer at once. Datum doesn't run a separate proxy for each ALB, so creating an ALB doesn't wait for new infrastructure to start.
+- **Close to your users.** ALB hostnames are anycast. A client's request arrives at the nearest Datum location, and Envoy in that location terminates TLS and handles it. To see which location you reach, visit [edge.datum.net](https://edge.datum.net/).
+- **Scales with the network.** Each new Datum location adds Envoy capacity close to the users it serves, and Datum adds proxies within a location as traffic grows. You don't size, place or scale a load balancer yourself.
+- **Configured centrally.** You declare an ALB once, in your project. Datum's network services operator turns your resources into Gateway API resources, and Envoy Gateway pushes the resulting configuration to Envoy in every location.
+
+## Into your private network
+
+Envoy is how public traffic reaches your [Compute](/compute/overview) Instances, which have private addresses only on your [gVPC](/galactic-vpc/overview) network.
+
+For each request, Envoy opens a new connection to a healthy Instance, preferring one in the same location. If the location has no healthy Instance, Envoy sends the request to the nearest location that has one, over Datum's backbone. Datum terminates TLS at Envoy and connects to your Instances over plain HTTP on your private network. For how to publish a workload, see [Compute and ALB](/compute/compute-and-alb).
+
+Because the fleet is shared, Envoy must never confuse your network with another customer's, even when both use the same private addresses. Datum handles this below Envoy, in the [Galactic](/platform/galactic) network:
+
+- On each Envoy node, a sidecar keeps a Linux VRF, a separate routing table, for each customer network that Envoy connects to.
+- When Envoy connects to one of your Instances, its connection is bound to your network's VRF. The packet leaves the node wrapped in an [SRv6](/platform/segment-routing) header that identifies your network.
+- On the Instance's node, Datum unwraps the packet into your network's routing table only, and delivers it.
+
+Envoy itself only routes HTTP. Isolation between customers comes from the network, not from rules in each proxy.
+
+An ALB can also send traffic to a public origin, such as an existing website, over HTTPS on the internet. The same Envoy fleet serves both kinds of origin.
+
+## Where Envoy fits
+
+When you create an ALB, you describe what you want with Datum resources, and Datum's [network services operator](https://github.com/datum-cloud/network-services-operator) turns them into Envoy configuration:
+
+- **[HTTPProxy](/alb/httpproxy/overview)** is the main resource you write: hostnames, routes, origins, redirects, rewrites, and header changes. Datum's operator turns it into a Gateway API `Gateway` and `HTTPRoute`, and Envoy Gateway programs Envoy from them.
+- **[TrafficProtectionPolicy](/alb/configuration/waf)** adds the [Coraza](https://www.coraza.io/) web application firewall with the [OWASP Core Rule Set](https://coreruleset.org/), which runs inside Envoy. It inspects requests before they reach your origin and responses before they leave Datum for the client (outbound traffic).
+- **Certificates and DNS** for the ALB's hostnames are managed by Datum alongside the Envoy configuration.
+
+For the full picture of the resources behind a load balancer, see [What an ALB is made of](/alb/overview#what-an-alb-is-made-of).
+
+## What Envoy gives you
+
+Envoy handles the protocols and traffic features of the ALB, including:
+
+- HTTP/1.1, HTTP/2, gRPC, and WebSockets.
+- TLS termination, with certificates that Datum issues and renews.
+- Path, header, and query matching, with weighted traffic across several origins.
+- Redirects, URL rewrites, and request and response header changes.
+- Access logs for every request, including the ones the firewall blocks. See [ALB observability](/alb/observability).
+
+## Using Envoy Gateway resources directly
+
+Some advanced features use Envoy Gateway resources (`gateway.envoyproxy.io/v1alpha1`) that you apply to your project with `datumctl`, alongside your `HTTPProxy`:
+
+| Resource | Used for | Guide |
+| --- | --- | --- |
+| `SecurityPolicy` | Basic authentication and OIDC sign-in | [Basic auth](/alb/authentication/basic-auth), [OIDC with Google](/alb/authentication/oidc-google), [Auth0](/alb/authentication/oidc-auth0) |
+| `Backend` and `BackendTrafficPolicy` | Failover between a primary and a fallback origin | [Load balancer failover](/alb/configuration/failover) |
+
+Because these are standard Envoy Gateway and Gateway API resources, the upstream [Envoy Gateway documentation](https://gateway.envoyproxy.io/docs/) is a useful reference. Not every upstream feature is available on Datum, so start from the Datum guides.
+
+## Related
+
+- [ALB overview](/alb/overview)
+- [HTTPProxy](/alb/httpproxy/overview)
+- [Platform API](/platform/kubernetes) — why Datum's platform and APIs are built on Kubernetes.
+- [Galactic](/platform/galactic) — the network underneath gVPC.
+- [Iroh Relays](/platform/iroh-relays) — how tunnels reach Datum's edge.

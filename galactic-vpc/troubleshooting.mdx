@@ -1,0 +1,36 @@
+---
+title: "gVPC troubleshooting"
+sidebarTitle: "Troubleshooting"
+description: "Find out why a gVPC network or Instance address isn't working, and fix common network errors."
+---
+
+This page lists common [gVPC](/galactic-vpc/overview) errors and how to fix them. gVPC is still being built, so this page will grow.
+
+<Note>
+  gVPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+Start with `datumctl network describe NETWORK_NAME` or `datumctl network service describe SERVICE_NAME`. Each ends with a diagnosis that names the cause and who needs to act. For more information, see [Operations](/galactic-vpc/operations).
+
+## Common problems
+
+| Error or reason | Meaning | What to do |
+| --- | --- | --- |
+| `NetworkNotFound` | The network named in the workload's `networkInterfaces` doesn't exist, so no Instances start. | Create the network. See [Configuration](/galactic-vpc/configuration#create-a-network). |
+| `permission to use the network was denied` | You don't have the `networking.datumapis.com/networks.use` permission on the network. | Ask a project administrator for the **Network Admin** role. See [Permissions](/galactic-vpc/configuration#permissions). |
+| Instances never start, with `NetworkFailedToCreate` and `has not reached location` | The workload is attached to a network that is being deleted. A network that is being deleted can still report `Ready`. | Run `datumctl get network NETWORK_NAME -o yaml` and check for a `deletionTimestamp`. To see where the network exists, run `datumctl get networkcontexts,networkbindings`. Attach the workload to another network. |
+| `RangeOccupied` | A network you're deleting still has Instances holding addresses on it. | Delete the workloads attached to the network. See [Delete a network](/galactic-vpc/operations#delete-a-network). |
+| A network is rejected for not including IPv6 | `spec.ipFamilies` doesn't include `IPv6`. | Keep the default, `[IPv6]`. |
+| Connections between locations stall | `spec.mtu` is larger than the default of `1440`. | Keep the default MTU. |
+| An Instance can't reach a peer | The app listens only on IPv4, or the URL doesn't bracket the IPv6 address. | Listen on `::` and use `http://[ADDRESS]:PORT/`. See [Traffic and connecting](/galactic-vpc/networks/traffic#connect-to-other-instances). |
+| `NoMatchingInterfaces`, `MultipleNetworks`, or `NoServingLocations` | A network service isn't serving. | See [Check a network service](/galactic-vpc/networks/network-services#check-a-network-service). |
+
+## MTU
+
+gVPC networks use an MTU of `1440` bytes by default. The [Cloud Portal](https://cloud.datum.net) shows it on a network's **Configuration** tab, and `datumctl get network NETWORK_NAME -o yaml` shows it in `spec.mtu`. The MTU is smaller than the common Ethernet default of `1500`, because Datum wraps each packet in an extra IPv6 header to carry it between locations. See [Segment routing](/platform/segment-routing).
+
+<Warning>
+  **Needs further investigation.** How the `1440` MTU affects traffic between Instances hasn't been fully documented yet. If large requests, file transfers, or TLS handshakes between Instances stall while small requests work, packet size is a likely cause: keep the default MTU, and check that the app and any tunnels inside the Instance don't assume `1500`. For an overlay or tunnel between Instances, such as VXLAN, an MTU of `1360` or less has worked in testing. Report what you find to [support@datum.net](mailto:support@datum.net).
+</Warning>
+
+For problems with the workloads on a network, see [Compute troubleshooting](/compute/troubleshooting).

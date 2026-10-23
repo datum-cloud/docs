@@ -1,24 +1,27 @@
 ---
 title: "Agents Overview"
-description: "How AI agents work with Datum Cloud — Skills, MCP, llms.txt, and datumctl."
+description: "How AI agents work with Datum Cloud: Skills, Datum MCP, llms.txt, datumctl, and Patch, Datum's own assistant."
 ---
 
-Datum is built for agents as first-class users. Rather than wrapping an API in a chat interface, Datum exposes the same primitives humans use — YAML manifests, `datumctl` commands, and CRD-based resources — in ways that agents can reason about reliably. This section covers the four surfaces agents use to work with Datum: **Skills** (procedural know-how), **Datum MCP** (live API access), **llms.txt** (doc index), and **datumctl** (the CLI agents drive directly).
+Datum is built for agents as first-class users. Rather than wrapping an API in a chat interface, Datum exposes the same primitives people use, such as YAML manifests, `datumctl` commands, and [Kubernetes-style resources](/platform/kubernetes), in ways that agents can reason about reliably. This section covers the surfaces agents use to work with Datum.
 
-## The four agent surfaces
+## Agent surfaces
 
 <CardGroup cols={2}>
-  <Card title="Skills" icon="book-open" href="/agents/skills">
-    Self-contained instructions agents load on demand. One skill per Datum resource — install once, agents handle the rest.
+  <Card title="Skills" icon="book-open" href="/agents/skills/index">
+    Self-contained instructions agents load on demand. Install once, and agents know the canonical way to work with each Datum resource.
   </Card>
-  <Card title="Datum MCP" icon="plug" href="/datum-mcp">
-    The official Model Context Protocol server. Gives agents authenticated, live access to Datum APIs.
+  <Card title="Datum MCP" icon="plug" href="/agents/datum-mcp">
+    Model Context Protocol servers: one for live, authenticated access to your resources, and a hosted one for searching the docs.
   </Card>
   <Card title="llms.txt" icon="file-lines" href="/agents/llms-txt">
-    A single index file at datum.net/docs/llms.txt that agents fetch to discover the full documentation surface.
+    An index of every docs page, plus the full text and a Markdown version of each page, for agents to fetch.
   </Card>
   <Card title="datumctl" icon="terminal" href="/datumctl/overview">
-    The CLI. Agents invoke it directly for any platform action — same surface humans use.
+    The CLI. Agents run it directly for any platform action, with machine-readable output.
+  </Card>
+  <Card title="Patch" icon="robot" href="/datumctl/ai/assistant">
+    Datum's own assistant. Ask it in plain language, or hand it a diagnostic question, with `datumctl assistant`.
   </Card>
 </CardGroup>
 
@@ -26,9 +29,10 @@ Datum is built for agents as first-class users. Rather than wrapping an API in a
 
 | If your agent needs to… | Use |
 |---|---|
-| Know *how* to do a Datum task (e.g. attach a domain to an HTTPProxy) | **Skills** |
-| Read or write live Datum resources during a task | **Datum MCP** |
-| Discover what documentation exists | **llms.txt** |
-| Execute commands directly | **datumctl** |
+| Know *how* to do a Datum task, such as attaching a domain to a load balancer | [Skills](/agents/skills/index) |
+| Read or change live Datum resources during a task | [Datum MCP](/agents/datum-mcp) |
+| Find the right documentation | [Datum Docs MCP](/agents/datum-mcp#datum-docs-mcp) or [llms.txt](/agents/llms-txt) |
+| Run commands directly, such as in a script or CI | [`datumctl`](/datumctl/overview) |
+| Diagnose an open-ended problem, such as why a workload isn't available | [Patch](/datumctl/ai/assistant) |
 
-These surfaces layer together. A typical agent session loads one or two relevant Skills at startup, calls `datumctl` or Datum MCP to act, and falls back to `llms.txt` when it needs deeper context. See [Skills](/agents/skills) to get started.
+These surfaces layer together. A typical agent session loads one or two relevant Skills, calls Datum MCP or `datumctl` to act, and fetches pages through `llms.txt` when it needs deeper context. For an open-ended diagnostic question, or a risky change across several resources, it can hand the task to Patch, which uses the same diagnostic tools with Datum's own guidance. To get started, see [Skills](/agents/skills/index).
