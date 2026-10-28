@@ -1,0 +1,80 @@
+---
+title: "Changelog"
+description: "New features, improvements, and releases across Datum Cloud, newest first."
+rss: true
+---
+
+Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
+
+<Update label="October 21, 2026" description="Application Load Balancer" tags={["Build", "Connect"]}>
+  ## Run gRPC APIs on Datum
+
+  The Application Load Balancer now supports HTTP/2 from clients to origins, so gRPC APIs can run on Datum and be called at their ALB hostname.
+
+  - **Compute:** add `--http2` at deploy time to prepare the workload's ALB for gRPC clients. The setting persists across later deploys. Requires the compute plugin v0.12.11 or later.
+  - **Network services:** mark a service port as HTTP/2 so any ALB using that port can serve gRPC. Requires the network and alb plugins v0.32.26 or later.
+  - **Hostnames:** generated and custom hostnames both support HTTP/2. HTTP/1.1 clients are unaffected.
+  - **TLS:** the ALB terminates TLS, so your server speaks plain gRPC.
+
+  Origins added by URL, including servers outside Datum, still use HTTP/1.1. If your app uses WebSockets, serve them on a separate port without HTTP/2.
+
+  [Read the announcement](https://github.com/orgs/datum-cloud/discussions/310)
+</Update>
+
+<Update label="October 13, 2026" description="datumctl" tags={["datumctl", "Patch"]}>
+  ## New datumctl plugins and assistant capabilities
+
+  Install plugins from the official catalog with `datumctl plugin install <name>`.
+
+  - **compute:** deploy, scale, restart, and roll out workloads, stream `logs`, run `exec` inside an instance, publish images with `build`, and check remaining project `quota`.
+  - **alb:** create a load balancer with an immediate hostname, add custom domains with verification tracking, route paths and split traffic by weight, and manage WAF, basic auth, headers, and request logs.
+  - **network:** create private IPv6 networks, see where they run, give workloads stable service names and named ports, and manage instance interfaces. Deletions list affected resources and ask for confirmation.
+
+  Patch, the Datum assistant, can now diagnose why a network or network service isn't working or receiving traffic, and can create networks and network services. It shows exactly what it will change and waits for your approval. Use it in the [cloud portal](https://cloud.datum.net) or with `datumctl plugin install assistant`.
+
+  [Read the announcement](https://github.com/orgs/datum-cloud/discussions/306)
+</Update>
+
+<Update label="October 13, 2026" description="datumctl v0.22.0" tags={["datumctl"]}>
+  ## Upgrade every plugin in one command
+
+  - `datumctl plugin upgrade --all` upgrades every installed plugin that has a newer release and skips the rest.
+  - Each plugin is fetched from the catalog or GitHub repository it was installed from, with the same checksum and compatibility checks as a fresh install.
+  - If one plugin fails, the others still upgrade and the failures are listed at the end.
+  - Fixed upgrading a third-party catalog plugin by name, which previously looked only in the official catalog.
+
+  [Read the announcement](https://github.com/orgs/datum-cloud/discussions/304)
+</Update>
+
+<Update label="October 7, 2026" description="Application Load Balancer" tags={["Deliver", "Early access"]}>
+  ## Wildcard hostnames
+
+  An Application Load Balancer can now serve every subdomain of a domain you own. Add a hostname such as `*.example.com` and get one automatically issued and renewed certificate that covers all names one level below the domain.
+
+  ```bash
+  datumctl alb hostname add my-app '*.example.com'
+  datumctl alb describe my-app
+  ```
+
+  Publish the `_acme-challenge` CNAME record that `describe` shows. The certificate is typically issued within a few minutes, and the record stays the same at renewal.
+
+  This is an early-access capability that isn't turned on by default, so contact Datum to enable it for your project. It requires the alb plugin v0.32.3 or later (`datumctl plugin upgrade alb`). A wildcard matches one label level only: `*.example.com` covers `app.example.com` but not `a.b.example.com`.
+
+  [Read the announcement](https://github.com/orgs/datum-cloud/discussions/303)
+</Update>
+
+<Update label="September 29, 2026" description="Patch" tags={["AX/DX/UX"]}>
+  ## Patch can work with your compute, DNS, and load balancing
+
+  Patch can now query Compute, DNS, and Application Load Balancer data directly, so troubleshooting follows the actual cause instead of inferring it from generic resource reads.
+
+  - **Compute:** follows top-level reasons such as `Available=False` with `QuotaNotGranted` down to the instance-level condition that holds the cause.
+  - **DNS:** diagnoses zones, records, and delegation, including domain verification, conflicting records, and zone imports.
+  - **Load balancing:** covers certificates, unreachable backends, edge propagation, and access logs.
+
+  The service tools are read-only. Any change goes through a plan you review and approve. Which tools are available depends on what each project is entitled to.
+
+  In the terminal, run `datumctl assistant` for a full-screen chat, `datumctl assistant chat "..."` for a one-shot answer in scripts, or `datumctl assistant resume` to search project conversations. Install it with `datumctl plugin install assistant`.
+
+  [Read the announcement](https://github.com/orgs/datum-cloud/discussions/300)
+</Update>
