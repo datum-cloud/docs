@@ -57,18 +57,19 @@ You can set up an export policy in the Datum Cloud portal. Go to the project of 
 
 An `ExportPolicy` defines:
 
-- **Sources**, which select the metrics to export. A source with no `metrics` selects everything in your project. A source with a MetricsQL selector exports only the matching series.
+- **Sources**, which select the metrics to export. Each source needs a MetricsQL selector in `metrics.metricsql`, and exports only the matching series. To export everything in your project, use `{__name__=~".+"}`. The selector must be a plain series selector such as `{label="value"}`, not a function like `rate()`. Datum limits it to your project for you.
 - **Sinks**, which send the selected sources to a Prometheus remote-write endpoint.
 
 <Steps>
   <Step title="Store your credentials in a Secret">
-    Create a Secret with the credentials for your endpoint. For [Grafana Cloud](https://grafana.com/products/cloud/), the username is your instance ID and the password is an access token with permission to write metrics.
+    Create a Secret with the credentials for your endpoint. It must be of type `kubernetes.io/basic-auth`, with `username` and `password` keys. For [Grafana Cloud](https://grafana.com/products/cloud/), the username is your instance ID and the password is an access token with permission to write metrics.
 
     ```yaml
     apiVersion: v1
     kind: Secret
     metadata:
       name: grafana-cloud-credentials
+    type: kubernetes.io/basic-auth
     stringData:
       username: "123456"
       password: "glc_..."
@@ -79,7 +80,7 @@ An `ExportPolicy` defines:
     ```
   </Step>
   <Step title="Create the export policy">
-    This policy exports only load balancer traffic and firewall metrics. To export everything, remove the `metrics` field from the source.
+    This policy exports only load balancer traffic and firewall metrics. To export everything, set `metricsql` to `{__name__=~".+"}`.
 
     ```yaml
     apiVersion: telemetry.miloapis.com/v1alpha1
@@ -110,7 +111,7 @@ An `ExportPolicy` defines:
                 backoffDuration: "1s"
     ```
 
-    Replace `endpoint` with your own remote-write URL. Every field under `batch` and `retry` is required.
+    Replace `endpoint` with your own remote-write URL. If you leave out `batch` or `retry`, the defaults are batches of 500 every `5s` and 3 attempts `5s` apart.
 
     ```bash
     datumctl diff -f exportpolicy.yaml
@@ -122,7 +123,9 @@ An `ExportPolicy` defines:
     datumctl describe exportpolicy grafana-cloud-export
     ```
 
-    Check each sink's conditions in `status.sinks`. The policy can report `Programmed` while one of its sinks is failing, for example because of wrong credentials.
+    The policy's `Ready` condition is `True` once every sink is accepted. Each sink also has an `Accepted` condition in `status.sinks`. If it's `False` with reason `InvalidAuthentication`, the Secret is missing, isn't of type `kubernetes.io/basic-auth`, or lacks a `username` or `password` key.
+
+    `Accepted` means the configuration is valid, not that the endpoint received data. To confirm delivery, query your endpoint for your project's metrics after a minute or two.
   </Step>
 </Steps>
 
