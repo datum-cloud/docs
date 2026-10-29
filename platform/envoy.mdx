@@ -5,50 +5,44 @@ description: "How Datum uses the Envoy proxy and Envoy Gateway as the data plane
 
 [Envoy](https://www.envoyproxy.io/) is the open source, high-performance proxy that handles Layer 7 traffic on Datum. You use it as Datum's [Application Load Balancer (ALB)](/alb/overview). The ALB is built on Envoy and configured through [Envoy Gateway](https://gateway.envoyproxy.io/) and the Kubernetes [Gateway API](https://gateway-api.sigs.k8s.io/). The ALB started life as Datum's "AI Gateway", and it's still built for AI and agent traffic as much as for websites and APIs.
 
-<Columns cols={2}>
-  <Frame caption="Clients reach Envoy in their nearest Datum location. Envoy serves each request from an Instance in the same location, or from the nearest location that has one.">
-    ![Three clients across the top: a browser on the West Coast, an AI agent in the central US and a mobile app on the East Coast. Each reaches Envoy over anycast HTTPS in its nearest Datum location: us-west-1 in San Jose, us-central-1 in Dallas and us-east-1 in Ashburn. Below them, a gVPC network holds Compute Instances in Dallas and Ashburn, with no Instance in us-west-1. Envoy in Dallas and Ashburn connects to the local Instance over plain HTTP on the private network. A dashed path shows Envoy in San Jose sending its request to the Dallas Instance, the nearest healthy one.](/images/envoy-locations.png)
-  </Frame>
+```mermaid
+%%{init: {"flowchart": {"subGraphTitleMargin": {"top": 6, "bottom": 18}}}}%%
+flowchart TB
+  B["① browser · West Coast<br/>anycast HTTPS · app.example.com"]
+  A["① AI agent · Central US<br/>anycast HTTPS · api.example.com"]
+  M["① mobile app · East Coast<br/>anycast HTTPS · api.example.com"]
 
-  ```mermaid
-  %%{init: {"flowchart": {"subGraphTitleMargin": {"top": 6, "bottom": 18}}}}%%
-  flowchart TB
-    B["① browser · West Coast<br/>anycast HTTPS · app.example.com"]
-    A["① AI agent · Central US<br/>anycast HTTPS · api.example.com"]
-    M["① mobile app · East Coast<br/>anycast HTTPS · api.example.com"]
+  subgraph west["us-west-1 · SJC"]
+    EW["② Envoy · ALB<br/>TLS · WAF · routes · auth<br/><i>no Instance in this location</i>"]
+  end
+  subgraph central["us-central-1 · DFW"]
+    EC["② Envoy · ALB<br/>TLS · WAF · routes · auth"]
+  end
+  subgraph east["us-east-1 · IAD"]
+    EE["② Envoy · ALB<br/>TLS · WAF · routes · auth"]
+  end
 
-    subgraph west["us-west-1 · SJC"]
-      EW["② Envoy · ALB<br/>TLS · WAF · routes · auth<br/><i>no Instance in this location</i>"]
-    end
-    subgraph central["us-central-1 · DFW"]
-      EC["② Envoy · ALB<br/>TLS · WAF · routes · auth"]
-    end
-    subgraph east["us-east-1 · IAD"]
-      EE["② Envoy · ALB<br/>TLS · WAF · routes · auth"]
-    end
+  subgraph vpc["Your gVPC network"]
+    ID["③ Instance · Dallas<br/>private address :8080"]
+    IA["③ Instance · Ashburn<br/>private address :8080"]
+  end
 
-    subgraph vpc["Your gVPC network"]
-      ID["③ Instance · Dallas<br/>private address :8080"]
-      IA["③ Instance · Ashburn<br/>private address :8080"]
-    end
+  B --> EW
+  A --> EC
+  M --> EE
+  EW -.->|"④ nearest healthy Instance"| ID
+  EC -->|HTTP · private| ID
+  EE -->|HTTP · private| IA
 
-    B --> EW
-    A --> EC
-    M --> EE
-    EW -.->|"④ nearest healthy Instance"| ID
-    EC -->|HTTP · private| ID
-    EE -->|HTTP · private| IA
-
-    classDef box fill:#E6E6E6,stroke:#8A8E99,color:#222
-    class B,A,M,EW,EC,EE,ID,IA box
-    style west fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
-    style central fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
-    style east fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
-    style vpc fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
-    linkStyle 0,1,2,4,5 stroke:#5A5F6B,stroke-width:1.4px
-    linkStyle 3 stroke:#B5605E,stroke-width:1.6px,stroke-dasharray:6 5
-  ```
-</Columns>
+  classDef box fill:#E6E6E6,stroke:#8A8E99,color:#222
+  class B,A,M,EW,EC,EE,ID,IA box
+  style west fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
+  style central fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
+  style east fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
+  style vpc fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
+  linkStyle 0,1,2,4,5 stroke:#5A5F6B,stroke-width:1.4px
+  linkStyle 3 stroke:#B5605E,stroke-width:1.6px,stroke-dasharray:6 5
+```
 
 ## How Datum runs Envoy
 

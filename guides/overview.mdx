@@ -1,16 +1,20 @@
 ---
 title: "Guides"
 sidebarTitle: "Overview"
-description: "Step-by-step guides for common Datum tasks: deploy an app, serve it on your own domain, require sign-in, and point DNS at a load balancer."
+description: "Step-by-step guides for common Datum tasks: replace your web server with an ALB, deploy an app, serve it on your own domain, require sign-in, and point DNS at a load balancer."
 ---
 
-Start with one of these complete tasks:
+## Featured
+
+<Card className="dc-green" title="Use ALB as your HTTP proxy" icon="server" href="/guides/alb-as-httpd">
+  Replace the NGINX, Apache, Caddy, or Traefik container in front of your app with Datum's Application Load Balancer, and deploy only your app.
+</Card>
+
+## More tasks
 
 - [Deploy an app](/getting-started/first-workload) on Compute.
 - [Serve traffic on your own domain](/alb/operations/custom-domains) with an Application Load Balancer.
 - [Require sign-in](/alb/authentication/overview) before requests reach your app.
 - [Point a domain at a load balancer](/domain-dns/point-to-alb) with Datum DNS.
-
-More guides are on the way. The product documentation in the **Docs** tab covers how to set up and run each product.
 
 Have a guide you'd like to see? Suggest it in [GitHub discussions](https://github.com/orgs/datum-cloud/discussions/categories/feature-requests).

@@ -1,0 +1,796 @@
+---
+title: "Use ALB as your HTTP proxy"
+sidebarTitle: "ALB as httpd"
+description: "Replace the NGINX, Apache, Caddy, or Traefik container in front of your app with Datum's Application Load Balancer."
+---
+
+{/* Keep this page human readable and high level: a few chosen examples, then link to the
+    reference page for every directive, limit, and test result. Reference source: datum-labs/shorts gists/alb/alb-as-httpd-reference.md.
+    Sections mirror the reference so readers can jump between them. Reference anchors are the lowercased heading with spaces as
+    hyphens and punctuation dropped.
+    Command output on this page was captured live on 2026-10-28 (datumctl v0.23.0, alb plugin v0.32.31, compute plugin
+    v0.12.11) with mendhak/http-https-echo:37 as the app. Workload names were nginxalb-web and nginxalb-api, shortened
+    here to web and api; the test used a network named nginxalb-net instead of default. */}
+
+If your app runs behind NGINX, Apache httpd, Caddy, or Traefik, that proxy usually does four jobs:
+
+- Ends TLS
+- Routes requests by hostname and path
+- Spreads requests across copies of your app
+- Keeps unwanted traffic out
+
+On [Datum Compute](/compute/overview), the [Application Load Balancer (ALB)](/alb/overview) does all four at the edge, so you only have to deploy your app's container.
+
+The examples use NGINX syntax. The same approach applies to Apache httpd, Caddy, and Traefik.
+
+<Info>
+  This guide covers the common cases. The [ALB as httpd reference](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md) has the rest:
+
+  - A directive-by-directive mapping
+  - Limits
+  - Troubleshooting
+  - The results of the live tests behind this guide
+
+  Its sections use the same headings as this guide. The tests ran on October 28, 2026, against preview APIs, so recheck edge cases before you rely on them.
+</Info>
+
+This guide covers:
+
+- [Deploying your app without a proxy container](#deploy-your-app-without-a-proxy-container)
+- [Translating common proxy configuration](#translate-common-proxy-configuration)
+- [Reviewing production settings](#production-review)
+- [Verifying the migration](#verify-the-migration)
+
+<Note>
+  Compute is in preview. The `v1alpha` APIs can change, and Datum reviews Compute access requests manually.
+</Note>
+
+## Before you begin
+
+- Create a Datum Cloud account, an organization, and a project. For more information, see [Account setup](/getting-started/account-setup).
+- Install `datumctl` and run `datumctl login`. For more information, see [Install](/datumctl/install).
+- Run `datumctl plugin install compute`, and make sure that Compute access is active for the project: run `datumctl compute access` and check that the `Status` line shows `Active`. For more information, see [Deploy an app](/getting-started/first-workload#before-you-begin).
+- Run `datumctl plugin install alb`. This guide uses the `alb` plugin for most ALB changes.
+- Have a container image for your app, without the proxy container.
+
+This guide names the app workload `web` and a second workload `api`, and shows the hostnames from a test run, such as `tile-desire-9gpyk.datumproxy.net`. Replace them with your own names and hostnames everywhere they appear, including inside YAML files.
+
+This guide assumes your app serves HTTP itself, on a port you name. The ALB ends TLS and sends plain HTTP to that port. If your app needs its proxy to translate requests for it, see [Apps that need a gateway proxy](#apps-that-need-a-gateway-proxy) first.
+
+## How proxy concepts map to ALB
+
+Datum uses a few terms that differ from proxy configuration:
+
+- **Workload**: your app on Datum Compute. It runs as one or more **Instances** in each location you choose. See [Compute](/compute/overview).
+- **HTTPProxy**: the ALB resource you edit. It holds hostnames, routing rules, and backends, much like an NGINX `server` block. See [HTTPProxy](/alb/httpproxy/overview).
+- **Backend**: where a rule sends requests, usually a Compute workload. This is the NGINX `upstream`. See [Load balancing and health checks](/alb/configuration/load-balancing).
+- **Policy**: a separate resource attached to the ALB. In NGINX these are directives inside the config file. On Datum they sit beside the HTTPProxy. See [ALB configuration](/alb/configuration/overview). Policies cover:
+  - WAF
+  - Sign-in
+  - IP rules
+  - Timeouts
+  - Rate limits
+
+The following table maps the parts of a proxy configuration you use most:
+
+| In your proxy | On Datum |
+|---|---|
+| Virtual host (`server_name`) | `hostnames` on an HTTPProxy, or `datumctl alb hostname add` |
+| Location or route (`location`) | `rules` and `matches` on an HTTPProxy, or `datumctl alb route add` |
+| Upstream pool (`upstream`) | `backends` on a rule, usually a workload's network service |
+| TLS certificates (`ssl_certificate`) | Issued and renewed by Datum for each hostname |
+| Config test (`nginx -t`) | `datumctl diff -f FILE` and `datumctl apply -f FILE --dry-run=server` |
+| Config reload (`nginx -s reload`) | `datumctl apply -f FILE`, or a `datumctl alb` command |
+
+For Apache, Caddy, and Traefik equivalents, and for every NGINX directive, see [Directive mapping](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#directive-mapping) in the reference.
+
+Your ALB hostname is anycast. Each request reaches the nearest [Datum location](/locations), where a managed fleet of Envoy proxies ends TLS and forwards plain HTTP to a healthy Instance. There is no proxy server for you to size, patch, or reload.
+
+Changes take up to three minutes to reach every location, and usually less than a minute. Check for the new behavior before you test anything else. For how to wait for a change from a script, see [Edge model](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#edge-model) in the reference.
+
+### What stays in your app
+
+The ALB routes, protects, and balances requests. It doesn't store files or change response bodies, so keep these in your app or its image:
+
+- Static files
+- Response compression
+- Caching
+- Custom error pages
+
+For the full list, see [What stays in your app](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#what-stays-in-your-app) in the reference.
+
+## Deploy your app without a proxy container
+
+`datumctl compute deploy --http-port` creates:
+
+- The workload
+- An ALB
+- The HTTPProxy that connects them
+
+The ALB it creates is minimal:
+
+- It serves plain HTTP alongside HTTPS.
+- It has no WAF.
+
+The steps after the deploy add both. For how the ALB attaches to a workload, see [Serve public traffic with ALB](/compute/compute-and-alb). For test results, see [Deploy your app without a proxy container](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#deploy-your-app-without-a-proxy-container) in the reference.
+
+<Steps>
+  <Step title="Deploy the app with an ALB">
+    To deploy your app to Dallas (`us-central-1`) with two Instances, run the following command:
+
+    ```bash
+    datumctl compute deploy web \
+      --image=ghcr.io/acme/web:1.4.2 \
+      --runtime-class=general-purpose \
+      --location=us-central-1 \
+      --min=2 \
+      --http-port=8080
+    ```
+
+    Replace the image with your app's image, and `8080` with the port your app listens on. The workload attaches to the project's network named `default`. If the project has no network by that name, the command offers to create it. To use another network, add `--network=NAME`. To skip the prompts, for example in a script or CI, add `--yes`. Run at least two Instances in each location: a rollout replaces one Instance at a time, so a single Instance means a short outage on every deploy.
+
+    The end of the output is similar to the following:
+
+    ```text
+      Placement "default": locations=[us-central-1], min=2
+      Runtime class:       general-purpose
+      Network:             default
+      HTTP service:        port 8080 → Datum-managed URL
+                           Datum terminates TLS; serve plain HTTP on this port.
+      workload/web created
+    Saved workload.yaml
+    Waiting for rollout. Ctrl-C to detach (rollout continues in background).
+
+      PLACEMENT   LOCATION       UPDATED   READY   OLD   PHASE
+      default     us-central-1   0         0       1     Pending
+      default     us-central-1   1         1       1     Updating
+      default     us-central-1   2         2       0     Done
+    Rollout complete in 22s.
+
+    Publishing...
+      Backends     2 healthy across us-central-1
+      Edge         programmed
+      Certificate  issued
+
+      https://tile-desire-9gpyk.datumproxy.net
+    ```
+
+    The last line is the ALB's hostname. Your hostname is different. The command also saves the workload definition to `workload.yaml` in the current directory, replacing any file of that name. The ALB has the same name as the workload, so you can inspect it with the `alb` plugin:
+
+    ```bash
+    datumctl alb describe web
+    ```
+
+    ```text
+    Name:               web
+    Status:             Active
+    Status detail:      The HTTPProxy has been programmed
+    Default hostname:   tile-desire-9gpyk.datumproxy.net
+    Custom hostnames:   none
+    Force HTTPS:        no
+    Routes:
+      /
+        web:http (network-service)  weight=1 (100%)
+    Load balancing:     least request (default)
+    Health checks:      off
+    Traffic protection: off
+    Basic auth:         off
+    Certificates:       True (AllCertificatesReady)
+    ```
+
+    `Force HTTPS: no` and `Traffic protection: off` are the two gaps the next steps close.
+  </Step>
+  <Step title="Redirect HTTP to HTTPS">
+    To redirect plain HTTP requests to HTTPS, run the following command:
+
+    ```bash
+    datumctl alb update web --force-https
+    ```
+
+    ```text
+    Application load balancer "web" updated.
+    ```
+
+    After a minute or two, a plain HTTP request gets a permanent redirect:
+
+    ```bash
+    curl -sI http://tile-desire-9gpyk.datumproxy.net/pricing
+    ```
+
+    ```text
+    HTTP/1.1 301 Moved Permanently
+    location: https://tile-desire-9gpyk.datumproxy.net/pricing
+    ```
+
+    For a redirect you write yourself, such as one with a different status code, see [HTTP to HTTPS redirect](/alb/httpproxy/https-redirect).
+  </Step>
+  <Step title="Turn on traffic protection">
+    Start the WAF in Observe mode. Observe mode logs requests the WAF would block but lets them through:
+
+    ```bash
+    datumctl alb waf set web --mode Observe --paranoia 1
+    ```
+
+    ```text
+    Traffic protection on "web" set to Observe (paranoia 1).
+    ```
+
+    After the WAF has seen real traffic and you have checked the logs, switch to Enforce mode:
+
+    ```bash
+    datumctl alb waf set web --mode Enforce --paranoia 1
+    ```
+
+    In Enforce mode, a request that matches a WAF rule gets `403`. To see blocked requests, filter the access logs:
+
+    ```bash
+    datumctl alb logs web --since 1h --code 403
+    ```
+
+    ```text
+    TIME       METHOD   STATUS   PATH                            HOST                               DURATION
+    19:39:06   GET      403      /?id=1%27%20OR%20%271%27=%271   tile-desire-9gpyk.datumproxy.net   3ms
+    ```
+
+    For how long to stay in Observe and how to tune rules, see [Roll out traffic protection safely](/alb/operations/traffic-protection).
+  </Step>
+  <Step title="Add your domain">
+    To serve the app on your own hostname, run the following command:
+
+    ```bash
+    datumctl alb hostname add web app.example.com
+    ```
+
+    Then run `datumctl alb describe web` and follow the hostname through its four steps: claimed, ownership verified, DNS record, and certificate. Datum issues and renews the certificate for you. For the DNS records to create, see [Serve traffic on your own domain](/alb/operations/custom-domains).
+
+    {/* Not captured live: no test domain in the project. Capture alb hostname add and describe output when one is available. */}
+  </Step>
+</Steps>
+
+## Translate common proxy configuration
+
+Each example shows the `datumctl` commands and, where NGINX has an equivalent block, the `nginx.conf` next to the HTTPProxy that replaces it. For the following, see [Translate common proxy configuration](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#translate-common-proxy-configuration) in the reference:
+
+- Headers
+- CORS
+- Client IPs
+- Regex matching
+
+### Route paths to different apps
+
+Send `/api` to one workload and everything else to another. For more information, see [Path-based routing](/alb/httpproxy/path-routing) and [Send paths to different origins](/alb/operations/routes).
+
+Deploy the API as its own workload, on the same network as `web`:
+
+```bash
+datumctl compute deploy api \
+  --image=ghcr.io/acme/api:2.1.0 \
+  --runtime-class=general-purpose \
+  --location=us-central-1 \
+  --min=2 \
+  --http-port=8080
+```
+
+This also gives `api` an ALB of its own, which [Require sign-in](#require-sign-in) uses later. Then add a route for `api` to the `web` ALB:
+
+```bash
+datumctl alb route add web --path /api --network-service api --port http
+```
+
+```text
+Route /api added to "web".
+```
+
+`compute deploy` creates a network service for each workload, named after the workload, with its HTTP port named `http`. The route sends requests to it.
+
+The `web` HTTPProxy now holds three rules: the HTTPS redirect from step 2, the default route, and the `/api` route. The following tabs show the NGINX equivalent and the HTTPProxy rules:
+
+<CodeGroup>
+```nginx nginx.conf
+upstream web { server web:8080; }
+upstream api { server api:8080; }
+
+server {
+    location / {
+        proxy_pass http://web;
+    }
+    location /api {
+        proxy_pass http://api;
+    }
+}
+```
+
+```yaml HTTPProxy rules
+spec:
+  rules:
+  - matches:
+    - headers:
+      - name: x-forwarded-proto
+        type: Exact
+        value: http
+      path:
+        type: PathPrefix
+        value: /
+    filters:
+    - type: RequestRedirect
+      requestRedirect:
+        scheme: https
+        statusCode: 301
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backends:
+    - networkService:
+        name: web
+        port: http
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api
+    backends:
+    - networkService:
+        name: api
+        port: http
+```
+</CodeGroup>
+
+To see the whole HTTPProxy, run `datumctl get httpproxy web -o yaml`.
+
+As in NGINX, the most specific match wins, whatever the order of the rules, so `/api/users` goes to `api` even though its rule comes second. A `PathPrefix` matches whole path segments: `/api` matches `/api/users` but not `/apiv2`. For more matching behavior, see [Route paths to different apps](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#route-paths-to-different-apps) in the reference.
+
+### Redirect and rewrite URLs
+
+Remove a path prefix before the request reaches your app. For more information, see [URL rewrite](/alb/httpproxy/url-rewrite). For redirects to a canonical hostname, see [Redirect and rewrite URLs](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#redirect-and-rewrite-urls) in the reference.
+
+By default, the ALB forwards the path unchanged, so the API above receives `/api/users`. To strip `/api`, add a `URLRewrite` filter to the `/api` rule.
+
+Start from the live HTTPProxy, not a new file. A file that you write from scratch replaces every rule on the ALB, including the HTTPS redirect from step 2. Save the live HTTPProxy to a file:
+
+```bash
+datumctl get httpproxy web -o yaml > httpproxy.yaml
+```
+
+In `httpproxy.yaml`, find the rule that matches `/api` and add the `filters` block, so that the rule looks like the `httpproxy.yaml` tab:
+
+<CodeGroup>
+```nginx nginx.conf
+location /api/ {
+    proxy_pass http://api/;
+}
+```
+
+```yaml httpproxy.yaml
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    backends:
+    - networkService:
+        name: api
+        port: http
+```
+</CodeGroup>
+
+Where you ran `nginx -t` before a reload, compare the file with what's live and validate it on the server:
+
+```bash
+datumctl diff -f httpproxy.yaml
+datumctl apply -f httpproxy.yaml --dry-run=server
+```
+
+Because the file started from the live HTTPProxy, the diff shows only your change:
+
+```text
+@@ -57,6 +59,12 @@
+         name: api
+         port: http
+       weight: 1
++    filters:
++    - type: URLRewrite
++      urlRewrite:
++        path:
++          replacePrefixMatch: /
++          type: ReplacePrefixMatch
+     matches:
+     - path:
+         type: PathPrefix
+```
+
+Then apply it:
+
+```bash
+datumctl apply -f httpproxy.yaml
+```
+
+```text
+httpproxy.networking.datumapis.com/web configured
+```
+
+The first `apply` on an HTTPProxy that a `datumctl alb` or `compute deploy` command created prints a warning about a missing `last-applied-configuration` annotation. The annotation is added for you, and you can ignore the warning.
+
+### Require sign-in
+
+Put sign-in in front of an app without running oauth2-proxy or a forward-auth container. For setup with a specific provider, see [Sign in with Google](/alb/authentication/oidc-google) or [Per-user access with Auth0](/alb/authentication/oidc-auth0).
+
+Sign-in is a `SecurityPolicy` with an `oidc` section, plus a Secret that holds your client secret. This example protects the `api` workload's own ALB. Save it as `oidc.yaml` and replace the following values:
+
+- `CLIENT_ID` and `CLIENT_SECRET`: the OAuth client from your identity provider. For Google, the client ID ends in `.apps.googleusercontent.com`.
+- `targetRefs` `name`: the HTTPRoute for the ALB. It has the same name as the ALB and the workload. To list them, run `datumctl get httproutes`.
+- `redirectURL`: your ALB's hostname from `datumctl alb describe api`, followed by `/oauth2/callback`.
+
+The Secret needs the `gateway-sync` label, or the ALB can't read it:
+
+```yaml oidc.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: api-oidc
+  labels:
+    networking.datumapis.com/gateway-sync: "true"
+type: Opaque
+stringData:
+  client-secret: CLIENT_SECRET
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: api-oidc
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: api
+  oidc:
+    provider:
+      issuer: https://accounts.google.com
+    clientID: CLIENT_ID
+    clientSecret:
+      name: api-oidc
+    redirectURL: https://firefly-inlet-39383.datumproxy.net/oauth2/callback
+    logoutPath: /logout
+```
+
+```bash
+datumctl apply -f oidc.yaml
+```
+
+```text
+secret/api-oidc created
+securitypolicy.gateway.envoyproxy.io/api-oidc created
+```
+
+A request without a session now goes to the identity provider:
+
+```bash
+curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' https://firefly-inlet-39383.datumproxy.net/
+```
+
+```text
+302 https://accounts.google.com/o/oauth2/v2/auth?client_id=CLIENT_ID&code_challenge=...
+```
+
+The ALB checks that a user signed in, but not who they are. It has no equivalent of the oauth2-proxy `--email-domain` flag, so restrict who can sign in with your identity provider. For more information, see [Access control](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#access-control) in the reference.
+
+## Production review
+
+An app that worked behind its old proxy can still fail behind the ALB, because some defaults differ. Check each item before you move production traffic:
+
+- **Response timeout**: about 15 seconds by default, streaming included. Raise it for slow APIs, server-sent events, and LLM streams. See [Response timeout](#response-timeout).
+- **Uploads**: the WAF rejects large request bodies, even in Observe mode. See [WAF](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#waf) in the reference and [WAF configuration](/alb/configuration/waf).
+- **WebSockets**: supported to Compute workloads. See [Timeouts, streaming, WebSockets, and gRPC](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#timeouts-streaming-websockets-and-grpc).
+- **Rate limits**: counted per edge node, not across the whole ALB. See [Rate limits](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#rate-limits).
+- **Client IP**: your app reads it from forwarded headers. See [Pass the client IP to your app](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#pass-the-client-ip-to-your-app).
+
+### Response timeout
+
+A response that takes longer than about 15 seconds gets `504`, whatever your app does. To see it, request a route in your app that takes about 20 seconds. In the following example, `/slow` is such a route:
+
+```bash
+curl -s -o /dev/null -w '%{http_code} %{time_total}s\n' https://tile-desire-9gpyk.datumproxy.net/slow
+```
+
+```text
+504 15.125767s
+```
+
+To raise the limit, attach a `BackendTrafficPolicy` to the ALB's Gateway, which has the same name as the ALB:
+
+```yaml timeout.yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: web-timeout
+spec:
+  targetRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: web
+  timeout:
+    http:
+      requestTimeout: 120s
+```
+
+```bash
+datumctl apply -f timeout.yaml
+```
+
+```text
+backendtrafficpolicy.gateway.envoyproxy.io/web-timeout created
+```
+
+After the change reaches the edge, usually within a minute, the same 20-second request succeeds:
+
+```text
+200 20.157289s
+```
+
+Unlike NGINX `proxy_read_timeout`, which limits the gap between reads, this limits the whole response. For streaming and WebSocket behavior, see [Timeouts, streaming, WebSockets, and gRPC](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#timeouts-streaming-websockets-and-grpc) in the reference.
+
+### TLS and custom domains
+
+Datum issues and renews a certificate for each hostname on the ALB. These leave with the proxy container:
+
+- Certificate files
+- certbot
+- ACME settings
+
+To check certificate status, run `datumctl alb describe web` and read the `Certificates` line. For more information, see [Serve traffic on your own domain](/alb/operations/custom-domains) and [Serve a wildcard hostname](/alb/configuration/wildcard-hostnames).
+
+### Health checks and failover
+
+The ALB has no active health checks. Its passive health checks watch real responses instead: once you turn them on, an Instance that returns a run of 5xx errors is taken out of rotation, separately on each edge node. For settings, see [Passive health checks](/alb/configuration/load-balancing#passive-health-checks). For how Instances are replaced during an update, see [How rollouts work](/compute/placement-and-scaling#how-rollouts-work). For test results, see [Load balancing and rollouts](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#load-balancing-and-rollouts) in the reference.
+
+To turn on passive health checks with the default settings, run the following command:
+
+```bash
+datumctl alb update web --health-checks
+```
+
+`datumctl alb describe web` then shows:
+
+```text
+Health checks:      passive: eject after 5 consecutive 5xx for 30s, max 50% ejected
+```
+
+To change the thresholds, use `--consecutive-5xx` and `--base-ejection-time`.
+
+{/* STUB. How the ALB checks backends, what counts as unhealthy, and what to expose from your app as a health endpoint. */}
+
+### Headers and request limits
+
+- Your app sees the client's address in forwarded headers, not on the connection.
+- The WAF caps request size.
+- Responses go out uncompressed unless your app compresses them.
+
+For numbers, see [Limits and quotas](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#limits-and-quotas) in the reference and [ALB limits and quotas](/alb/limits-and-quotas).
+
+These are the forwarding headers your app receives on each request:
+
+```text
+x-forwarded-for: 47.147.206.200
+x-forwarded-proto: https
+x-envoy-external-address: 47.147.206.200
+x-request-id: b7970a87-d84b-4503-aa96-6a7fd6bfc174
+```
+
+### Placement and scaling
+
+The ALB runs in every Datum location and scales with traffic, so you don't size it. Where you run Instances decides how close your app is to users. For more information, see [Placement and scaling](/compute/placement-and-scaling).
+
+To see where your Instances run, run the following command:
+
+```bash
+datumctl compute instances --workload=web
+```
+
+```text
+NAME                         WORKLOAD   LOCATION       INTERNAL IP           TYPE      AGE   STATUS
+web-default-us-central-1-0   web        us-central-1   fd20:0:4d::1:0:0/96   sandbox   1m    Available
+web-default-us-central-1-1   web        us-central-1   fd20:0:4d::2:0:0/96   sandbox   53s   Available
+
+2 instances — 2 Available, 0 Pending, 0 Failed
+```
+
+### Access metrics
+
+For the metrics Datum publishes for each ALB, see [Metrics](/alb/observability#metrics). To send them to Grafana Cloud or another Prometheus remote-write endpoint, see [Metrics export](/operations/metrics-export).
+
+{/* STUB. Where to see request rate, error rate, and latency for the ALB. State how to reach them (datumctl and the portal), the retention window, and which metrics to alert on first. Link to telemetry metrics docs. */}
+
+### Access logs
+
+`datumctl alb logs` shows recent requests for one ALB. `datumctl telemetry logs` shows the full Envoy fields, including the response flags that explain 502 and 503 errors. For more information, see [Access logs](/alb/observability#access-logs). For the commands used in testing, see [Verify and debug](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#verify-and-debug) in the reference.
+
+```bash
+datumctl alb logs web --since 15m --limit 5
+```
+
+```text
+TIME       METHOD   STATUS   PATH                            HOST                               DURATION
+19:36:31   GET      200      /?id=1%27%20OR%20%271%27=%271   tile-desire-9gpyk.datumproxy.net   105ms
+19:34:40   GET      504      /slow                           tile-desire-9gpyk.datumproxy.net   15058ms
+19:34:25   HEAD     301      /pricing                        -                                  3ms
+19:34:25   GET      200      /users                          tile-desire-9gpyk.datumproxy.net   95ms
+19:34:25   GET      200      /users                          tile-desire-9gpyk.datumproxy.net   99ms
+```
+
+The `PATH` column shows the path after any rewrite, so a request for `/api/users` appears as `/users`. To find which Instance served a failing request, add `--code` and `-o wide`:
+
+```bash
+datumctl alb logs web --since 15m --code 504 -o wide
+```
+
+```text
+TIME       METHOD   STATUS   PATH    HOST                               DURATION   REQUEST ID                             UPSTREAM
+19:34:40   GET      504      /slow   tile-desire-9gpyk.datumproxy.net   15058ms    3c744717-f341-488e-8553-891cd862609a   [fd20:0:4d::2:0:0]:8080
+```
+
+`UPSTREAM` is the Instance's private address, which matches the `INTERNAL IP` column of `datumctl compute instances`.
+
+For every Envoy field, including `response_flags`, query the logs with the `telemetry` plugin. To install it, run `datumctl plugin install telemetry`. A query is a [LogQL](https://grafana.com/docs/loki/latest/query/) stream selector, and without a hostname it matches every ALB in the project. To see the `504` responses for one ALB, match its hostname with the `authority` label:
+
+```bash
+datumctl telemetry logs '{authority="tile-desire-9gpyk.datumproxy.net", response_code="504"}' --since 1h
+```
+
+To list every label you can match on, run `datumctl telemetry labels`.
+
+A `504` from the response timeout has `response_flags="UT"`, upstream timeout.
+
+{/* STUB. How to read ALB request logs with datumctl alb logs and through telemetry logs. Cover fields available (status, upstream, latency, client IP), filtering by route, retention, and exporting to an external system. Link to telemetry logs docs. */}
+
+### Security review
+
+An ALB that `compute deploy` creates has no WAF. One that `datumctl alb create` creates starts with the WAF in Enforce mode. Confirm which you have:
+
+```bash
+datumctl alb waf describe web
+```
+
+With no WAF, the output is one line:
+
+```text
+Traffic protection: off
+```
+
+After step 3 of the deploy, it shows the mode and sensitivity:
+
+```text
+Traffic protection: Enforce
+Paranoia:           1
+Policy:             web
+```
+
+To turn the WAF on without blocking real users, see [Roll out traffic protection safely](/alb/operations/traffic-protection). For sign-in options, see [Authentication](/alb/authentication/overview). For test results, see [Protection](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#protection) and [Access control](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#access-control) in the reference.
+
+{/* STUB. WAF mode and rule set, authentication policy coverage, and who can edit the ALB resources (IAM). */}
+
+### Rollback plan
+
+Keep the old proxy container deployable until the ALB has carried production traffic for a while. Lower your DNS TTL before cutover so you can point back quickly. See [Cut over](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#cut-over) in the reference.
+
+{/* STUB. Keep the old proxy container deployable until verified, and how to cut back if the ALB behaves differently. */}
+
+## Apps that need a gateway proxy
+
+Some apps don't speak HTTP. They speak a gateway protocol, and the proxy in front of them translates:
+
+- **FastCGI**: PHP-FPM and similar process managers. NGINX reaches them with `fastcgi_pass`.
+- **uWSGI**: the uwsgi protocol used by many Python apps. NGINX reaches them with `uwsgi_pass`.
+- **CGI**: older scripts that the web server runs once per request.
+
+The ALB forwards only HTTP, and an Instance runs one container, so a proxy sidecar can't do the translation. You have two options.
+
+**Switch to an image that serves HTTP directly.** This is the simpler option. Examples:
+
+- PHP: FrankenPHP, or Apache with `mod_php`
+- Python: gunicorn or uvicorn
+
+Then follow this guide from the start. For details, see [Before you begin](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#before-you-begin) in the reference.
+
+**Run the gateway as its own workload.** Deploy your existing proxy, such as NGINX with `fastcgi_pass`, as one workload behind the ALB, and your app as another. Both attach to the same network, in the same or different locations. The gateway reaches your app Instances by their private IPv6 addresses. To find them, run the following command:
+
+```bash
+datumctl compute instances --workload=app
+```
+
+```text
+NAME                         WORKLOAD   LOCATION       INTERNAL IP           TYPE      AGE   STATUS
+app-default-us-central-1-0   app        us-central-1   fd20:0:4d::3:0:0/96   sandbox   3m    Available
+
+1 instances — 1 Available, 0 Pending, 0 Failed
+```
+
+The gateway connects to the address before the `/96`, in square brackets, such as `fastcgi_pass [fd20:0:4d::3:0:0]:9000;`. Keep the following points in mind:
+
+- Private DNS names aren't available in the preview, so pass the app Instances' addresses to the gateway in environment variables or a ConfigMap.
+- Addresses can change when Instances are replaced. To keep them, see [Keep addresses after scale-down](/galactic-vpc/configuration#keep-addresses-after-scale-down).
+- Networks don't filter traffic between Instances yet. Any Instance on the network can reach your FastCGI or uWSGI port, so put these two workloads on a network of their own.
+
+For more information, see [Addressing](/galactic-vpc/networks/addressing) and [Traffic and connecting](/galactic-vpc/networks/traffic).
+
+{/* STUB. Maybe one short before/after example: php-fpm plus nginx sidecar to a single FrankenPHP image.
+    The instances output above is from an HTTP echo app, not a FastCGI app; the gateway pattern itself was not tested live. */}
+
+## Verify the migration
+
+Test through the ALB hostname while the old proxy still serves production, and switch DNS last. Start by checking that each path reaches the right app:
+
+```bash
+for p in / /api/users; do
+  printf '%-12s ' "$p"; curl -s -o /dev/null -w '%{http_code}\n' "https://tile-desire-9gpyk.datumproxy.net$p"
+done
+```
+
+A `200` alone doesn't prove the right app answered. Check for something only that app returns, such as a version endpoint or a response header.
+
+The [verification checklist](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#verify-the-migration) in the reference has:
+
+- A `curl` check for each route, redirect, and production-review item
+- Log and metric checks
+
+If the ALB isn't serving, see [When a load balancer is not serving](/alb/troubleshooting).
+
+## Clean up
+
+After cutover and your rollback window, retire:
+
+- The old proxy container
+- Its configuration
+- Any certificate renewal jobs
+
+If you deployed a test app to follow along, delete the policies you applied first. `compute destroy` doesn't remove them:
+
+```bash
+datumctl delete trafficprotectionpolicy web
+datumctl delete -f timeout.yaml
+datumctl delete -f oidc.yaml
+```
+
+Then destroy each workload:
+
+```bash
+datumctl compute destroy web -y
+```
+
+```text
+Workload:      web
+Placements:    1  Locations: us-central-1
+Min replicas:  2
+URLs:          https://tile-desire-9gpyk.datumproxy.net
+
+workload/web deleted.
+```
+
+`compute destroy` removes:
+
+- The workload
+- Its HTTPProxy
+- Its network service
+
+Run `datumctl compute destroy api -y` for the `api` workload. If you created a network only for this guide, delete it after both workloads are gone:
+
+```bash
+datumctl delete network NETWORK_NAME
+```
+
+For more information, see [Compute operations](/compute/operations).
+
+{/* Verified 2026-10-28: compute destroy left the TrafficProtectionPolicy from alb waf set behind. Not checked for BackendTrafficPolicy or SecurityPolicy; the guide tells readers to delete them first either way. */}
+
+## What's next
+
+- [ALB as httpd reference](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md): every directive, limit, and test result behind this guide
+- [ALB overview](/alb/overview)
+- [HTTPProxy](/alb/httpproxy/overview)
+- [Web application firewall](/alb/configuration/waf)
+- [Authentication](/alb/authentication/overview)
+- [Placement and scaling](/compute/placement-and-scaling)
+- [ALB limitations and roadmap](/alb/limitations-and-roadmap)

@@ -366,7 +366,8 @@
           {
             "group": "Guides",
             "pages": [
-              "guides/overview"
+              "guides/overview",
+              "guides/alb-as-httpd"
             ]
           }
         ]
