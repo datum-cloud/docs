@@ -5,25 +5,20 @@ description: "Teach agents to create and manage gVPC networks and network servic
 
 The Networks skill teaches agents to work with [gVPC](/galactic-vpc/overview) networks and [network services](/galactic-vpc/networks/network-services) through `datumctl network`: create a network, attach workloads to it, give a workload a stable name and named ports for a load balancer, release addresses kept after an Instance is gone, and delete a network without surprising anyone.
 
+The skill ships in the `datum-networking` Claude Code plugin, alongside procedures for diagnosing a load balancer that isn't serving and for creating networks, using the same diagnosis Datum's own assistant runs.
+
 ## Install
 
 <CodeGroup>
 
 ```bash Claude Code
-/plugin marketplace add datum-cloud/skills
-/plugin install datum-cloud@datum-cloud
-```
-
-```bash npx skills
-npx skills add https://github.com/datum-cloud/skills
-```
-
-```bash Cursor
-# Settings → Rules → Add Rule → Remote Rule (GitHub)
-# Repository: datum-cloud/skills
+/plugin marketplace add datum-cloud/claude-code-plugins
+/plugin install datum-networking@datum-claude-code-plugins
 ```
 
 </CodeGroup>
+
+Installing it also installs the `datum-cloud` base plugin, which runs [Datum MCP](/agents/datum-mcp). For other agents, copy the [skill folder](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin/skills/networks) into your agent's skills directory.
 
 <Note>
 Once installed, the skill activates automatically when you ask an agent to work with networks on Datum.
@@ -58,20 +53,20 @@ It also teaches the readings that trip up a naive agent: a new network with no l
 
 ## View the full skill
 
-The canonical SKILL.md lives in the [datum-cloud/skills](https://github.com/datum-cloud/skills) repo:
+The canonical SKILL.md lives in the `datum-networking` plugin in the [datum-cloud/network-services-operator](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin) repo:
 
 <CardGroup cols={2}>
   <Card
     title="On GitHub"
     icon="github"
-    href="https://github.com/datum-cloud/skills/blob/main/skills/networks/SKILL.md"
+    href="https://github.com/datum-cloud/network-services-operator/blob/main/claude-plugin/skills/networks/SKILL.md"
   >
     Browse the skill source, including frontmatter and full instructions.
   </Card>
   <Card
     title="Raw SKILL.md"
     icon="file-code"
-    href="https://raw.githubusercontent.com/datum-cloud/skills/main/skills/networks/SKILL.md"
+    href="https://raw.githubusercontent.com/datum-cloud/network-services-operator/main/claude-plugin/skills/networks/SKILL.md"
   >
     Direct URL for agents that fetch skills by URL.
   </Card>
