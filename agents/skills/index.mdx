@@ -14,8 +14,8 @@ Datum's skills live at **[github.com/datum-cloud/skills](https://github.com/datu
 <CodeGroup>
 
 ```bash Claude Code
-/plugin marketplace add datum-cloud/skills
-/plugin install datum-cloud@datum-cloud
+/plugin marketplace add datum-cloud/claude-code-plugins
+/plugin install datum-cloud@datum-claude-code-plugins
 ```
 
 ```bash npx skills
@@ -28,6 +28,8 @@ npx skills add https://github.com/datum-cloud/skills
 ```
 
 </CodeGroup>
+
+In Claude Code, the `datum-cloud` plugin also starts [Datum MCP](/agents/datum-mcp) and the [Datum Docs MCP](/agents/datum-mcp#datum-docs-mcp) server for you, and adds skills to sign in and pick a project, set up a [service account](/projects/service-accounts) for CI, and hand a question to [Patch](/datumctl/ai/assistant). Install the `datum-mcp` binary first; see [Install](/agents/datum-mcp#install). The same marketplace lists plugins for individual products. Browse them with `/plugin`.
 
 ## Available skills
 

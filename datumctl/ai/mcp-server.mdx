@@ -30,8 +30,8 @@ terminal to work with Datum Cloud:
   Datum resources.
 - **Cursor** and other IDE-embedded assistants — bring Datum context into your
   editor while you build.
-- **Claude Code** and other agents — add it with
-  `claude mcp add --scope user datum-mcp -- datum-mcp`.
+- **Claude Code** — install the `datum-cloud` plugin, which starts the server
+  for you. See [Add it to your AI client](/agents/datum-mcp#add-it-to-your-ai-client).
 - Any other MCP-aware client. Datum MCP speaks the standard stdio transport,
   and can also serve streamable HTTP.
 
@@ -86,8 +86,9 @@ client's MCP configuration:
     are available for Linux, macOS, and Windows on x86 and arm64.
   </Step>
   <Step title="Add the server to your client">
-    In Claude Code, run `claude mcp add --scope user datum-mcp -- datum-mcp`.
-    For other clients, point them at the `datum-mcp` binary using a stdio
+    In Claude Code, install the `datum-cloud` plugin from the
+    `datum-cloud/claude-code-plugins` marketplace, which starts the server for
+    you. For other clients, point them at the `datum-mcp` binary using a stdio
     configuration like the one above. Cursor users can use the one-click install
     link on the [Datum MCP](/agents/datum-mcp) page.
   </Step>

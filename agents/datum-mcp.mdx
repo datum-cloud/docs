@@ -62,11 +62,14 @@ For load balancers, networks, Compute, DNS, and activity, Datum MCP also gives t
 <Tabs>
   <Tab title="Claude Code">
 
+  Install the `datum-cloud` plugin. It starts Datum MCP and the [Datum Docs MCP](#datum-docs-mcp) server for you, and adds skills for signing in, CI service accounts and handing off to Patch:
+
   ```bash
-  claude mcp add --scope user datum-mcp -- datum-mcp
+  claude plugin marketplace add datum-cloud/claude-code-plugins
+  claude plugin install datum-cloud@datum-claude-code-plugins
   ```
 
-  `--scope user` makes it available in every project. Leave it off to add it to the current project only.
+  To add only the MCP server instead, run `claude mcp add --scope user datum-mcp -- datum-mcp`. `--scope user` makes it available in every project. Leave it off to add it to the current project only.
 
   </Tab>
   <Tab title="Claude Desktop">
@@ -126,7 +129,7 @@ For every tool and prompt, see the [tool reference](https://github.com/datum-clo
 
 ## Hand off to Patch
 
-For an open-ended diagnostic question, or a risky change that touches several resources, Patch can be a better fit than the MCP server's resource tools. The Datum MCP repository includes a [Claude Code skill](https://github.com/datum-cloud/datum-mcp/tree/main/.claude/skills/datum-cloud-assistant) that teaches an agent when to hand a task to Patch through `datumctl assistant`. To use it, copy it into your project's `.claude/skills/` directory, or `~/.claude/skills/` to use it everywhere.
+For an open-ended diagnostic question, or a risky change that touches several resources, Patch can be a better fit than the MCP server's resource tools. The `datum-cloud` Claude Code plugin includes a skill that teaches an agent when to hand a task to Patch through `datumctl assistant`. For other agents, copy the [skill](https://github.com/datum-cloud/datum-mcp/tree/main/.claude/skills/datum-cloud-assistant) from the Datum MCP repository into the agent's skills directory.
 
 ## Run over HTTP
 
