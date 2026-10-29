@@ -22,25 +22,6 @@
     ]
   },
   "navigation": {
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Discord",
-          "icon": "discord",
-          "href": "https://link.datum.net/discord"
-        },
-        {
-          "anchor": "YouTube",
-          "icon": "youtube",
-          "href": "https://link.datum.net/youtube"
-        },
-        {
-          "anchor": "GitHub",
-          "icon": "github",
-          "href": "https://link.datum.net/github"
-        }
-      ]
-    },
     "tabs": [
       {
         "tab": "Docs",
@@ -385,7 +366,8 @@
           {
             "group": "Guides",
             "pages": [
-              "guides/overview"
+              "guides/overview",
+              "guides/alb-as-httpd"
             ]
           }
         ]
