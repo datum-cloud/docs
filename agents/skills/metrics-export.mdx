@@ -3,27 +3,22 @@ title: "Metrics Export skill"
 description: "Teach agents to configure Prometheus remote write pipelines in Datum Cloud using ExportPolicy resources."
 ---
 
-The Metrics Export skill helps agents configure [metrics export](/operations/metrics-export) pipelines in Datum Cloud — defining named sources (with optional [MetricsQL](https://docs.victoriametrics.com/victoriametrics/metricsql/) filters) and sinks (Prometheus remote write endpoints) to ship project metrics to external observability platforms such as [Grafana Cloud](https://grafana.com/products/cloud/). It teaches agents the correct manifest structure, credential handling via Secrets, and per-sink health validation.
+The Metrics Export skill helps agents configure [metrics export](/operations/metrics-export) pipelines in Datum Cloud. It defines named sources, each with a [MetricsQL](https://docs.victoriametrics.com/victoriametrics/metricsql/) selector, and sinks (Prometheus remote write endpoints) that ship project metrics to external observability platforms such as [Grafana Cloud](https://grafana.com/products/cloud/). It teaches agents the manifest structure the API accepts, how to store credentials in a Secret, and how to check each sink's health.
+
+The skill ships in the `milo-observe` Claude Code plugin, alongside skills for querying project logs and reading the status metrics Datum publishes for your resources.
 
 ## Install
 
 <CodeGroup>
 
 ```bash Claude Code
-/plugin marketplace add datum-cloud/skills
-/plugin install datum-cloud@datum-cloud
-```
-
-```bash npx skills
-npx skills add https://github.com/datum-cloud/skills
-```
-
-```bash Cursor
-# Settings → Rules → Add Rule → Remote Rule (GitHub)
-# Repository: datum-cloud/skills
+/plugin marketplace add datum-cloud/claude-code-plugins
+/plugin install milo-observe@datum-claude-code-plugins
 ```
 
 </CodeGroup>
+
+For other agents, copy the [skill folder](https://github.com/milo-os/telemetry/tree/main/claude-plugin/skills/export-metrics) into your agent's skills directory.
 
 <Note>
 Once installed, the skill activates automatically when you ask an agent to work with Metrics Export on Datum. No further configuration needed.
@@ -33,11 +28,12 @@ Once installed, the skill activates automatically when you ask an agent to work 
 
 - List and describe export policies in a project
 - Create metrics export pipelines from YAML manifests
-- Filter exported metrics using MetricsQL selector expressions
-- Configure Prometheus remote write endpoints with Secret-backed credentials
+- Select exported metrics with MetricsQL selector expressions, or export everything
+- Configure Prometheus remote write endpoints with credentials in a `kubernetes.io/basic-auth` Secret
 - Tune batching and retry behavior per sink
 - Apply changes idempotently
-- Preview changes before applying with `datumctl diff`
+- Preview changes before applying with `datumctl diff` and `--dry-run=server`
+- Check the policy's `Ready` condition and each sink's `Accepted` condition
 - Delete export policies safely
 
 ## How it relates to other Datum surfaces
@@ -48,20 +44,20 @@ Once installed, the skill activates automatically when you ask an agent to work 
 
 ## View the full skill
 
-The canonical SKILL.md lives in the [datum-cloud/skills](https://github.com/datum-cloud/skills) repo:
+The canonical SKILL.md lives in the `milo-observe` plugin in the [milo-os/telemetry](https://github.com/milo-os/telemetry/tree/main/claude-plugin) repo:
 
 <CardGroup cols={2}>
   <Card
     title="On GitHub"
     icon="github"
-    href="https://github.com/datum-cloud/skills/blob/main/skills/metrics-export/SKILL.md"
+    href="https://github.com/milo-os/telemetry/blob/main/claude-plugin/skills/export-metrics/SKILL.md"
   >
     Browse the skill source, including frontmatter and full instructions.
   </Card>
   <Card
     title="Raw SKILL.md"
     icon="file-code"
-    href="https://raw.githubusercontent.com/datum-cloud/skills/main/skills/metrics-export/SKILL.md"
+    href="https://raw.githubusercontent.com/milo-os/telemetry/main/claude-plugin/skills/export-metrics/SKILL.md"
   >
     Direct URL for agents that fetch skills by URL.
   </Card>
