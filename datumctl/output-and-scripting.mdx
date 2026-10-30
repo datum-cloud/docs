@@ -4,6 +4,10 @@ sidebarTitle: "Output & scripting"
 description: "Machine-readable output, structured errors, exit codes, and patterns for wrapping datumctl in CI pipelines and AI agents."
 ---
 
+<Note>
+**Working with this CLI via an AI agent?** This page is the contract an agent should code against: request `-o json`, read data from standard output and diagnostics from standard error, and branch on exit codes. See also [Agents Overview](/agents/overview).
+</Note>
+
 `datumctl` prints human-friendly tables by default, but it is built to be scripted. Every read command can emit JSON or YAML, errors can be serialized into a structured envelope, and exit codes are predictable. This page shows you how to drive `datumctl` from shell scripts, CI pipelines, and AI agents.
 
 <Info>
@@ -160,11 +164,15 @@ datumctl apply -f ./project.yaml --organization <org-id> --warnings-as-errors
 | `1` | Differences were found. |
 | `>1` | An error occurred. |
 
-This makes `diff` useful as a gate before writing:
+This makes `diff` useful as a gate before writing. Exit code `1` is not a failure, so don't chain `diff && apply`: the apply would run only when there is nothing to change. Handle each code explicitly:
 
 ```bash
-datumctl diff -f ./project.yaml --organization <org-id> \
-  && datumctl apply -f ./project.yaml --organization <org-id>
+datumctl diff -f ./project.yaml --organization <org-id>
+case $? in
+  0) echo "No changes." ;;
+  1) datumctl apply -f ./project.yaml --organization <org-id> ;;
+  *) echo "diff failed" >&2; exit 1 ;;
+esac
 ```
 
 ## Wrapping datumctl in scripts and agents

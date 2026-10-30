@@ -1,18 +1,20 @@
 ---
 title: "datumctl"
 sidebarTitle: "Overview"
-description: "High level overview of the Datum Cloud CLI."
+description: "datumctl is the command-line tool for Datum Cloud: one set of commands for every resource, for people, scripts, CI, and AI agents."
 ---
+
+<Note>
+**Working with this CLI via an AI agent?** Agents can run `datumctl` directly. Use `-o json` and the structured errors described in [Output and scripting](/datumctl/output-and-scripting), and install Datum's [Skills](/agents/skills/index) so the agent knows the canonical commands for each resource. For an MCP client instead of a shell, see [Datum MCP](/agents/datum-mcp).
+</Note>
 
 `datumctl` is the command-line tool for working with Datum Cloud. It exposes a consistent resource model — the same `get`, `apply`, `describe`, and `delete` verbs across every resource type — so both developers and AI agents get a fast, predictable way to interact with Datum.
 
 <Info>
-  Ready to play? Install and get started with the [Quickstart](/datumctl/quickstart).
+  Ready to play? [Install](/datumctl/install) `datumctl` and get started.
 </Info>
 
 ## Find your way around
-
-This section teaches you how to use `datumctl`; run `datumctl --help` (or `datumctl <command> --help`) for the full list of commands and flags. New here? The [Quickstart](/datumctl/quickstart) takes you from install to your first command.
 
 <CardGroup cols={2}>
   <Card title="Authentication" icon="key" href="/datumctl/auth/logging-in">
@@ -23,6 +25,9 @@ This section teaches you how to use `datumctl`; run `datumctl --help` (or `datum
   </Card>
   <Card title="Contexts & scoping" icon="compass" href="/datumctl/contexts-and-scoping">
     Control which organization and project your commands act on.
+  </Card>
+  <Card title="Compute" icon="server" href="/datumctl/compute/overview">
+    Deploy and manage containerized workloads with the compute plugin.
   </Card>
   <Card title="Activity & audit" icon="clock-rotate-left" href="/datumctl/activity/overview">
     Investigate who changed what, review events, and follow the activity feed.
@@ -42,6 +47,22 @@ This section teaches you how to use `datumctl`; run `datumctl --help` (or `datum
 </CardGroup>
 
 Also useful: [Output formats & scripting](/datumctl/output-and-scripting), [Discovering resources & schemas](/datumctl/discovering-resources), and — for existing Kubernetes users — the Kubernetes interop section, which covers [using datumctl with kubectl](/datumctl/kubectl-interop), [Kubernetes tools](/datumctl/kubernetes-tools) like Helm and k9s, and [GitOps with Flux & Argo CD](/datumctl/gitops).
+
+## Product plugins
+
+Each Datum product adds its own commands to `datumctl` as an official [plugin](/datumctl/plugins/using-plugins). Install the ones you use, and run `datumctl plugin search` to see them all:
+
+| Plugin | What it does | Documentation |
+| --- | --- | --- |
+| `alb` | Create and manage Application Load Balancers, their routes, hostnames, firewall, and basic authentication, and read their access logs. | [ALB operations](/alb/operations/overview) |
+| `assistant` | Chat with Patch, the Datum Cloud assistant. | [AI assistant](/datumctl/ai/assistant) |
+| `compute` | Build, deploy, scale, and debug Compute workloads. | [Compute commands](/datumctl/compute/overview) |
+| `dns` | Manage DNS zones and records, check delegation, and import and export zone files. | [DNS operations](/domain-dns/operations) |
+| `network` | Create and manage gVPC networks and network services. | [gVPC](/galactic-vpc/overview) |
+| `search` | Search your resources by name and kind. | [Search across your resources](/datumctl/discovering-resources#search-across-your-resources) |
+| `telemetry` | Query the logs in your project, including load balancer access logs. | [Query access logs](/alb/observability#query-access-logs-across-load-balancers) |
+
+`datumctl --help` lists the plugins you have installed, and the plugins in the catalog that you haven't installed yet.
 
 ## How it works
 

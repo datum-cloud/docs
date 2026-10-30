@@ -1,0 +1,39 @@
+---
+title: "Connectors observability"
+sidebarTitle: "Observability"
+description: "See the traffic that reaches your Connectors through a load balancer, and the metrics and logs Datum publishes for it."
+---
+
+This page covers how to see the traffic your [Connectors](/connectors/overview) carry. Datum is still building Connectors, and more detail is on the way.
+
+## Traffic through a load balancer
+
+Today, a Connector receives traffic through an [Application Load Balancer](/alb/overview) whose route uses a `connector` backend. Every request it carries is measured and logged by that load balancer, so you observe a Connector through the load balancers that use it.
+
+In the [Cloud Portal](https://cloud.datum.net), each Connector shows a request-rate chart that adds up the traffic from every load balancer that routes to it.
+
+### Metrics
+
+Use the [ALB traffic and latency metrics](/alb/observability#traffic-and-latency), selected by the name of each load balancer that routes to your Connector. For example, to see requests per second through one load balancer, replace `PROJECT_ID` and `ALB_NAME`:
+
+```promql
+sum(rate(envoy_vhost_vcluster_upstream_rq{resourcemanager_datumapis_com_project_name="PROJECT_ID", gateway_name="ALB_NAME"}[5m]))
+```
+
+To add up several load balancers, select them with a regular expression, such as `gateway_name=~"alb-one|alb-two"`. To query these metrics in your own tools, [export them](/operations/metrics-export).
+
+### Access logs
+
+To see the requests that reached your Connector, read the access logs of the load balancer that routes to it:
+
+```bash
+datumctl alb logs ALB_NAME --since 1h
+```
+
+A `502` or `503` with nothing reaching your machine can mean the tunnel isn't connected. Check that the Connector is running on your machine. See [ALB access logs](/alb/observability#access-logs).
+
+## Follow the roadmap
+
+<Card title="Connectors limitations and roadmap" icon="map" href="/connectors/limitations-and-roadmap">
+  See what Connectors doesn't support yet and what Datum is building next.
+</Card>

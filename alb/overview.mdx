@@ -5,20 +5,56 @@ description: "Datum's Application Load Balancer (ALB) is built on Envoy and prov
 ---
 
 <Note>
-**Working with this resource via an AI agent?** Datum publishes three skills covering Application Load Balancer: [Application Load Balancer](/agents/skills/alb) (WAF, auth, and traffic policies), [Client Traffic](/agents/skills/client-traffic) (TLS termination, HTTP/3, connection limits), and [HTTPRoute](/agents/skills/httproute) (path routing, traffic splitting, redirects).
+**Working with this resource via an AI agent?** Datum publishes three skills covering Application Load Balancer: [Application Load Balancer](/agents/skills/alb) (creating and managing one, plus WAF and auth), [Client Traffic](/agents/skills/client-traffic) (TLS termination, HTTP/3, connection limits; not available yet), and [HTTPRoute](/agents/skills/httproute) (path routing, traffic splitting, redirects).
 </Note>
 
-Our Application Load Balancer (ALB) is built on Envoy and provides an intelligent HTTPProxy along with a Coraza-based Web Application Firewall (WAF).
+Datum's Application Load Balancer (ALB) is an edge proxy built on [Envoy](/platform/envoy), with a [Coraza](https://www.coraza.io/)-based [web application firewall](/alb/configuration/waf) (WAF). It started life as Datum's "AI Gateway", and it's built for AI and agent traffic as much as for websites and APIs.
 
-Application Load Balancers help you protect and route internet traffic to your backend services. We support HTTP(S) 1.1, HTTP2, gRPC, and WebSockets.
+Application Load Balancers help you protect and route internet traffic to your backend services. We support HTTP(S) 1.1, HTTP/2, gRPC, and WebSockets.
 
-<Frame caption="Application Load Balancers can be configured with custom hostnames and protection">
-  ![Application Load Balancer Details](/images/AI-Edge-details.png)
+<Tip>
+  Running NGINX, Apache, Caddy, or Traefik in front of your app? To replace that container with an ALB, see [Use ALB as your HTTP proxy](/guides/alb-as-httpd).
+</Tip>
+
+<Frame caption="The overview for a load balancer: whether it is serving, live request rate, error rate, latency and blocked requests, and the hostnames it answers on">
+  ![The Datum Cloud console showing an Application Load Balancer's overview, with live request rate, error rate, p95 latency, requests blocked by the firewall, and a panel for attaching custom hostnames](/images/alb-overview.png)
 </Frame>
+
+## How it works
+
+An ALB isn't a server you size or place. You declare it once in your project, and Datum serves it from Envoy in every Datum location:
+
+```mermaid
+flowchart LR
+  C["Clients<br/>browsers · apps · AI agents"]
+  subgraph loc["Nearest Datum location"]
+    E["Envoy · your ALB<br/>TLS · WAF · routes · auth"]
+  end
+  O["Public origin<br/>an existing site or API"]
+  I["Compute Instances<br/>on your gVPC network"]
+  T["Connector tunnel<br/>a service on your machine"]
+
+  C -->|"HTTPS · anycast"| E
+  E -->|"HTTPS · internet"| O
+  E -->|"HTTP · private network"| I
+  E -->|"Iroh tunnel"| T
+
+  classDef box fill:#E6E6E6,stroke:#8A8E99,color:#222
+  class C,E,O,I,T box
+  style loc fill:#EDEDEC,stroke:#8A8E99,color:#B5605E
+  linkStyle 0,1,2,3 stroke:#5A5F6B,stroke-width:1.4px
+```
+
+- **Clients reach the nearest location.** Your ALB's hostnames are anycast, so each request arrives at the nearest Datum location. Envoy there terminates TLS, runs the firewall, and applies your routes.
+- **Datum runs and scales the proxies.** Envoy runs as a shared fleet in every location, serving every customer's ALBs. Creating an ALB doesn't start new infrastructure, and you don't choose locations or capacity.
+- **Changes reach every location.** When you change an ALB, Datum publishes the new configuration to Envoy in every location.
+- **Your origin can be anywhere.** An origin can be a public site, reached over HTTPS on the internet; [Compute Instances](/compute/compute-and-alb), reached over plain HTTP on your private [gVPC](/galactic-vpc/overview) network; or a service on your own machine, reached through a [Connector tunnel](/connectors/tunnels).
+
+For Compute origins, Envoy prefers an Instance in the same location, and sends the request to the nearest location with a healthy Instance when there isn't one. For how Datum runs Envoy, including how it reaches your private network without ever reaching another customer's, see [Envoy](/platform/envoy).
 
 ## What an ALB is made of
 
-In Datum today, an Application Load Balancer is a product experience over several platform resources — not a single API kind. Creating an ALB in the Cloud Portal stitches these together for you:
+In Datum today, an Application Load Balancer is a product experience over several platform resources — not a single API kind. Creating an ALB in the [Cloud Portal](https://cloud.datum.net) stitches these together for you:
 
 ```text
 Application Load Balancer (product)
@@ -36,19 +72,20 @@ Application Load Balancer (product)
 | **`TrafficProtectionPolicy`** | WAF policy (Observe / Enforce / Disabled) attached 1:1 to the proxy's Gateway |
 | **Gateway** (operator) | Provisioned from the HTTPProxy; WAF and auth policies target it |
 | **DNS + TLS** (operator) | Canonical hostname, DNSRecordSets, and ACME certificates from proxy status |
-| **SecurityPolicy** (optional) | Basic auth via Envoy Gateway, backed by a Secret |
+| **SecurityPolicy** (optional) | Basic auth via [Envoy Gateway](https://gateway.envoyproxy.io/), backed by a Secret |
 
-Portal create always POSTs an `HTTPProxy`, then attempts a matching `TrafficProtectionPolicy` (best-effort today if WAF attach fails). With `datumctl`, you still apply these resources separately — there is no composite ALB API yet.
+Portal create always POSTs an `HTTPProxy`, then attempts a matching `TrafficProtectionPolicy` (best-effort today if WAF attach fails). There's no composite ALB API yet. With `datumctl`, `datumctl alb create` creates the `HTTPProxy` and its `TrafficProtectionPolicy` for you (see [Create a load balancer](/alb/operations/overview#create-a-load-balancer)), or you can apply the resources yourself.
 
-See [HTTPProxy and WAF Capabilities](/alb/proxy-waf) for schemas and `datumctl` examples.
+To learn how Datum runs Envoy, see [Envoy](/platform/envoy). See [HTTPProxy](/alb/httpproxy/overview) for schemas and `datumctl` examples.
 
 ## Features
 
 Each Application Load Balancer deploys with a default hostname and enforces HTTPS (you can disable this).
 
-- **Protection** - The [**OWASP Coraza Web Application Firewall (WAF)**](https://www.coraza.io/) provides built-in protection. By default, protection runs in "observe" mode. You can set it to enforced status and select either Level 1 (relaxed) or Level 2 (balanced).
+- **Protection** - The [**OWASP Coraza Web Application Firewall (WAF)**](https://www.coraza.io/) provides built-in protection with the [OWASP Core Rule Set](https://coreruleset.org/), running inside Envoy before requests reach your origin. A load balancer created with `datumctl alb create` starts in `Enforce` mode at sensitivity 1. A `TrafficProtectionPolicy` that doesn't set a mode runs in `Observe` mode. See [Roll out traffic protection safely](/alb/operations/traffic-protection).
 - **Custom Hostnames** – Verify domains (or use already verified domain resources) to use custom hostnames with an Application Load Balancer.
 - **Basic Authentication** - Add a username and password to restrict access to an Application Load Balancer.
+- **Load Balancing** - Split traffic across several origins by weight, choose the load balancing algorithm, and turn on passive health checks. See [Load balancing and health checks](/alb/configuration/load-balancing).
 
 To monitor the health of your Application Load Balancers, you can use:
 

@@ -1,0 +1,31 @@
+---
+title: "DNS limitations and roadmap"
+sidebarTitle: "Limitations and roadmap"
+description: "Review what Datum Domains and DNS don't support yet and where to follow what comes next."
+---
+
+Domains and DNS are still being built. This page lists known limitations and where Datum is headed.
+
+## Limitations
+
+- **DNSSEC isn't supported.** Zones hosted on Datum aren't signed. Turn DNSSEC off at your registrar before you move a domain to Datum. See [DNSSEC](/domain-dns/dns#dnssec).
+- **No DNS query metrics yet.** Datum doesn't publish metrics about the queries it answers, such as query volume or response codes. To check that a zone is live, see [Observability](/domain-dns/observability).
+- **A zone's domain name can't change.** To use a different domain, create a new zone.
+- **One zone for each domain.** A domain can belong to only one zone on Datum.
+- **`ALIAS` isn't portable.** `ALIAS` isn't a standard record type, so a zone file exported from Datum can't carry it to another provider. See [ALIAS](/domain-dns/dns#alias-/-cname-flattening).
+- **The DNS API is `v1alpha1`.** Field names in `DNSZone` and `DNSRecordSet` can change between releases. The `datumctl dns` plugin keeps up with those changes for you.
+
+## Roadmap
+
+Datum acquired CloudValid and is open sourcing its domain validation technology. Datum is building it into Domains and DNS, including:
+
+- **Simpler domain verification**, built into every step from adding a domain to serving traffic on it.
+- **Domain registration**, from search to a working, verified domain.
+- **Custom domains for SaaS platforms**, combining domains, certificates, and the [Application Load Balancer](/alb/overview) for platforms that serve their customers' domains.
+- **Email authentication**, making it easier to publish the SPF, DKIM, and DMARC records that inbox providers now require.
+
+To learn more, see [Why we're open sourcing domain validation](https://www.datum.net/blog/open-sourcing-domain-validation/). For what Datum is building across the platform, see the [Platform roadmap](/platform/roadmap).
+
+<Note>
+  Plans can change. This list isn't a commitment to deliver any feature or to meet any timeline.
+</Note>

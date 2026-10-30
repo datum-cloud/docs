@@ -1,10 +1,16 @@
 ---
 title: "Tunnels"
-description: "Datum's first Connector is a flexible tunnel powered by the Iroh protocol and built in QUIC."
+description: "Datum's first Connector is a flexible tunnel powered by the Iroh protocol and built on QUIC."
 ---
-
-Our first "Connector" is a flexible Tunnel powered by the Iroh protocol.
 
 Iroh is a modular, Rust-based networking stack that establishes fast, direct, and secure peer-to-peer (P2P) connections between devices. Instead of relying on IP addresses, devices "dial" each other directly using public keys, bypassing NATs and firewalls.
 
 Our first use case for Iroh Tunnels is with our [desktop apps](/desktop-apps), which help you securely expose localhost to the internet. Future iterations will include "anywhere to anywhere" Tunnels.
+
+## How a tunnel connects
+
+- Each tunnel endpoint keeps one outbound connection to its nearest Datum relay, its *home relay*, over HTTPS on port 443. The endpoint needs no public address and no open inbound port.
+- Traffic starts through the relay, then moves to a direct UDP path when both sides can holepunch one. The relay stays available as a fallback.
+- The connection is QUIC, encrypted end to end with TLS 1.3, so a relay forwards only packets it can't read.
+
+For details, see [Iroh relays](/platform/iroh-relays).

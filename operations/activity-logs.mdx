@@ -1,0 +1,28 @@
+---
+title: "Activity Logs"
+description: "Query and filter audit logs in the Datum Cloud portal to track changes across your organizations and projects"
+---
+
+## Portal
+
+Access activity logs from the organization's settings page.
+
+<Frame>
+  ![Activity Logs](/images/activity-logs.png)
+</Frame>
+
+You can also query and filter audit logs for a project by navigating to a project's settings page.
+
+How long audit logs are retained isn't documented yet.
+
+## Command line
+
+With `datumctl`, you can browse audit logs from the terminal and pipe them into `jq` or other tools.
+
+For example, to see the last 7 days of audit logs:
+
+```bash
+datumctl activity audit --start-time now-7d
+```
+
+By default, `datumctl activity audit` retrieves the last 24 hours of activity. You can use the `--filter` option to specify a [CEL expression](https://cel.dev/) to filter the audit logs returned. For commands and examples, see [Audit logs and events](/datumctl/activity/audit-and-events) and [Change history and feed](/datumctl/activity/change-history-and-feed).

@@ -1,0 +1,118 @@
+---
+title: "gVPC operations"
+sidebarTitle: "Operations"
+description: "Use the datumctl network plugin to view, change, and delete gVPC networks, network services, and Instances' network interfaces."
+---
+
+This page covers day-to-day operations on [gVPC](/galactic-vpc/overview) networks with the `network` plugin for `datumctl`. The plugin manages networks, network services, and the network interfaces that Instances hold on your networks. It writes the same resources as the manifests on [Configuration](/galactic-vpc/configuration), and its `describe` output explains what's wrong and who needs to act.
+
+<Note>
+  gVPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## Install the plugin
+
+To install the plugin from the official Datum catalog, run the following command:
+
+```bash
+datumctl plugin install network
+```
+
+To check the installation, run the following command:
+
+```bash
+datumctl network version
+```
+
+`datumctl network version` works without a login, a project, or a network connection. For more information about plugins, see [Using plugins](/datumctl/plugins/using-plugins).
+
+Without the plugin, you can still list and delete networks with `datumctl get networks` and `datumctl delete network NETWORK_NAME`.
+
+## Manage networks
+
+The following table describes the network commands:
+
+| Command | What it does |
+| --- | --- |
+| `datumctl network create NAME` | Creates an IPv6-only network. Pass `--mtu` to change the MTU from the default of `1440`, and `--wait` to wait until the network is ready. |
+| `datumctl network list` | Lists networks, the locations they've reached, and how many Instances and services use them. Pass `-o wide` for each network's IPv6 prefix. |
+| `datumctl network describe NAME` | Shows a network's address families, MTU, IPv6 prefix, each location with its address range and Instance counts, the workloads and network services on it, and a diagnosis. |
+| `datumctl network update NAME --mtu MTU` | Changes the MTU, which is the only setting that you can change after you create a network. The change applies to every Instance on the network. |
+| `datumctl network delete NAME` | Deletes a network. |
+
+A new network isn't in any location. It reaches a location when a workload in that location attaches to it, so `describe` shows no locations until you deploy a workload:
+
+```bash
+datumctl network create backend
+datumctl compute deploy api --image=ghcr.io/example/api:1.4.2 --location=us-east-1 --network=backend
+datumctl network describe backend
+```
+
+A workload's network can't change after you create the workload. To move a workload to another network, deploy a new workload on that network and then delete the old one. For more information, see [Compute operations](/compute/operations#update-a-workload).
+
+## Delete a network
+
+Before you delete a network, delete the workloads that are attached to it. To delete a network, run the following command:
+
+```bash
+datumctl network delete NETWORK_NAME
+```
+
+Replace `NETWORK_NAME` with the name of the network. Before it asks you to confirm, the command lists the workloads that lose their network, the network services that stop serving, and the kept interfaces whose addresses are released.
+
+If Instances still hold addresses on the network, the network stays in deletion and reports `RangeOccupied` until they're gone.
+
+## Manage network services
+
+The `datumctl network service` commands create, describe, change, and delete network services. For more information, see [Network services](/galactic-vpc/networks/network-services).
+
+```bash
+datumctl network service create api --workload=api --port=http:8080
+datumctl network service list
+datumctl network service describe api
+```
+
+## Manage network interfaces
+
+Each Instance holds a network interface on its workload's network. To list the interfaces in your project, run the following command:
+
+```bash
+datumctl network interface list
+```
+
+To narrow the list, pass `--network`, `--workload`, or `--kept`.
+
+A workload with `reclaimPolicy: Retain` keeps an Instance's addresses after the Instance is removed. The kept interface holds the addresses until an Instance with the same name returns. For more information, see [Keep addresses after scale-down](/galactic-vpc/configuration#keep-addresses-after-scale-down).
+
+To release a kept interface and give up its addresses permanently, run the following command:
+
+```bash
+datumctl network interface release INTERFACE_NAME
+```
+
+Replace `INTERFACE_NAME` with the name of the kept interface. You can't release an interface that a running Instance holds. After you release the addresses, update anything that refers to them, such as DNS records or firewall rules.
+
+## Find out what's wrong
+
+`datumctl network describe` and `datumctl network service describe` end with a diagnosis that names the cause, the location or workload that it affects, and who needs to act: you, Datum, or nobody while a change is still in progress.
+
+Keep the following points in mind:
+
+- A new network with no locations isn't a fault. The network reaches a location when a workload there attaches to it.
+- A network service with no ready Instances is a workload problem, not a network problem. `datumctl network service describe` lists the Instances that aren't ready and what each one reports.
+
+For specific errors, see [Troubleshooting](/galactic-vpc/troubleshooting).
+
+## Scripts and automation
+
+- **Confirmation:** `delete`, `update`, `service delete`, and `interface release` ask you to type the resource's name. Without a terminal, they stop unless you pass `--yes`.
+- **Previews:** Commands that change resources accept `--dry-run`, which validates the change and discards it.
+- **Output:** Commands that read resources accept `-o table`, `-o wide`, `-o json`, `-o yaml`, or `-o name`.
+- **Exit codes:** Failures print a named exit code, such as `exit status 4 # NETWORK_NOT_FOUND`. The codes are `NETWORK_USAGE` (2), `NETWORK_FORBIDDEN` (3), `NETWORK_NOT_FOUND` (4), `NETWORK_CONFLICT` (5), `NETWORK_INVALID` (6), `NETWORK_UNAVAILABLE` (8), and `NETWORK_ABORTED` (9).
+- **Waiting:** If `create --wait` times out, the command exits with an error, but the network exists. Don't run `create` again; run `describe` instead.
+
+## What's next
+
+- To create a network with a manifest and attach a workload, see [Configuration](/galactic-vpc/configuration).
+- To give a workload a stable name for a load balancer, see [Network services](/galactic-vpc/networks/network-services).
+- To fix network errors, see [Troubleshooting](/galactic-vpc/troubleshooting).

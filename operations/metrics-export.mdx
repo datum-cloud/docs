@@ -1,0 +1,157 @@
+---
+title: "Metrics Export"
+description: "The metrics Datum publishes for your project, and how to export them to Grafana Cloud or any Prometheus remote-write endpoint."
+---
+
+<Note>
+**Working with this resource via an AI agent?** Datum publishes a [Metrics Export skill](/agents/skills/metrics-export) that teaches agents the canonical patterns for this resource.
+</Note>
+
+Datum collects metrics from the services in your project and keeps them in your project's metrics store. The [Cloud Portal](https://cloud.datum.net) charts them on each resource's pages. To see them next to your other metrics, export them to [Grafana Cloud](https://grafana.com/) or any other endpoint that accepts Prometheus remote write.
+
+## What Datum measures
+
+| Product | What you can measure | Reference |
+| --- | --- | --- |
+| Application Load Balancer | Requests per second by location and response code, origin response time, and firewall events by outcome and rule | [ALB metrics](/alb/observability#metrics) |
+| Compute | CPU and memory for each Instance, ready and desired Instances for each workload and placement, and traffic to published workloads | [Compute metrics](/compute/observability#metrics) |
+| gVPC | Whether each network is ready, and each Instance's private address | [gVPC metrics](/galactic-vpc/observability#metrics) |
+| Domains and DNS | Whether each zone and record set is serving, and whether each domain is verified | [Domains and DNS metrics](/domain-dns/observability#metrics) |
+| Connectors | Traffic through the load balancers that route to each Connector | [Connector metrics](/connectors/observability#metrics) |
+
+Metrics come in two kinds:
+
+- **Traffic and usage metrics** measure what your resources are doing, such as requests per second or CPU time. Their names start with the component that records them, such as `envoy_` for load balancer traffic, `coraza_` for the firewall, and `datum_compute_instance_` for Instance CPU and memory.
+- **Status metrics** report the state of your resources, such as whether a load balancer is programmed or a domain is verified. They follow a consistent pattern, so once you know one, you know them all:
+
+| Pattern | What it reports |
+| --- | --- |
+| `<resource>_info` | One series for each resource, with descriptive labels. Use it to count resources or join in labels. |
+| `<resource>_status_condition` | `1` when a condition is true and `0` when it's false, with `condition`, `reason`, and `status` labels. |
+| `<resource>_status_condition_last_transition_time` | When each condition last changed, as a Unix timestamp. |
+| `<resource>_created` | When the resource was created, as a Unix timestamp. |
+
+### Labels on every series
+
+| Label | Meaning |
+| --- | --- |
+| `resourcemanager_datumapis_com_project_name` | Your project ID. Include it in every query, because resource names are only unique within a project. |
+| `resource_name` | On status metrics, the name of the resource. |
+| `label_topology_kubernetes_io_region` or `region` | On traffic and usage metrics, the Datum location, such as `us-west-1`. |
+
+Queries use [MetricsQL](https://docs.victoriametrics.com/victoriametrics/metricsql/), which also accepts standard PromQL.
+
+## Export with the Cloud Portal
+
+You can set up an export policy in the Datum Cloud portal. Go to the project of your choice, find the **Metrics** tab, and follow the instructions.
+
+<Frame caption="Step 1: Provide the Grafana instance URL">
+  ![Grafana Access](/images/grafana-access.png)
+</Frame>
+
+<Frame caption="Step 2: Configure your export policy">
+  ![Grafana Finish Setup](/images/grafana-finish-setup.png)
+</Frame>
+
+## Export with datumctl
+
+An `ExportPolicy` defines:
+
+- **Sources**, which select the metrics to export. Each source needs a MetricsQL selector in `metrics.metricsql`, and exports only the matching series. To export everything in your project, use `{__name__=~".+"}`. The selector must be a plain series selector such as `{label="value"}`, not a function like `rate()`. Datum limits it to your project for you.
+- **Sinks**, which send the selected sources to a Prometheus remote-write endpoint.
+
+<Steps>
+  <Step title="Store your credentials in a Secret">
+    Create a Secret with the credentials for your endpoint. It must be of type `kubernetes.io/basic-auth`, with `username` and `password` keys. For [Grafana Cloud](https://grafana.com/products/cloud/), the username is your instance ID and the password is an access token with permission to write metrics.
+
+    ```yaml
+    apiVersion: v1
+    kind: Secret
+    metadata:
+      name: grafana-cloud-credentials
+    type: kubernetes.io/basic-auth
+    stringData:
+      username: "123456"
+      password: "glc_..."
+    ```
+
+    ```bash
+    datumctl apply -f grafana-secret.yaml
+    ```
+  </Step>
+  <Step title="Create the export policy">
+    This policy exports only load balancer traffic and firewall metrics. To export everything, set `metricsql` to `{__name__=~".+"}`.
+
+    ```yaml
+    apiVersion: telemetry.miloapis.com/v1alpha1
+    kind: ExportPolicy
+    metadata:
+      name: grafana-cloud-export
+    spec:
+      sources:
+        - name: alb-metrics
+          metrics:
+            metricsql: '{__name__=~"envoy_vhost_vcluster_upstream_rq.*|coraza_envoy_filter_request_events_total"}'
+      sinks:
+        - name: grafana-cloud
+          sources:
+            - alb-metrics
+          target:
+            prometheusRemoteWrite:
+              endpoint: https://prometheus-prod-01-prod-us-east-0.grafana.net/api/prom/push
+              authentication:
+                basicAuth:
+                  secretRef:
+                    name: grafana-cloud-credentials
+              batch:
+                maxSize: 500
+                timeout: "5s"
+              retry:
+                maxAttempts: 3
+                backoffDuration: "1s"
+    ```
+
+    Replace `endpoint` with your own remote-write URL. If you leave out `batch` or `retry`, the defaults are batches of 500 every `5s` and 3 attempts `5s` apart.
+
+    ```bash
+    datumctl diff -f exportpolicy.yaml
+    datumctl apply -f exportpolicy.yaml
+    ```
+  </Step>
+  <Step title="Check that it's exporting">
+    ```bash
+    datumctl describe exportpolicy grafana-cloud-export
+    ```
+
+    The policy's `Ready` condition is `True` once every sink is accepted. Each sink also has an `Accepted` condition in `status.sinks`. If it's `False` with reason `InvalidAuthentication`, the Secret is missing, isn't of type `kubernetes.io/basic-auth`, or lacks a `username` or `password` key.
+
+    `Accepted` means the configuration is valid, not that the endpoint received data. To confirm delivery, query your endpoint for your project's metrics after a minute or two.
+  </Step>
+</Steps>
+
+## Datum dashboards in Grafana Cloud
+
+To add prebuilt Datum dashboards in Grafana Cloud, go to **Dashboards**, select **New dashboard**, then select **Import dashboard**. Load the Datum dashboards using the following Grafana IDs.
+
+### Datum Overview
+
+Grafana ID: **23939**
+
+Provides real-time visibility into your load balancers, including:
+
+- Total HTTP proxies, hostnames, and domains
+- Upstream requests per second (RPS) by region
+- Global response codes and latency percentiles
+- Domain and proxy health status
+
+### Datum Proxy
+
+Grafana ID: **24261**
+
+Offers a real-time view of one load balancer's hostnames and regional traffic, including:
+
+- Regional RPS and upstream response codes
+- Latency percentiles (p50, p90, p99)
+- Domain and proxy status
+
+For additional help, consult the [Grafana Cloud documentation](https://grafana.com/docs/grafana-cloud/).

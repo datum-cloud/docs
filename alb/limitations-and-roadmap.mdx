@@ -1,0 +1,29 @@
+---
+title: "ALB limitations and roadmap"
+sidebarTitle: "Limitations and roadmap"
+description: "Review what the Datum Application Load Balancer doesn't support or document yet, and where to follow what comes next."
+---
+
+The Application Load Balancer is still being built. This page lists known limitations and where to follow what comes next.
+
+## Limitations
+
+- There is no single composite ALB API yet. An ALB is an `HTTPProxy`, a `TrafficProtectionPolicy`, and optional authentication resources. See [What an ALB is made of](/alb/overview#what-an-alb-is-made-of).
+- Public traffic is HTTP and HTTPS only. Raw TCP and UDP exposure isn't available.
+- Rule exclusions, score thresholds, rate limiting, and circuit breaking aren't available through `datumctl alb`. Use manifests. See [Web application firewall](/alb/configuration/waf).
+- A `connector` backend must be the only backend in its rule.
+- You can't choose which Datum locations serve a load balancer or set its capacity. [Envoy](/platform/envoy) in every location serves every load balancer, and Datum scales the fleet.
+- Envoy connects to Compute Instances over plain HTTP. TLS ends at the load balancer.
+- Status shows when a change is published, not when every location serves it, and there is no per-location status. See [When a load balancer is not serving](/alb/troubleshooting).
+- Request timeouts aren't documented yet, including how long a streaming response can stay open: Server-Sent Events (SSE), WebSockets, or a long MCP response. `HTTPProxy` has no timeout setting, so test long-lived responses before you rely on them.
+- The headers that Datum adds to requests it forwards to your origin, such as the client's IP address (`X-Forwarded-For`) and the original protocol (`X-Forwarded-Proto`), aren't documented yet.
+- `ClientTrafficPolicy` isn't available in projects, so client-side TLS versions, HTTP versions, and connection limits can't be changed.
+- For limits on load balancers attached to Compute workloads, see [Compute and ALB](/compute/compute-and-alb#limitations).
+
+## Roadmap
+
+For what Datum is building next across the platform, see the [Platform roadmap](/platform/roadmap).
+
+<Note>
+  Plans can change. This list isn't a commitment to deliver any feature or to meet any timeline.
+</Note>

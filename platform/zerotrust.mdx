@@ -1,0 +1,44 @@
+---
+title: "ZeroTrust"
+description: "How Datum applies zero trust: private by default, an identity and a certificate for everything, and no trust based on where a connection comes from."
+---
+
+Zero trust means nothing is trusted because of where it sits on a network. Every person, service, and connection proves who it is, and every connection is encrypted, whether it crosses the internet or stays inside Datum. Datum builds this into the platform, so you don't have to assemble it yourself.
+
+## Private by default
+
+The safest endpoint is one that isn't on the public internet. On Datum, your resources start private:
+
+- **[Compute](/platform/isolation) Instances have no public address.** They have a private IPv6 address on your [gVPC](/galactic-vpc/overview) network, isolated from every other customer's network by the routing itself. See [Segment routing](/platform/segment-routing).
+- **The only public way in is one you choose.** You publish an app through an [Application Load Balancer](/alb/overview), with a web application firewall in front of it.
+- **Tunnels expose nothing.** A [Datum tunnel](/connectors/tunnels) connects a service on your machine to Datum without opening an inbound port. See [Iroh relays](/platform/iroh-relays).
+
+To read more about the thinking behind this, see [Private by default](https://www.datum.net/blog/private-by-default/) on the Datum blog.
+
+## A certificate for everything
+
+Datum issues and renews certificates automatically, so encryption is never an afterthought:
+
+- **Every load balancer hostname gets a certificate.** A load balancer's generated hostname is served with a Datum-managed certificate from the moment it's created. When you add a custom hostname, Datum issues a certificate for it once DNS is in place. HTTPS is enforced by default.
+- **Every tunnel endpoint is a key pair.** In [Iroh](https://www.iroh.computer/), which powers Datum tunnels, an endpoint's address *is* its public key. Connections are dialed by key, not by IP address, and encrypted end to end with TLS 1.3 over QUIC. Datum's relays forward only encrypted packets that they can't read.
+- **Every shell session is encrypted.** An [Instance shell](/compute/instance-shell) is encrypted all the way to the location that runs the Instance.
+
+## An identity for every actor
+
+Every request to Datum's API comes from a known identity, and each identity can do only what it's been granted:
+
+- **People** sign in to the [Cloud Portal](https://cloud.datum.net) and `datumctl`. `datumctl` uses short-lived tokens that refresh automatically, so there's no long-lived password or key on your machine.
+- **Machines** use [service accounts](/projects/service-accounts), which authenticate with a signed credential instead of shared passwords or long-lived tokens. You can rotate or disable their keys without redeploying.
+- **AI agents** connect through the [Datum MCP server](/agents/datum-mcp) with OAuth, with the same permissions as the person or service account they act for.
+- **Roles** limit what each identity can do, in each organization and project.
+- **Every action is recorded.** Changes, and who made them, appear in your [activity logs](/operations/activity-logs).
+
+## At your edge
+
+You can apply the same thinking to your own apps. A load balancer can require sign-in before a request ever reaches your origin, with [OIDC](/alb/authentication/oidc-google) or [basic authentication](/alb/authentication/basic-auth), and its [web application firewall](/alb/configuration/waf) blocks common attacks.
+
+## Related
+
+- [Isolation](/platform/isolation) — how each Instance is contained in its own virtual machine and network.
+- [Iroh relays](/platform/iroh-relays) — how tunnels connect without exposed ports.
+- [Segment routing](/platform/segment-routing) — how private networks stay separate on a shared backbone.

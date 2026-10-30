@@ -28,6 +28,8 @@ datumctl login
 
 You only need to log in once per machine. `datumctl` keeps your session refreshed, so day-to-day commands just work until you sign out.
 
+In the browser, you sign in with a passkey or with your Google or GitHub account. For the steps, see [Sign in](/account/sign-in).
+
 ## Login, then pick a context
 
 `login` does two things in one step: it authenticates you, and it helps you choose a default **context** — the organization or project your commands target so you do not have to pass `--organization` or `--project` every time.
@@ -59,7 +61,9 @@ For the full picture of how scope is resolved and how to move between contexts, 
 
 ## Headless and remote shells
 
-On a machine with no browser — an SSH session, a container, or a remote development box — add `--no-browser` to authenticate with the device authorization flow:
+For unattended use such as CI, don't use this flow, because it needs a person to approve a code. Use a [service account](/datumctl/auth/service-accounts) with `datumctl login --credentials` instead.
+
+On a machine with no browser where you are present — an SSH session, a container, or a remote development box — add `--no-browser` to authenticate with the device authorization flow:
 
 ```bash
 datumctl login --no-browser
@@ -100,6 +104,10 @@ Project:      Production (production)
 
 If you have set the `DATUM_ORGANIZATION` or `DATUM_PROJECT` environment variables, `whoami` also flags them, since those override the active context for the current shell.
 
+<Note>
+  `datumctl auth whoami` is a different command, for kubectl users only: it asks the control plane which identity and groups your kubeconfig credentials resolve to, and needs a context from `datumctl auth update-kubeconfig`. See [kubectl interop](/datumctl/kubectl-interop). To list the datumctl accounts you are signed in with, use `datumctl auth list`.
+</Note>
+
 ## Log out
 
 To remove a stored session, pass the email address you signed in with:
@@ -125,4 +133,4 @@ Logging out deletes the credentials from your keyring. Sign back in at any time 
 - [Contexts & scoping](/datumctl/contexts-and-scoping) — how the account you are signed in as maps to the organizations and projects your commands target.
 - [Managing accounts & tokens](/datumctl/auth/managing-accounts) — list local sessions, switch the active user, and retrieve access tokens.
 - [Service accounts](/datumctl/auth/service-accounts) — non-interactive credentials for CI, pipelines, and automation.
-- [Quickstart](/datumctl/quickstart) — install `datumctl` and run your first command.
+- [Install](/datumctl/install) — install `datumctl` and run your first command.

@@ -1,0 +1,127 @@
+---
+title: "Monitor Compute workloads"
+sidebarTitle: "Observability"
+description: "Use metrics and logs to understand your Compute workloads and Instances."
+---
+
+## Metrics
+
+The [Cloud Portal](https://cloud.datum.net) shows CPU and memory usage on Compute workload and Instance pages. Open the **Metrics** tab for a longer view. Datum also publishes the measurements to your project's metrics store so you can query them or [export them to Grafana Cloud](/operations/metrics-export).
+
+<Frame caption="A workload's Metrics tab, with CPU and memory for each Instance">
+  ![The Metrics tab of a workload with totals for CPU, memory, requests, p99 latency, and errors, and CPU and memory charts with one line for each Instance](/images/compute-workload-metrics.png)
+</Frame>
+
+### CPU and memory series
+
+| Metric | Type | Meaning |
+| --- | --- | --- |
+| `datum_compute_instance_cpu_usage_seconds_total` | Counter | CPU time used, in seconds. Apply `rate()` to see CPU usage in cores. |
+| `datum_compute_instance_memory_working_set_bytes` | Gauge | Memory working set, in bytes. |
+
+Each series measures one container in an Instance. These measurements don't represent total virtual machine memory or include a separate virtual machine overhead measurement. An Instance's quota and configured size also differ from measured usage.
+
+Use these labels to select the series you need:
+
+| Label | Meaning |
+| --- | --- |
+| `resourcemanager_datumapis_com_project_name` | Project ID. |
+| `resource_name` | Instance name, as shown by `datumctl compute instances`. This is not the workload name. |
+| `instance_container` | Container name within the Instance. Use this label for a per-container breakdown. The metrics store doesn't expose the raw Prometheus `container` label. |
+| `region` | Location where the Instance runs, such as `us-central-1`. |
+| `runtime_class` | `general-purpose` on standard container Instances. |
+
+### Query an Instance
+
+Replace `PROJECT_ID` and `INSTANCE_NAME` with your project ID and an Instance name returned by `datumctl compute instances --workload=WORKLOAD_NAME`. Run these [MetricsQL](https://docs.victoriametrics.com/victoriametrics/metricsql/) queries in your metrics tool:
+
+```promql
+sum(rate(datum_compute_instance_cpu_usage_seconds_total{resourcemanager_datumapis_com_project_name="PROJECT_ID",resource_name="INSTANCE_NAME"}[5m]))
+```
+
+The CPU result is in cores. For example, `0.5` means approximately half of one CPU core over the five-minute window.
+
+```promql
+sum(datum_compute_instance_memory_working_set_bytes{resourcemanager_datumapis_com_project_name="PROJECT_ID",resource_name="INSTANCE_NAME"})
+```
+
+The memory result is in bytes. These queries add the container measurements for the selected Instance. Keep the project selector because Instance names alone aren't unique across projects.
+
+To see each container's contribution, retain `instance_container` in the result:
+
+```promql
+sum by (instance_container) (rate(datum_compute_instance_cpu_usage_seconds_total{resourcemanager_datumapis_com_project_name="PROJECT_ID",resource_name="INSTANCE_NAME"}[5m]))
+
+sum by (instance_container) (datum_compute_instance_memory_working_set_bytes{resourcemanager_datumapis_com_project_name="PROJECT_ID",resource_name="INSTANCE_NAME"})
+```
+
+If an Instance has more than one container, each has its own series. Sum the series once for an Instance total; don't add the container breakdown to that total again.
+
+To graph a whole workload, get its Instance names with `datumctl compute instances --workload=WORKLOAD_NAME`, then select those names in `resource_name`. The metrics don't carry a workload-name label.
+
+### Workload and Instance status series
+
+Datum also publishes the state of your workloads and Instances, so you can alert when a workload falls short of the Instances it wants. These are the same numbers that `datumctl compute workloads` shows:
+
+```text
+$ datumctl compute workloads
+NAME           LOCATIONS                            HEALTH      READY   UP-TO-DATE   PLACEMENTS
+api            us-east-1, us-central-1, us-west-1   Available   6/6     6/6          us-east, us-central, us-west
+api-postgres   us-east-1                            Available   1/1     1/1          us-east
+```
+
+| Metric | What it reports |
+| --- | --- |
+| `datum_cloud_compute_workload_status_replicas_desired` | Instances the workload wants. |
+| `datum_cloud_compute_workload_status_replicas_ready` | Instances that are ready. |
+| `datum_cloud_compute_workload_status_replicas_updated` | Instances running the workload's latest template. During a rollout, this climbs to the desired count. |
+| `datum_cloud_compute_workload_placement_status_replicas_desired` | Instances a placement wants, with a `placement` label. |
+| `datum_cloud_compute_workload_placement_status_replicas_ready` | Instances that are ready in a placement, with a `placement` label. |
+| `datum_cloud_compute_workload_status_condition` | `1` when a workload condition is true. The `condition` label is the condition, such as `Available`, and `reason` explains it. |
+| `datum_cloud_compute_instance_status_condition` | `1` when an Instance condition is true, with `condition` and `reason` labels. |
+| `datum_cloud_compute_instance_info` | One series for each Instance, with its `location` and `runtime_class`. |
+
+On these series, `resource_name` is the workload or Instance name, and `resourcemanager_datumapis_com_project_name` is your project ID.
+
+To find placements that are short of Instances, replace `PROJECT_ID`:
+
+```promql
+datum_cloud_compute_workload_placement_status_replicas_desired{resourcemanager_datumapis_com_project_name="PROJECT_ID"}
+- datum_cloud_compute_workload_placement_status_replicas_ready{resourcemanager_datumapis_com_project_name="PROJECT_ID"}
+> 0
+```
+
+### Traffic to published workloads
+
+A workload published through an ALB has the same traffic, latency, and firewall metrics as any other load balancer. Select them with `gateway_name` set to the load balancer's name, which `datumctl alb list` shows. See [ALB metrics](/alb/observability#metrics).
+
+## Logs
+
+Open a workload's **Logs** tab in the Cloud Portal to see output from its Instances. If the workload is published through an ALB, the same view also includes ALB access logs. Open an Instance's **Logs** tab to focus on that Instance's output and related ALB requests. The Overview pages show recent logs, and the Logs tabs provide a larger explorer with time and search controls.
+
+<Frame caption="A workload's Logs tab, with Instance output and ALB access logs together">
+  ![The Logs tab of a workload with filters for source, method, status code, host, and Instance, and a table mixing ALB requests and Instance output](/images/compute-workload-logs.png)
+</Frame>
+
+Instance output appears after an Instance starts writing to standard output. ALB access logs require a published workload and requests to its public endpoint. If you don't see expected entries, check that the Instance is running, select a time range that includes the activity, and confirm that requests reached the ALB.
+
+To read logs from a terminal, use `datumctl compute logs`. Each line starts with the Instance it came from:
+
+```text
+$ datumctl compute logs api --since 10m --tail 3
+[us-west-us-west-1-0/api]       Oct 20 01:32:26.375  "POST /submit HTTP/1.1" 303 223 "-" "curl/8.18.0"
+[us-central-us-central-1-0/api] Oct 20 01:32:35.966  INFO app: processed order 1042
+[us-west-us-west-1-1/api]       Oct 20 01:32:42.376  "GET /orders HTTP/1.1" 200 2185 "-" "curl/8.18.0"
+```
+
+Useful flags:
+
+- `-f` follows new lines as they arrive.
+- `--location us-east-1` and `--instance NAME` narrow the logs to some Instances.
+- `--search error` shows only lines that contain the text.
+- `--previous` shows the logs of each Instance's previous generation, such as before a crash or restart.
+- `--alb` shows the access logs of the workload's load balancer instead.
+
+For more, see [View Compute logs with datumctl](/datumctl/compute/viewing-logs).
+
+To find who changed a workload's configuration, see [Activity logs](/operations/activity-logs). Activity logs record resource changes; the Logs tab shows output from running Instances and requests to the ALB.

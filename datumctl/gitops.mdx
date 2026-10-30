@@ -85,7 +85,7 @@ jobs:
       # Installs datumctl and signs in a service account
       - uses: datum-cloud/setup-datumctl-action@v1
         with:
-          service-account-key: ${{ secrets.DATUM_SERVICE_ACCOUNT_KEY }}
+          credentials: ${{ secrets.DATUM_SA_CREDENTIALS }}
 
       # Write a kubeconfig for the target project's control plane.
       # --exec-interactive-mode Never keeps the exec plugin non-interactive.

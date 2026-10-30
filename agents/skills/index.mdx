@@ -3,9 +3,9 @@ title: "Overview"
 description: "Self-contained instructions that teach AI agents how to perform Datum Cloud tasks."
 ---
 
-Skills are folders containing a `SKILL.md` file with metadata and step-by-step instructions. Agents discover and load them on demand — no scaffolding, no config files. Datum's official skills cover the most common operations across Application Load Balancer, DNS, Domains, and Metrics Export, with more on the way.
+Skills are folders containing a `SKILL.md` file with metadata and step-by-step instructions. Agents discover and load them on demand — no scaffolding, no config files. Datum's official skills cover the most common operations across the [Application Load Balancer](/alb/overview), [gVPC](/galactic-vpc/overview) networks, [authoritative DNS](/domain-dns/dns), [domains](/domain-dns/domains), and [metrics export](/operations/metrics-export), with more on the way.
 
-These skills work with any agent with support for Skills like but not limited to: Claude, Codex, Cursor, Pi, OpenCode, Mistral Vibe.
+These skills work with any agent that supports Skills, including Claude, Codex, Cursor, Pi, OpenCode, and Mistral Vibe.
 
 ## Install
 
@@ -14,8 +14,7 @@ Datum's skills live at **[github.com/datum-cloud/skills](https://github.com/datu
 <CodeGroup>
 
 ```bash Claude Code
-/plugin marketplace add datum-cloud/skills
-/plugin install datum-cloud@datum-cloud
+claude plugin marketplace add datum-cloud/claude-code-plugins && for p in datum-cloud datum-networking datum-dns datum-compute milo-observe; do claude plugin install "$p@datum-claude-code-plugins" || break; done
 ```
 
 ```bash npx skills
@@ -29,20 +28,23 @@ npx skills add https://github.com/datum-cloud/skills
 
 </CodeGroup>
 
+In Claude Code, the `datum-cloud` plugin also starts [Datum MCP](/agents/datum-mcp) and the [Datum Docs MCP](/agents/datum-mcp#datum-docs-mcp) server for you, and adds skills to sign in and pick a project, set up a [service account](/projects/service-accounts) for CI, and hand a question to [Patch](/datumctl/ai/assistant). Install the `datum-mcp` binary first; see [Install](/agents/datum-mcp#install). The command also installs the plugins for each Datum product, and is safe to run again. To pick plugins yourself, browse the marketplace with `/plugin` inside Claude Code.
+
 ## Available skills
 
 | Skill | Covers | Resources |
 |---|---|---|
-| [Application Load Balancer](/agents/skills/alb) | WAF, traffic protection, auth policies | TrafficProtectionPolicy, SecurityPolicy, BackendTrafficPolicy, Gateway, HTTPRoute |
-| [Client Traffic](/agents/skills/client-traffic) | TLS termination, HTTP/3, connection limits | ClientTrafficPolicy, Gateway |
-| [DNS](/agents/skills/dns) | Zones and records | DNSZone, DNSRecordSet, DNSZoneClass |
-| [Domains](/agents/skills/domains) | Domain attachment and verification | Domain |
-| [HTTPRoute](/agents/skills/httproute) | Path routing, traffic splitting, redirects, rewrites | HTTPRoute, Gateway |
-| [Metrics Export](/agents/skills/metrics-export) | Prometheus remote write pipelines | ExportPolicy |
+| [Application Load Balancer](/agents/skills/alb) | Load balancers, hostnames, routes and origins, WAF, auth. Ships in the `datum-networking` Claude Code plugin | HTTPProxy, Domain, TrafficProtectionPolicy, SecurityPolicy, BackendTrafficPolicy |
+| [Client Traffic](/agents/skills/client-traffic) (not available yet) | TLS termination, HTTP/3, connection limits. Ships in the `datum-networking` Claude Code plugin | ClientTrafficPolicy, Gateway |
+| [DNS](/agents/skills/dns) | Zones and records, troubleshooting, and moving a domain in. Ships in the `datum-dns` Claude Code plugin | DNSZone, DNSRecordSet, DNSZoneClass |
+| [Domains](/agents/skills/domains) | Domain attachment and verification. Ships in the `datum-networking` Claude Code plugin | Domain |
+| [HTTPRoute](/agents/skills/httproute) | Path routing, traffic splitting, redirects, rewrites. Ships in the `datum-networking` Claude Code plugin | HTTPRoute, Gateway |
+| [Metrics Export](/agents/skills/metrics-export) | Prometheus remote write pipelines. Ships in the `milo-observe` Claude Code plugin | ExportPolicy |
+| [Networks](/agents/skills/networks) | gVPC networks, network services, and network interfaces. Ships in the `datum-networking` Claude Code plugin | Network, NetworkService, NetworkInterface |
 
 ## How skills work alongside Datum MCP and datumctl
 
-Skills tell the agent *how* to think about a Datum resource — the canonical patterns, the right flags, the order of operations. Datum MCP and `datumctl` are *how* the agent acts. A skill might instruct "always preview HTTPProxy changes with `--dry-run` before applying" — the agent then uses `datumctl` to actually run the command. See [Agents Overview](/agents/overview) for the full picture.
+Skills tell the agent *how* to think about a Datum resource — the canonical patterns, the right flags, the order of operations. [Datum MCP](/agents/datum-mcp) and `datumctl` are *how* the agent acts. A skill might instruct "always preview HTTPProxy changes with `--dry-run` before applying" — the agent then uses `datumctl` to actually run the command. For open-ended diagnostic questions, an agent can also hand off to [Patch](/datumctl/ai/assistant), Datum's own assistant. See [Agents Overview](/agents/overview) for the full picture.
 
 ## Contributing
 

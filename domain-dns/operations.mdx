@@ -1,0 +1,298 @@
+---
+title: "DNS operations"
+sidebarTitle: "Operations"
+description: "Create, update, import, export, and delete DNS zones and records with the datumctl dns plugin, manifests, or ExternalDNS."
+---
+
+This page covers day-to-day work with DNS zones and records. Most examples use the `datumctl dns` plugin, which is the quickest way to manage DNS from a terminal. Every zone and record is also a resource in your project, so you can manage them with manifests and GitOps as well. See [Manage DNS with manifests](#manage-dns-with-manifests).
+
+## Before you begin
+
+- Install `datumctl` and log in. For more information, see [Install](/datumctl/install).
+- Select a project with `datumctl ctx use ORG_ID/PROJECT_ID`, or add `--project PROJECT_ID` to each command.
+- Install the `dns` plugin from the official catalog:
+
+  ```bash
+  datumctl plugin install dns
+  datumctl dns version
+  ```
+
+  `datumctl dns version` needs no login, project, or network, so it's a good first check when something else fails.
+- Verify that you own the domain. Datum serves a zone only for a verified domain. For more information, see [Verify a domain](/domain-dns/domains#verify-a-domain).
+
+If a command reports that DNS isn't enabled for your project, enable it. To see the services available to your project, run `datumctl services list`.
+
+```bash
+datumctl services enable dns.networking.miloapis.com --wait
+```
+
+## Create a zone
+
+A zone holds the records for one domain. To create one, run the following command, replacing `example.com` with a domain that you control:
+
+```bash
+datumctl dns zone create example.com
+```
+
+The command waits up to 2 minutes for Datum to assign nameservers, then prints them. If the domain isn't verified yet, Datum still creates the zone, but assigns no nameservers and reports `Waiting for domain ownership verification before provisioning DNS`. Records that you add stay `Rejected` until you [verify the domain](/domain-dns/domains#verify-a-domain). Add `--no-wait` to return as soon as the zone exists, or `--description "production apex"` to label it.
+
+<Warning>
+  You can't change a zone's domain name after you create it. To use a different domain, create a new zone.
+</Warning>
+
+## Point your domain at Datum
+
+Your domain doesn't resolve through Datum until your registrar publishes Datum's nameservers. To see the nameservers assigned to your zone, run the following command:
+
+```bash
+datumctl dns zone nameservers example.com
+```
+
+Set those nameservers at your registrar, then check delegation against public DNS:
+
+```bash
+datumctl dns zone nameservers example.com --check
+```
+
+`--check` asks the public DNS what your domain actually delegates to, so it tells you whether delegation works rather than what Datum expects.
+
+| Delegation | What it means |
+| --- | --- |
+| `Complete` | Your registrar publishes every assigned nameserver. |
+| `Partial` | Your registrar publishes some of them, usually from a half-finished edit. |
+| `Incomplete` | Your registrar publishes none of them. |
+| `Unknown` | There's nothing to compare yet. This is normal for the first few minutes after you create a zone. |
+
+Registrar changes take time to spread. Allow for the parent zone's TTL before you treat a change as failed.
+
+<Warning>
+  Datum DNS doesn't support DNSSEC yet. If DNSSEC is on for your domain, turn it off and wait for the `DS` record to expire before you change nameservers. Otherwise your domain stops resolving for most of the internet. See [DNSSEC](/domain-dns/dns#dnssec).
+</Warning>
+
+## Add and change records
+
+Give the zone, the name, the type, and one or more values. Names are relative to the zone: `www`, `*`, `_dmarc`, or `@` for the domain itself.
+
+```bash
+datumctl dns record create example.com www A 203.0.113.10
+```
+
+`create` adds to the values already at that name. `set` replaces everything at that name:
+
+```bash
+datumctl dns record create example.com www A 203.0.113.11     # www now has two addresses
+datumctl dns record set    example.com www A 203.0.113.20     # www now has only this one
+```
+
+Add `--wait` to wait until the record is live, or `--dry-run` to check a command without changing anything.
+
+Simple types take their value as an argument. Types with several parts take named flags:
+
+```bash
+datumctl dns record set    example.com @   TXT "v=spf1 include:_spf.example.com ~all"
+datumctl dns record create example.com cdn CNAME lb.example.net.
+datumctl dns record create example.com @   MX --preference 10 --exchange mail.example.com.
+datumctl dns record create example.com @   CAA --flag 0 --tag issue --value letsencrypt.org
+datumctl dns record create example.com _sip._tcp SRV --priority 10 --weight 5 --port 5060 --target sip.example.com.
+datumctl dns record create example.com api HTTPS --priority 1 --target . --param alpn=h3,h2
+```
+
+You can also paste a record in zone-file form, as it appears in `dig` output or a provider export:
+
+```bash
+datumctl dns record create example.com --line "www 300 IN A 203.0.113.10"
+```
+
+For long TXT values such as DKIM keys, `--data` reads a file with `@path`, or standard input with `-`:
+
+```bash
+datumctl dns record create example.com selector1._domainkey TXT --data @dkim.txt
+```
+
+Two rules catch most mistakes:
+
+- **Names are relative.** Use `www`, not `www.example.com`. Use `@` for the domain itself.
+- **Targets are absolute.** End every hostname inside a value with a dot: `mail.example.com.`, not `mail`.
+
+For the record types Datum supports, see [Authoritative DNS](/domain-dns/dns). To point a name at a load balancer, see [Point a domain at a load balancer](/domain-dns/point-to-alb).
+
+### Set a TTL
+
+`--ttl` takes seconds or a duration, such as `--ttl 300`, `--ttl 5m`, or `--ttl 1h30m`. A record without `--ttl` uses `Auto`, which is 5 minutes.
+
+## List and inspect
+
+To list your zones, run the following command:
+
+```bash
+datumctl dns zone list
+```
+
+Each zone shows its status, record count, nameservers, and whether it's delegated to Datum. Filter with `--status ok|pending|error`.
+
+To see a zone's delegation, a count of its records by type, and suggested next steps, run the following command:
+
+```bash
+datumctl dns zone describe example.com
+```
+
+To list a zone's records, one row per value, run the following command:
+
+```bash
+datumctl dns record list example.com
+```
+
+Filter with `--type A,MX`, `--name www`, or `--status programmed|pending|conflict|not-owner|error|rejected`. Add `--no-managed` to hide the records Datum manages for you and see only your own.
+
+To see one name's values, fields, and why each one is or isn't live, run the following command:
+
+```bash
+datumctl dns record describe example.com www
+```
+
+## Delete records and zones
+
+To remove one value, pass it. To remove everything at a name and type, leave the value off:
+
+```bash
+datumctl dns record delete example.com www A 203.0.113.11
+datumctl dns record delete example.com www A
+```
+
+To delete a zone, run the following command:
+
+```bash
+datumctl dns zone delete example.com
+```
+
+<Warning>
+  Deleting a zone deletes every record in it, and the domain stops resolving through Datum.
+</Warning>
+
+Destructive commands ask you to confirm by typing the name. In a script, pass `--yes`. Without a terminal and without `--yes`, they refuse to run.
+
+## Move a zone to Datum
+
+To bring a zone from another provider, import a zone file you exported there:
+
+```bash
+datumctl dns zone import example.com --file example.com.zone --dry-run
+datumctl dns zone import example.com --file example.com.zone
+```
+
+Add `--replace` to overwrite the existing records of each type in the file instead of adding to them. If you don't have a zone file, take a snapshot of what the domain resolves to today:
+
+```bash
+datumctl dns zone import example.com --discover
+```
+
+The importer skips `DS`, `DNSKEY`, `RRSIG`, `NSEC`, and `NSEC3` records and lists them in a warning. That's expected, because Datum DNS doesn't support DNSSEC yet.
+
+Before you import, review what doesn't carry over cleanly:
+
+- **TTLs.** The importer takes each TTL exactly as the file writes it, including any long TTL you lowered for the migration. Check them after the import.
+- **Apex CNAME records.** Standard DNS doesn't allow a CNAME at the zone apex. Some providers accept one through a proprietary extension. Recreate it as an [ALIAS record](/domain-dns/dns#what-is-an-alias-record).
+- **ALIAS, ANAME, and flattened CNAME records.** Providers name these differently, and a BIND zone file can't represent them. Recreate them by hand as ALIAS records.
+- **Provider-specific record types.** Redirect records and pointers to provider-hosted services aren't DNS records. Rebuild that behavior with a service such as an [Application Load Balancer](/alb/overview).
+- **The old SOA and apex NS records.** They name your old provider's nameservers. Leave them out, because [Datum manages them](#records-that-datum-manages) for each zone.
+
+When the records look right, [point your domain at Datum](#point-your-domain-at-datum).
+
+## Export a zone and keep it in sync
+
+To write a zone out in BIND format, run the following command:
+
+```bash
+datumctl dns zone export example.com > example.com.zone
+```
+
+`ALIAS` isn't a standard record type, so other providers and BIND tools reject those lines. The command warns about them.
+
+To make a zone match a zone file, use `record apply`. Run it with `--dry-run` first to see what would change:
+
+```bash
+datumctl dns record apply example.com -f example.com.zone --dry-run
+datumctl dns record apply example.com -f example.com.zone
+```
+
+By default, `apply` only adds and updates records. Add `--prune` to also delete records that the file doesn't mention. An unchanged file reports `No changes.`, so `apply --dry-run` also works as a drift check. See [Observability](/domain-dns/observability#check-for-drift).
+
+## Records that Datum manages
+
+Datum manages some records for you: each zone's `SOA` and apex `NS` records, and the records that an [Application Load Balancer](/alb/overview) creates for its hostnames. `record apply` never changes or prunes them, and if you edit one by hand, Datum changes it back. To see them, run `datumctl dns record list example.com --managed`.
+
+## Script with datumctl dns
+
+Every command accepts `-o table|wide|json|yaml|name`. Data goes to standard output and everything else to standard error, so `-o json > file.json` is always clean:
+
+```bash
+datumctl dns zone list -o json | jq -r '.items[].spec.domainName'
+datumctl dns zone list -o name | xargs -n1 datumctl dns zone describe
+```
+
+The table view can change between releases. Script against `-o json` or `-o name`.
+
+Scripts can rely on the exit codes:
+
+| Code | Name | Meaning |
+| --- | --- | --- |
+| 0 | — | Success |
+| 1 | `DNS_ERROR` | Unexpected failure |
+| 2 | `DNS_USAGE` | Bad flags, arguments, or record values |
+| 3 | `DNS_FORBIDDEN` | Not authorized, or DNS isn't enabled for the project |
+| 4 | `DNS_NOT_FOUND` | Zone or record not found |
+| 5 | `DNS_CONFLICT` | Something else already owns that name |
+| 6 | `DNS_INVALID` | Datum rejected the request |
+| 8 | `DNS_UNAVAILABLE` | Can't reach the DNS API |
+| 9 | `DNS_ABORTED` | You declined a confirmation |
+
+A bulk operation that partly fails never exits `0`.
+
+## Manage DNS with manifests
+
+Zones and records are `DNSZone` and `DNSRecordSet` resources in the `dns.networking.miloapis.com/v1alpha1` API, so you can keep them in Git and apply them with `datumctl` or a [GitOps tool](/datumctl/gitops):
+
+```yaml
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSZone
+metadata:
+  name: example-com
+spec:
+  domainName: example.com
+  dnsZoneClassName: datum-external-global-dns
+---
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSRecordSet
+metadata:
+  name: www-a
+spec:
+  dnsZoneRef:
+    name: example-com
+  recordType: A
+  records:
+    - name: www
+      ttl: 300
+      a:
+        content: "203.0.113.10"
+```
+
+To see the zone classes available to your project, run `datumctl get dnszoneclasses`. To preview and apply the manifests, run the following commands:
+
+```bash
+datumctl diff -f dns.yaml
+datumctl apply -f dns.yaml
+```
+
+Each entry in `records` holds one value. To give a name several addresses, add one entry per value.
+
+## Automate records with ExternalDNS
+
+If you run Kubernetes clusters of your own, [ExternalDNS](https://github.com/kubernetes-sigs/external-dns) can create Datum DNS records for your services and routes automatically. Datum's [ExternalDNS webhook provider](https://github.com/datum-cloud/external-dns-webhook) runs as a sidecar next to ExternalDNS and turns its records into `DNSRecordSet` resources in your project.
+
+The webhook:
+
+- Manages only hostnames that fall inside one of your `DNSZone` resources.
+- Sends each record to the most specific matching zone, so `app.sub.example.com` goes to the `sub.example.com` zone rather than `example.com`.
+- Labels each record with an owner ID, and changes only the records it owns. Records you create by hand, and records from another ExternalDNS instance, are left alone.
+
+To install it, deploy ExternalDNS with the webhook provider set to `ghcr.io/datum-cloud/external-dns-webhook`, and give it a unique `--owner-id`. The [webhook's README](https://github.com/datum-cloud/external-dns-webhook#installation) has a Helm example and the required permissions. To give it credentials for your project, use a [service account](/projects/service-accounts) with a kubeconfig from `datumctl auth update-kubeconfig`. See [Using datumctl with kubectl](/datumctl/kubectl-interop).

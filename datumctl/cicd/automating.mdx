@@ -12,24 +12,9 @@ description: "Run datumctl non-interactively in any pipeline — headless servic
 
 ## Authenticate as a service account
 
-Interactive browser login is the default, and it is the wrong choice for a pipeline — there is no browser to open and no prompt a build agent can answer. Instead, authenticate with a **service account** credentials file using `datumctl login --credentials`:
+Interactive browser login is the default, and it is the wrong choice for a pipeline — there is no browser to open and no prompt a build agent can answer, and the `--no-browser` device flow needs a person to approve a code. Instead, authenticate with a **service account** credentials file using `datumctl login --credentials`. For the credentials file, custom environments, and how to confirm the active identity, see [Service accounts](/datumctl/auth/service-accounts#log-in-with-a-credentials-file). To create a service account and download its credentials file, see [Service accounts in the portal](/projects/service-accounts).
 
-```bash
-datumctl login --credentials ./datum-credentials.json
-```
-
-This performs a non-interactive login: `datumctl` signs a JWT with the service account's private key, exchanges it for an access token, and stores the resulting session so subsequent commands are authenticated. No browser, no device code, no `--no-browser` device flow.
-
-<Note>
-  Create the service account and download its credentials JSON before you can log in this way. See [Service accounts](/platform/service-accounts) for creating an account, choosing a Datum-managed key, and downloading the one-time credentials file. Treat that file like a password — inject it from your CI secret store, never commit it.
-</Note>
-
-For a self-hosted or otherwise custom environment, point login at that environment's auth host:
-
-```bash
-datumctl login --credentials ./datum-credentials.json \
-  --hostname auth.example.com
-```
+In a pipeline, the steps are:
 
 <Steps>
   <Step title="Store the credentials JSON as a secret">
@@ -114,11 +99,15 @@ datumctl get projects --organization does-not-exist --error-format json
 | `1` | A general error — unknown command, invalid flag value, authentication failure, or a failed API request. |
 | `>1` | A lower-level fatal error from the underlying request machinery. |
 
-`datumctl diff` is the exception: it exits `0` when there are no differences, `1` when there are, and `>1` on error — which makes it a useful gate before a write.
+`datumctl diff` is the exception: it exits `0` when there are no differences, `1` when there are, and `>1` on error. Exit code `1` is not a failure, so don't chain `diff && apply`: the apply would run only when there is nothing to change. Handle each code explicitly:
 
 ```bash
-datumctl diff -f ./project.yaml --organization "$DATUM_ORG" \
-  && datumctl apply -f ./project.yaml --organization "$DATUM_ORG"
+datumctl diff -f ./project.yaml --organization "$DATUM_ORG"
+case $? in
+  0) echo "No changes." ;;
+  1) datumctl apply -f ./project.yaml --organization "$DATUM_ORG" ;;
+  *) echo "diff failed" >&2; exit 1 ;;
+esac
 ```
 
 <Warning>
@@ -153,6 +142,6 @@ This is expected and harmless on an ephemeral runner. To keep it clean:
 
 - [GitHub Actions](/datumctl/cicd/github-actions) — install and authenticate `datumctl` in a GitHub workflow in a single step.
 - [Service accounts](/datumctl/auth/service-accounts) — the credentials-file format and how to use it with `datumctl login --credentials`.
-- [Create a service account in the portal](/platform/service-accounts) — generate and download the credentials this page consumes.
+- [Create a service account in the portal](/projects/service-accounts) — generate and download the credentials this page consumes.
 - [Output formats & scripting](/datumctl/output-and-scripting) — the `-o json` output modes, error envelope, and exit-code semantics.
 - [Using datumctl with kubectl](/datumctl/kubectl-interop) — the `datumctl auth get-token` credential-helper mode for kubectl in CI.

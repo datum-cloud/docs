@@ -49,15 +49,13 @@ The **Name** column is the reference you pass to `datumctl ctx use`: a bare orga
 
 ### Keeping the list current
 
-The context list is cached locally so listing is instant. When you run `datumctl ctx` and the cache is more than an hour old, `datumctl` refreshes it from the API automatically before printing. To force a refresh at any time — for example, right after you have been granted access to a new project — use the `--refresh` flag:
+`datumctl ctx` always fetches your contexts live from the API, so an organization or project you were just given access to appears right away. There's nothing to refresh.
+
+To list the contexts of every account you're signed in with, grouped by account, add `--all`:
 
 ```bash
-datumctl ctx --refresh
+datumctl ctx --all
 ```
-
-<Note>
-  `--refresh` re-runs discovery using your existing session; it does not require you to log in again. There is no separate `refresh` subcommand — refreshing is a flag on `datumctl ctx`.
-</Note>
 
 ## Switching the active context
 
@@ -139,7 +137,7 @@ Work through this checklist:
 
 <Steps>
   <Step title="Confirm the active context">
-    Run `datumctl ctx` and look for the `*`. Make sure it points at the org or project that actually contains your resource.
+    Run `datumctl ctx` and look for the `*`. Make sure it points at the org or project that contains your resource.
   </Step>
   <Step title="Check for an override you forgot about">
     An exported `DATUM_PROJECT` or `DATUM_ORGANIZATION` environment variable silently redirects every command. Unset it if it isn't what you want:
@@ -155,12 +153,8 @@ Work through this checklist:
     datumctl get dnszones --project my-project
     ```
   </Step>
-  <Step title="Refresh if the context is missing">
-    If the project or organization you expect isn't listed by `datumctl ctx`, refresh the cache — you may have just been granted access:
-
-    ```bash
-    datumctl ctx --refresh
-    ```
+  <Step title="Check your account if the context is missing">
+    `datumctl ctx` lists contexts live, so if a project or organization you expect isn't listed, your active account doesn't have access to it. Check which account is active with `datumctl whoami`, and list the contexts of every signed-in account with `datumctl ctx --all`.
   </Step>
 </Steps>
 

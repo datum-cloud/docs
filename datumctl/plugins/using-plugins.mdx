@@ -4,7 +4,7 @@ sidebarTitle: "Using plugins"
 description: "Install, run, and manage datumctl plugins that extend the CLI with additional commands."
 ---
 
-Plugins extend `datumctl` with additional commands without changing the core CLI. A plugin is an independent binary that datumctl runs on your behalf — once installed, you invoke it exactly like a built-in command.
+Plugins extend `datumctl` with additional commands without changing the core CLI. A plugin is an independent binary that datumctl runs on your behalf — once installed, you invoke it exactly like a built-in command. For the thinking behind plugins, see [Extending our CLI with plugins](https://www.datum.net/blog/extending-our-cli-with-plugins/) on the Datum blog.
 
 <Info>
   Plugins are optional. You never need one to use `datumctl`, and the core CLI works the same whether or not you have any installed.
@@ -17,6 +17,8 @@ When you install the `compute` plugin from the official **datum** catalog, its c
 ```bash
 datumctl compute --help
 ```
+
+(See [Compute](/datumctl/compute/overview) for what that plugin does.)
 
 datumctl injects your current organization, project, and a fresh short-lived access token into the plugin automatically, so plugins work with your [active context](/datumctl/contexts-and-scoping) and [credentials](/datumctl/auth/managing-accounts) without a separate login.
 
@@ -51,6 +53,8 @@ datumctl plugin browse
 
 ## Installing a plugin
 
+Datum's own plugins are documented with the products they manage. For example, see [DNS operations](/domain-dns/operations) for the `dns` plugin and [Compute commands](/datumctl/compute/overview) for the `compute` plugin.
+
 Install by name from a catalog:
 
 ```bash
@@ -65,10 +69,10 @@ You can also install directly from a GitHub release, without a catalog:
 
 ```bash
 # Latest release
-datumctl plugin install your-org/datumctl-dns
+datumctl plugin install your-org/datumctl-example
 
 # A specific release
-datumctl plugin install your-org/datumctl-dns@v1.2.0
+datumctl plugin install your-org/datumctl-example@v1.2.0
 ```
 
 <Info>
@@ -85,7 +89,7 @@ datumctl plugin install compute@v0.8.0-dev.7
 datumctl plugin install acme/deploy@v2.0.0
 
 # Pin a GitHub release
-datumctl plugin install your-org/datumctl-dns@v1.2.0
+datumctl plugin install your-org/datumctl-example@v1.2.0
 ```
 
 Without `@version`, datumctl installs the version the catalog recommends.
@@ -137,6 +141,8 @@ datumctl plugin upgrade compute
 datumctl plugin remove compute
 ```
 
+To upgrade every plugin you have installed at once, run `datumctl plugin upgrade --all`. `datumctl plugin list` shows `update` in the `STATUS` column for any plugin with a newer version.
+
 `plugin upgrade` runs the same verified install flow as a fresh install.
 
 ## How plugins stay trustworthy
@@ -169,5 +175,5 @@ Trusting records the binary's path and fingerprint. If the binary changes afterw
 
 - [Adding catalogs](/datumctl/plugins/adding-catalogs) — register additional or internal marketplaces
 - [Building plugins](/datumctl/plugins/building-plugins) — write your own plugin with the Go SDK
-- [Quickstart](/datumctl/quickstart) — new to `datumctl`? Install and log in first
+- [Install](/datumctl/install) — new to `datumctl`? Install and log in first
 - [Contexts & scoping](/datumctl/contexts-and-scoping) — the organization and project a plugin inherits when it runs

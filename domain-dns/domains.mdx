@@ -1,13 +1,13 @@
 ---
 title: "Domains"
-description: "Track your domains in one place regardless of where they are registered to gain programmatic access to foundational infrastructure components."
+description: "Track and verify the domains you own, wherever they are registered."
 ---
 
 <Note>
 **Working with this resource via an AI agent?** Datum publishes a [Domains skill](/agents/skills/domains) that teaches agents the canonical patterns for this resource.
 </Note>
 
-At Datum, domains are just another type of resource.
+At Datum, a domain is a resource like any other.
 
 By tracking your domains in one place (regardless of where they are registered or where DNS is hosted), you and your colleagues gain programmatic access to a foundational component of your infrastructure. No more spreadsheets!
 
@@ -21,7 +21,7 @@ You can add and manage domains through the Datum Cloud portal as well as our pro
 
 - Add a single domain - Type in the domain name and a resource is created.
 - Bulk upload domains - Copy and paste multiple domains or import via a .csv or .txt file.
-- Application Load Balancer - Adding a custom hostname to an Application Load Balancer will create a domain resource.
+- [Application Load Balancer](/alb/overview) - Adding a custom hostname to an Application Load Balancer will create a domain resource.
 
 <Frame caption="Details on each domain are provided via public sources">
   ![Domain Details](/images/domain-details.png)
@@ -34,3 +34,22 @@ Once you add a domain as a resource, you can verify ownership. Verified domains 
 <Frame caption="Verify ownership by adding a DNS record">
   ![Domain Verification](/images/domain-verification.png)
 </Frame>
+
+Datum gives you two ways to prove ownership, and checks both. Each domain's status holds the exact values to use:
+
+```bash
+datumctl get domain DOMAIN_NAME --project PROJECT_ID -o yaml
+```
+
+| Method | Status field | What to do |
+| --- | --- | --- |
+| DNS record | `status.verification.dnsRecord` (`name`, `type`, `content`) | Create the record exactly as given at the domain's DNS provider. |
+| HTTP token | `status.verification.httpToken` (`url`, `body`) | Serve `body` at `url`, over plain HTTP, from the domain itself. |
+
+Use the DNS record unless you can't change the domain's DNS. The HTTP token only works when the domain already serves your own content: a domain that is parked at its registrar returns the registrar's page, so the token check fails.
+
+Datum retries verification on its own, and `status.verification.nextVerificationAttempt` shows when. For records that don't seem to take effect, see [Prove you own the domain](/alb/operations/custom-domains#prove-you-own-the-domain).
+
+## Moving DNS hosting to Datum
+
+A domain's registration details include its DNSSEC status as reported by the registry. Datum DNS doesn't currently support DNSSEC. If DNSSEC is on for a domain, turn it off before you point the domain at Datum's nameservers. See [DNSSEC](/domain-dns/dns#dnssec) for the steps.
