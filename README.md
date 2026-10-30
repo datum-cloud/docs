@@ -25,6 +25,7 @@ mintlify dev
 ```
 ├── docs.json           # Mintlify configuration (navigation, redirects, theme)
 ├── index.mdx           # Landing page (Introduction > Overview)
+├── changelog.mdx       # Release notes, curated from GitHub changelog discussions
 ├── get-involved.mdx    # Community and contributing
 ├── locations.mdx       # Regions and availability zones
 ├── desktop-apps.mdx    # Desktop Apps tab

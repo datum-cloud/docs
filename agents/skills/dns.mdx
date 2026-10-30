@@ -1,70 +1,62 @@
 ---
 title: "DNS skill"
-description: "Teach agents to manage DNS zones and record sets in Datum Cloud using datumctl."
+description: "Teach agents to create and troubleshoot DNS zones and records in Datum Cloud, and to move a domain in from another provider."
 ---
 
-The DNS skill helps agents manage [DNS](/domain-dns/dns) zones and record sets in Datum Cloud — creating, inspecting, updating, and deleting `DNSZone` and `DNSRecordSet` resources within a project. It covers all supported record types (A, AAAA, CNAME, MX, TXT, ALIAS, CAA, SRV, and more) and teaches agents to validate propagation after changes.
+The DNS skills help agents work with [Authoritative DNS](/domain-dns/dns) zones and records in Datum Cloud. They add records, find out why a domain isn't resolving, and move a domain in from another DNS provider. The troubleshooting steps are the same ones [Patch](/datumctl/ai/assistant), Datum's own assistant, follows. Agents read live zone and record status through [Datum MCP](/agents/datum-mcp).
+
+The skills ship in the `datum-dns` Claude Code plugin. Installing it also installs the `datum-cloud` plugin, which runs Datum MCP. Install the `datum-mcp` binary first; see [Install](/agents/datum-mcp#install).
 
 ## Install
 
 <CodeGroup>
 
 ```bash Claude Code
-/plugin marketplace add datum-cloud/skills
-/plugin install datum-cloud@datum-cloud
-```
-
-```bash npx skills
-npx skills add https://github.com/datum-cloud/skills
-```
-
-```bash Cursor
-# Settings → Rules → Add Rule → Remote Rule (GitHub)
-# Repository: datum-cloud/skills
+/plugin marketplace add datum-cloud/claude-code-plugins
+/plugin install datum-dns@datum-claude-code-plugins
 ```
 
 </CodeGroup>
 
+For other agents, copy the [skill folders](https://github.com/datum-cloud/dns-operator/tree/main/claude-plugin/skills) into your agent's skills directory, and connect [Datum MCP](/agents/datum-mcp) so the agent can read zone and record status.
+
 <Note>
-Once installed, the skill activates automatically when you ask an agent to work with DNS on Datum. No further configuration needed.
+Once installed, the skills activate automatically when you ask an agent to work with DNS on Datum. No further configuration needed.
 </Note>
 
 ## Capabilities
 
-- List and describe DNS zones in a project
-- Create DNS zones from YAML manifests
-- Manage DNS record sets (A, AAAA, CNAME, MX, TXT, ALIAS, CAA, SRV, and more)
-- Set and update TTL per record entry
-- Apply changes idempotently
-- Preview changes before applying with `datumctl diff`
-- Delete DNS zones and record sets safely
-- Validate DNS propagation via status conditions and external `dig` queries
-- Check for [DNSSEC](/domain-dns/dns#dnssec) before a nameserver cutover, and walk the user through turning it off (Datum DNS doesn't currently support DNSSEC)
-- Check permissions before acting
+- Find out why a domain isn't resolving, checking domain verification, the zone, registrar delegation and then individual records, in that order
+- Name exactly which nameservers are missing at the registrar
+- Explain why a record isn't live, or reports `NotOwner` or `Conflict`, and what has to change
+- Explain why a record managed by a Gateway, a connector or Datum itself won't stay edited, and where the real change belongs
+- Add a record, checking first that no other record set already holds the name, and write it only after you approve it
+- Move a domain in from another provider with `/datum-dns:move-zone`. It checks [DNSSEC](/domain-dns/dns#dnssec) before the nameserver cutover, previews the import, and asks before every write
+- Run the [`datumctl dns`](/domain-dns/operations) commands to create, list, change, export and delete zones and records
 
 ## How it relates to other Datum surfaces
 
-- **Product docs:** [DNS](/domain-dns/dns) — the human-facing reference for DNS zones and records
-- **Datum MCP:** [Datum MCP](/agents/datum-mcp) — for agents that need live read/write access to DNS resources during a session
-- **`datumctl`:** [datumctl overview](/datumctl/overview) — `get`, `describe`, `apply`, `diff`, `delete` commands the skill teaches agents to use
+- **Product docs:** [Authoritative DNS](/domain-dns/dns) — the human-facing reference for public DNS zones and records
+- **Datum MCP:** [Datum MCP](/agents/datum-mcp) — the live DNS tools the skills use to read zone and record status
+- **`datumctl`:** the [`datumctl dns` plugin](/domain-dns/operations) — the commands the skills run for changes you make from a terminal
 
 ## View the full skill
 
-The canonical SKILL.md lives in the [datum-cloud/skills](https://github.com/datum-cloud/skills) repo:
+The skills live in the `datum-dns` plugin in the [datum-cloud/dns-operator](https://github.com/datum-cloud/dns-operator/tree/main/claude-plugin) repo:
 
 <CardGroup cols={2}>
   <Card
     title="On GitHub"
     icon="github"
-    href="https://github.com/datum-cloud/skills/blob/main/skills/dns/SKILL.md"
+    href="https://github.com/datum-cloud/dns-operator/tree/main/claude-plugin"
   >
-    Browse the skill source, including frontmatter and full instructions.
+    Browse the plugin, its skills, and the zone move command.
   </Card>
   <Card
-    title="Raw SKILL.md"
+    title="Troubleshooting procedures"
     icon="file-code"
-    href="https://raw.githubusercontent.com/datum-cloud/skills/main/skills/dns/SKILL.md"
+    href="https://github.com/datum-cloud/dns-operator/tree/main/docs/agent/skills"
   >
-    Direct URL for agents that fetch skills by URL.
+    The step-by-step procedures the skills load through Datum MCP.
   </Card>
 </CardGroup>

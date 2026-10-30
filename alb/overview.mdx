@@ -12,6 +12,10 @@ Datum's Application Load Balancer (ALB) is an edge proxy built on [Envoy](/platf
 
 Application Load Balancers help you protect and route internet traffic to your backend services. We support HTTP(S) 1.1, HTTP/2, gRPC, and WebSockets.
 
+<Tip>
+  Running NGINX, Apache, Caddy, or Traefik in front of your app? To replace that container with an ALB, see [Use ALB as your HTTP proxy](/guides/alb-as-httpd).
+</Tip>
+
 <Frame caption="The overview for a load balancer: whether it is serving, live request rate, error rate, latency and blocked requests, and the hostnames it answers on">
   ![The Datum Cloud console showing an Application Load Balancer's overview, with live request rate, error rate, p95 latency, requests blocked by the firewall, and a panel for attaching custom hostnames](/images/alb-overview.png)
 </Frame>

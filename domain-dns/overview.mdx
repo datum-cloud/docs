@@ -1,17 +1,22 @@
 ---
 title: "Domains and DNS"
 sidebarTitle: "Overview"
-description: "Track and verify your domains in Datum, and host their DNS on Datum's global authoritative DNS."
+description: "Track and verify domains, host authoritative DNS, and resolve private names inside Datum VPCs."
 ---
 
-Datum treats domains and DNS zones as resources in your project. You track and verify domains wherever they're registered, and host their DNS on Datum's global anycast network, all through the same API as the rest of Datum.
+Datum treats domains and DNS zones as resources in your project. You can track
+and verify domains, host public zones on Datum's global anycast network, and use
+Private DNS to resolve resources inside your VPCs.
 
 <CardGroup cols={2}>
   <Card title="Domains" icon="globe" href="/domain-dns/domains">
     Track domains wherever they are registered, and verify ownership to use them with other Datum services.
   </Card>
-  <Card title="DNS" icon="server" href="/domain-dns/dns">
+  <Card title="Authoritative DNS" icon="server" href="/domain-dns/dns">
     Host authoritative DNS for your zones on Datum's global anycast network.
+  </Card>
+  <Card title="Private DNS" icon="shield-halved" href="/domain-dns/private-dns">
+    Resolve private resource and service names inside your VPCs.
   </Card>
 </CardGroup>
 

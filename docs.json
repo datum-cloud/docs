@@ -22,25 +22,6 @@
     ]
   },
   "navigation": {
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Discord",
-          "icon": "discord",
-          "href": "https://link.datum.net/discord"
-        },
-        {
-          "anchor": "YouTube",
-          "icon": "youtube",
-          "href": "https://link.datum.net/youtube"
-        },
-        {
-          "anchor": "GitHub",
-          "icon": "github",
-          "href": "https://link.datum.net/github"
-        }
-      ]
-    },
     "tabs": [
       {
         "tab": "Docs",
@@ -73,6 +54,7 @@
                 ],
                 "expanded": false
               },
+              "changelog",
               "get-involved"
             ]
           },
@@ -132,6 +114,7 @@
                 "group": "Compute",
                 "pages": [
                   "compute/overview",
+                  "compute/private-dns",
                   {
                     "group": "Runtimes",
                     "root": "compute/runtimes/overview",
@@ -225,6 +208,7 @@
                   "domain-dns/overview",
                   "domain-dns/domains",
                   "domain-dns/dns",
+                  "domain-dns/private-dns",
                   "domain-dns/operations",
                   "domain-dns/point-to-alb",
                   "domain-dns/observability",
@@ -384,7 +368,8 @@
           {
             "group": "Guides",
             "pages": [
-              "guides/overview"
+              "guides/overview",
+              "guides/alb-as-httpd"
             ]
           }
         ]
