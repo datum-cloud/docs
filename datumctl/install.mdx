@@ -113,7 +113,7 @@ This guide takes you from nothing installed to running your first command agains
     datumctl ctx use
 
     # Switch to a specific project context
-    datumctl ctx use <org-id>/<project-id>
+    datumctl ctx use your-org-id/your-project-id
     ```
   </Step>
 
@@ -127,7 +127,7 @@ This guide takes you from nothing installed to running your first command agains
     Once a context is set, list resources in it — for example the projects in your organization:
 
     ```bash
-    datumctl get projects --organization <org-id>
+    datumctl get projects --organization your-org-id
     ```
 
     Results are shown as a table by default. Add `-o json` or `-o yaml` for scripting or inspection (see [Output formats & scripting](/datumctl/output-and-scripting)), and use `datumctl api-resources` to [discover every resource type you can manage](/datumctl/discovering-resources).

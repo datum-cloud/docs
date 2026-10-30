@@ -39,16 +39,16 @@ For `datumctl get`, the supported values are:
 
 ```bash
 # Default table — human reading
-datumctl get projects --organization <org-id>
+datumctl get projects --organization your-org-id
 
 # Full resource as JSON
-datumctl get project my-project-id --organization <org-id> -o json
+datumctl get project your-project-id --organization your-org-id -o json
 
 # Full resource as YAML
-datumctl get project my-project-id --organization <org-id> -o yaml
+datumctl get project your-project-id --organization your-org-id -o yaml
 
 # Just the names, one per line
-datumctl get projects --organization <org-id> -o name
+datumctl get projects --organization your-org-id -o name
 ```
 
 ## Piping and jq patterns
@@ -57,15 +57,15 @@ Because `-o json` produces standard JSON, you can pipe it straight into [`jq`](h
 
 ```bash
 # Pull a single field out of one resource
-datumctl get project my-project-id --organization <org-id> -o json \
+datumctl get project your-project-id --organization your-org-id -o json \
   | jq -r '.metadata.name'
 
 # List returns a JSON object with an "items" array — iterate it
-datumctl get projects --organization <org-id> -o json \
+datumctl get projects --organization your-org-id -o json \
   | jq -r '.items[].metadata.name'
 
 # Filter by a status condition
-datumctl get projects --organization <org-id> -o json \
+datumctl get projects --organization your-org-id -o json \
   | jq -r '.items[] | select(.status.conditions[]?.type == "Ready") | .metadata.name'
 ```
 
@@ -73,9 +73,9 @@ The `name` format is the simplest way to feed identifiers into a loop:
 
 ```bash
 # Describe every project in an organization
-datumctl get projects --organization <org-id> -o name \
+datumctl get projects --organization your-org-id -o name \
   | while read -r ref; do
-      datumctl describe "$ref" --organization <org-id>
+      datumctl describe "$ref" --organization your-org-id
     done
 ```
 
@@ -83,7 +83,7 @@ datumctl get projects --organization <org-id> -o name \
   For extracting one or two fields you often do not need `jq` at all — a `jsonpath` expression keeps the whole thing in one process:
 
   ```bash
-  datumctl get projects --organization <org-id> \
+  datumctl get projects --organization your-org-id \
     -o jsonpath='{.items[*].metadata.name}'
   ```
 </Tip>
@@ -143,7 +143,7 @@ The `code`, `hint`, and `details` fields are omitted when they are empty, so the
 `--warnings-as-errors` is a global boolean flag (hidden from `--help` output) that causes server-side warnings returned by resource commands to be treated as failures, producing a non-zero exit. Use it in pipelines when you want deprecation notices or other API warnings to break the build rather than pass silently.
 
 ```bash
-datumctl apply -f ./project.yaml --organization <org-id> --warnings-as-errors
+datumctl apply -f ./project.yaml --organization your-org-id --warnings-as-errors
 ```
 
 ## Exit codes
@@ -167,8 +167,8 @@ datumctl apply -f ./project.yaml --organization <org-id> --warnings-as-errors
 This makes `diff` useful as a gate before writing:
 
 ```bash
-datumctl diff -f ./project.yaml --organization <org-id> \
-  && datumctl apply -f ./project.yaml --organization <org-id>
+datumctl diff -f ./project.yaml --organization your-org-id \
+  && datumctl apply -f ./project.yaml --organization your-org-id
 ```
 
 ## Wrapping datumctl in scripts and agents
@@ -201,7 +201,7 @@ A minimal, robust wrapper looks like this:
 #!/usr/bin/env bash
 set -euo pipefail
 
-ORG="my-org-id"
+ORG="your-org-id"
 
 if ! output=$(datumctl get projects --organization "$ORG" -o json --error-format json 2>err.json); then
   code=$(jq -r '.error.code // empty' err.json)

@@ -48,6 +48,21 @@ mintlify dev
 
 Each product section follows the same layout where it applies: Overview, product-specific pages, Configuration, Operations, Observability, Troubleshooting, Limits and quotas, and Limitations and roadmap. When you move a page, add a redirect for its old path in `docs.json`.
 
+## Placeholders
+
+Examples use one token per value, so the docs can fill in a signed-in user's own values:
+
+| Value     | Token             |
+| --------- | ----------------- |
+| Org       | `your-org-id`     |
+| Project   | `your-project-id` |
+| Namespace | `default`         |
+| Email     | `your-email`      |
+
+Use a plain hyphenated token, not `<project-id>`: Shiki splits `<…>` into several spans, and the token can't be replaced. Replace values only, never variable references: `PROJECT="your-project-id"` uses the token, `--project $PROJECT` stays.
+
+TODO: MetricsQL queries in the observability pages (`alb/`, `compute/`, `connectors/`, `domain-dns/`, `galactic-vpc/`) still use `PROJECT_ID`, next to other uppercase placeholders like `ALB_NAME` and `INSTANCE_NAME`. Decide whether to switch them to `your-project-id` so they are personalized too.
+
 ## Contributing
 
 1. Fork the repo and create a branch

@@ -35,7 +35,7 @@ If you have not logged in yet, the command tells you to run `datumctl login` to 
 
 ```bash
 # Switch to a specific account
-datumctl auth switch user@example.com
+datumctl auth switch your-email
 
 # Or pick from an interactive list
 datumctl auth switch
@@ -50,7 +50,7 @@ Pass the email address exactly as it appears in `datumctl auth list`. If you omi
 After switching, `datumctl` confirms the active user and shows the restored context (and endpoint, when you have sessions on more than one):
 
 ```
-✓ Switched to Ada Lovelace (user@example.com)
+✓ Switched to Ada Lovelace (your-email)
   Context:  my-project (proj-abc123)
 ```
 
@@ -62,7 +62,7 @@ Logging out removes a user's stored credentials from this machine.
 
 ```bash
 # Log out a single account
-datumctl logout user@example.com
+datumctl logout your-email
 
 # Log out every account stored on this machine
 datumctl logout --all

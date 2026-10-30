@@ -25,7 +25,7 @@ You pass the resource type and name positionally:
 
 ```bash
 # The change history for one project, oldest to newest
-datumctl activity history projects my-project-id
+datumctl activity history projects your-project-id
 ```
 
 ### See what changed with --diff
@@ -34,7 +34,7 @@ The table tells you *when* a resource changed and *who* changed it. To see *what
 
 ```bash
 # Show the spec diff between each version of the project
-datumctl activity history projects my-project-id --diff
+datumctl activity history projects your-project-id --diff
 ```
 
 <Note>
@@ -45,10 +45,10 @@ By default `history` looks back **30 days** (`now-30d`) and returns up to 100 ve
 
 ```bash
 # Only changes in the last 24 hours — narrowing to an incident window
-datumctl activity history projects my-project-id --diff --start-time now-24h
+datumctl activity history projects your-project-id --diff --start-time now-24h
 
 # An explicit calendar range
-datumctl activity history projects my-project-id \
+datumctl activity history projects your-project-id \
   --start-time 2026-06-01T00:00:00Z --end-time 2026-06-30T23:59:59Z
 ```
 

@@ -44,7 +44,7 @@ dig +short DS example.com
 
 If this prints nothing, DNSSEC isn't on and you can move to Datum without extra steps. If it prints one or more lines, DNSSEC is on.
 
-If you've added the domain to Datum, its registration details also show this. `datumctl describe domain <name> --project <project-id>` reports `status.registration.dnssec.enabled` and any `DS` records the registry has on file.
+If you've added the domain to Datum, its registration details also show this. `datumctl describe domain <name> --project your-project-id` reports `status.registration.dnssec.enabled` and any `DS` records the registry has on file.
 
 ### Turn off DNSSEC before you switch nameservers
 

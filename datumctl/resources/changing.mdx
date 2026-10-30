@@ -16,13 +16,13 @@ description: "Create, update, and delete Datum Cloud resources — with declarat
 
 ```bash
 # Apply a single manifest
-datumctl apply -f ./proxy.yaml --project my-project --namespace default
+datumctl apply -f ./proxy.yaml --project your-project-id --namespace default
 
 # Apply every manifest in a directory
-datumctl apply -f ./infra/ --organization <org-id>
+datumctl apply -f ./infra/ --organization your-org-id
 
 # Apply from stdin
-cat dnszone.yaml | datumctl apply -f - --project my-project
+cat dnszone.yaml | datumctl apply -f - --project your-project-id
 ```
 
 Manifests are YAML or JSON. Multiple resources can live in a single file separated by YAML document markers (`---`), and each manifest must set the correct `apiVersion` and `kind` for its resource type.
@@ -58,13 +58,13 @@ A typical declarative loop looks like this:
 
 ```bash
 # Create a project from a manifest
-datumctl create -f ./project.yaml --organization <org-id>
+datumctl create -f ./project.yaml --organization your-org-id
 
 # Create from stdin
-cat dnszone.yaml | datumctl create -f - --project my-project
+cat dnszone.yaml | datumctl create -f - --project your-project-id
 
 # Validate without creating
-datumctl create -f ./project.yaml --organization <org-id> --dry-run=server
+datumctl create -f ./project.yaml --organization your-org-id --dry-run=server
 ```
 
 ## Edit a resource in place
@@ -73,13 +73,13 @@ datumctl create -f ./project.yaml --organization <org-id> --dry-run=server
 
 ```bash
 # Edit a project
-datumctl edit project my-project-id --organization <org-id>
+datumctl edit project your-project-id --organization your-org-id
 
 # Edit a DNS zone in a chosen editor
-EDITOR="code --wait" datumctl edit dnszone my-zone --project my-project --namespace default
+EDITOR="code --wait" datumctl edit dnszone my-zone --project your-project-id --namespace default
 
 # Edit in JSON instead of the default YAML
-datumctl edit project my-project-id --organization <org-id> -o json
+datumctl edit project your-project-id --organization your-org-id -o json
 ```
 
 The editor is chosen from the `EDITOR` environment variable (the CLI also honors `KUBE_EDITOR`), falling back to `vi` on Linux/macOS or `notepad` on Windows. Changes are applied when you save and close the file. If the resource was modified server-side while your editor was open, `datumctl` detects the conflict and saves your edits to a temporary file so you can reconcile them.
@@ -94,20 +94,20 @@ The editor is chosen from the `EDITOR` environment variable (the CLI also honors
 
 ```bash
 # Delete by name
-datumctl delete project my-project-id --organization <org-id>
+datumctl delete project your-project-id --organization your-org-id
 
 # Delete from a manifest
-datumctl delete -f ./my-resource.yaml --organization <org-id>
+datumctl delete -f ./my-resource.yaml --organization your-org-id
 
 # Delete everything matching a label selector
-datumctl delete dnszones -l app=my-app --project my-project
+datumctl delete dnszones -l app=my-app --project your-project-id
 ```
 
 <Warning>
   `datumctl delete` has **no confirmation prompt** — it deletes immediately. It also does not perform a version check first, so a delete proceeds even if the resource changed after you last fetched it. Preview what would be removed with `--dry-run=client` before you commit:
 
   ```bash
-  datumctl delete project my-project-id --organization <org-id> --dry-run=client
+  datumctl delete project your-project-id --organization your-org-id --dry-run=client
   ```
 </Warning>
 
