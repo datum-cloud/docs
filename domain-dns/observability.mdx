@@ -28,6 +28,8 @@ datumctl dns record list example.com --status pending
 datumctl dns record list example.com --status error
 ```
 
+`Rejected` on the records of a new zone usually isn't a refusal. It means the zone's domain isn't verified yet, so Datum is waiting for you to prove you own it. [Verify the domain](/domain-dns/domains#verify-a-domain) and the records move on without being recreated.
+
 `Pending` is normal for a few moments after a change. If it lasts, ask why:
 
 ```bash

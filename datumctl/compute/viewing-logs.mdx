@@ -40,7 +40,7 @@ datumctl compute logs WORKLOAD_NAME --container=app --search=error
 datumctl compute logs WORKLOAD_NAME -o json | jq .line
 ```
 
-The command can also read logs left by replaced Instances or a deleted workload. To inspect an Instance's preceding generation, use `--instance=INSTANCE_NAME --previous` and widen the time window with `--since` if needed.
+The command can also read logs left by replaced Instances or a deleted workload. To inspect an Instance's preceding generation, use `--instance=INSTANCE_NAME --previous` and widen the time window with `--since` if needed. To find the Instance name, run `datumctl compute instances --workload=WORKLOAD_NAME` (see [Scaling and operations](/datumctl/compute/scaling-and-operations)), or read it from the prefix on each line of `datumctl compute logs WORKLOAD_NAME`.
 
 ## Read ALB access logs
 

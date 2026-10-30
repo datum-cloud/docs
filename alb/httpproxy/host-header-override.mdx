@@ -29,9 +29,9 @@ At a high level, this setup:
 
 ---
 
-## Configuration Steps
+## Configuration steps
 
-### Step 1: Set Variables
+### Step 1: Set variables
 
 <Tabs>
   <Tab title="macOS / Linux">
@@ -58,7 +58,7 @@ At a high level, this setup:
 
 ---
 
-### Step 2: Apply Host Header Configuration
+### Step 2: Apply host header configuration
 
 The `RequestHeaderModifier` filter overwrites the `Host` header before the request is forwarded upstream. The `type` field is required.
 
@@ -182,7 +182,7 @@ If `Host` shows `example.internal`, the rewrite is working correctly.
 
 ---
 
-## Best Practices
+## Best practices
 
 - Use `set` to overwrite the `Host` header — `add` appends to any existing value instead of replacing it
 - Keep the rewritten hostname consistent with what the upstream backend expects in its virtual host configuration

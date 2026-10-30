@@ -3,7 +3,7 @@ title: "DNS skill"
 description: "Teach agents to create and troubleshoot DNS zones and records in Datum Cloud, and to move a domain in from another provider."
 ---
 
-The DNS skills help agents work with [DNS](/domain-dns/dns) zones and records in Datum Cloud. They add records, find out why a domain isn't resolving, and move a domain in from another DNS provider. The troubleshooting steps are the same ones [Patch](/datumctl/ai/assistant), Datum's own assistant, follows. Agents read live zone and record status through [Datum MCP](/agents/datum-mcp).
+The DNS skills help agents work with [Authoritative DNS](/domain-dns/dns) zones and records in Datum Cloud. They add records, find out why a domain isn't resolving, and move a domain in from another DNS provider. The troubleshooting steps are the same ones [Patch](/datumctl/ai/assistant), Datum's own assistant, follows. Agents read live zone and record status through [Datum MCP](/agents/datum-mcp).
 
 The skills ship in the `datum-dns` Claude Code plugin. Installing it also installs the `datum-cloud` plugin, which runs Datum MCP. Install the `datum-mcp` binary first; see [Install](/agents/datum-mcp#install).
 
@@ -36,7 +36,7 @@ Once installed, the skills activate automatically when you ask an agent to work 
 
 ## How it relates to other Datum surfaces
 
-- **Product docs:** [DNS](/domain-dns/dns) — the human-facing reference for DNS zones and records
+- **Product docs:** [Authoritative DNS](/domain-dns/dns) — the human-facing reference for public DNS zones and records
 - **Datum MCP:** [Datum MCP](/agents/datum-mcp) — the live DNS tools the skills use to read zone and record status
 - **`datumctl`:** the [`datumctl dns` plugin](/domain-dns/operations) — the commands the skills run for changes you make from a terminal
 

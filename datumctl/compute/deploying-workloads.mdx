@@ -71,6 +71,14 @@ Redeploying without `--http-port` keeps the workload's current port and its ALB.
 
 `deploy` waits and prints progress as Instances come up, the same view `datumctl compute rollout` shows on demand. For more information, see [Operations](/datumctl/compute/scaling-and-operations). Press Control+C to detach from the watch. The rollout continues in the background. To reattach, run `datumctl compute rollout api`.
 
+## Going back to a previous image
+
+There's no dedicated rollback command. To go back, run `datumctl compute deploy` again for the same workload with the previous image, and keep the other flags you used for the earlier deploy, since a flag-based `deploy` describes the whole workload. It updates the workload and rolls Instances over like any other change. Keep the tag or digest of each image you ship so you have something to go back to.
+
+```bash
+datumctl compute deploy api --image=registry.example.com/acme/api:1.4.1 --location=us-central-1 --min=2
+```
+
 ## Deploying from a manifest
 
 A flag-based deploy writes a `workload.yaml` in the current directory after it succeeds — the same `Workload` resource the flags produced, expressed as YAML. Point `-f` at a manifest to deploy from it instead of flags:

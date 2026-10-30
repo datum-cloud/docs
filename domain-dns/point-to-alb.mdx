@@ -67,7 +67,7 @@ The rest of this page creates the same zone and records with `DNSZone` and `DNSR
 
 ### Configuration steps
 
-### Step 1: Set Variables
+### Step 1: Set variables
 
 The `TARGET` value is your Application Load Balancer endpoint hostname. Find it in the Datum portal under your Application Load Balancer's generated hostname, or via:
 
@@ -106,7 +106,7 @@ datumctl get httpproxy <name> --namespace default -o yaml
 
 ---
 
-### Step 2: Create the DNS Zone
+### Step 2: Create the DNS zone
 
 <Tabs>
   <Tab title="macOS / Linux">
@@ -157,7 +157,7 @@ Wait until both `ACCEPTED` and `PROGRAMMED` show `True` before proceeding.
 
 ---
 
-### Step 3: Create the Apex ALIAS Record
+### Step 3: Create the apex ALIAS record
 
 Points the root domain (`@`) at the Application Load Balancer endpoint.
 
@@ -210,7 +210,7 @@ Points the root domain (`@`) at the Application Load Balancer endpoint.
 
 ---
 
-### Step 4: Create a Subdomain CNAME
+### Step 4: Create a subdomain CNAME
 
 Points a subdomain (e.g., `app.your-domain.example.com`) at the same endpoint.
 
@@ -265,7 +265,7 @@ Points a subdomain (e.g., `app.your-domain.example.com`) at the same endpoint.
 
 ## Verification
 
-### Check Record Status
+### Check record status
 
 ```bash
 datumctl get dnsrecordsets --project $PROJECT --namespace $NAMESPACE
@@ -275,7 +275,7 @@ Both records should show `ACCEPTED=True` and `PROGRAMMED=True`.
 
 ---
 
-### Check DNS Resolution
+### Check DNS resolution
 
 <Tabs>
   <Tab title="macOS / Linux">
@@ -339,7 +339,7 @@ Both records should show `ACCEPTED=True` and `PROGRAMMED=True`.
 
 | Symptom | Root Cause | Resolution |
 |---------|------------|------------|
-| Zone stuck at `PROGRAMMED=False` | Domain not delegated to Datum nameservers | Update nameservers at your registrar |
+| Zone stuck at `PROGRAMMED=False` | Most often the domain isn't verified yet, which also leaves the zone's records `Rejected`. Delegation doesn't cause this: Datum provisions a zone whether or not your registrar points at it | [Verify the domain](/domain-dns/domains#verify-a-domain), then wait for the zone to be programmed |
 | `nslookup` / `dig` returns NXDOMAIN | Zone not yet propagated | Wait 1–2 minutes and retry |
 | ALIAS resolves to wrong address | `TARGET` missing trailing dot | Re-apply the record with a trailing dot on the target |
 | Record not appearing | `--validate=false` omitted | Re-apply with `--validate=false` |

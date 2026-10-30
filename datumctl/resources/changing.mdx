@@ -88,6 +88,70 @@ The editor is chosen from the `EDITOR` environment variable (the CLI also honors
   For changes you want to keep and repeat, prefer editing a manifest and running `datumctl apply` — that keeps your source of truth in version control. Use `edit` for exploratory or one-time tweaks.
 </Note>
 
+## Patch individual fields
+
+`datumctl patch` changes one or more fields of a live resource in a single command, without rendering and applying a full manifest. Pass the patch inline with `-p`, or from a file with `--patch-file`. Patches can be written in JSON or YAML.
+
+```bash
+# Change a single field with a merge patch
+datumctl patch workload my-app -p '{"spec":{"replicas":2}}' --project your-project-id
+
+# Write the patch as YAML
+datumctl patch workload my-app -p $'spec:\n  replicas: 2' --project your-project-id
+
+# Patch a resource identified by a manifest file
+datumctl patch -f ./workload.yaml -p '{"spec":{"replicas":2}}' --project your-project-id
+
+# Use a JSON patch for precise, positional edits
+datumctl patch workload my-app --type=json -p '[{"op":"replace","path":"/spec/replicas","value":2}]' --project your-project-id
+```
+
+Choose the patch format with `--type`:
+
+| Type | Format | When to use it |
+| --- | --- | --- |
+| `merge` (default) | A JSON merge patch: a partial document whose fields replace the matching fields of the live resource. | Nearly every change. |
+| `json` | A JSON patch: an ordered list of operations (`add`, `replace`, `remove`, and others) with explicit paths. | Precise edits to items inside lists. |
+
+## Add, change, or remove labels and annotations
+
+`datumctl label` and `datumctl annotate` update the metadata on one or more live resources. Labels organize and select resources, for example with the `-l` flag of `datumctl get` and `datumctl delete`. Annotations are free-form key/value metadata that is not used for selection. Use annotations to record notes or to nudge a resource, for example setting a fresh annotation on a workload to trigger a rollout.
+
+Both commands take the same arguments:
+
+- Pass `KEY=VALUE` to add a label or annotation.
+- Pass `KEY-` (a trailing dash) to remove one.
+- Add `--overwrite` to change a key that already exists. Without it, `datumctl` leaves an existing key untouched.
+- Add `--list` to show the current labels or annotations on a resource.
+
+```bash
+# Add a label to a workload
+datumctl label workload my-app tier=frontend --project your-project-id
+
+# Change a label that already exists
+datumctl label workload my-app tier=backend --project your-project-id --overwrite
+
+# Remove a label
+datumctl label workload my-app tier- --project your-project-id
+
+# Label every DNS zone matching a label selector
+datumctl label dnszones -l team=platform env=prod --project your-project-id
+
+# Add an annotation to a workload
+datumctl annotate workload my-app restart=now --project your-project-id
+
+# Show the annotations on a project
+datumctl annotate project your-project-id --list --organization your-org-id
+```
+
+<Tip>
+  `patch`, `label`, and `annotate` all accept `--dry-run=server`. Combine it with `-o yaml` to validate the change against the API server and preview the result without persisting anything:
+
+  ```bash
+  datumctl patch workload my-app -p '{"spec":{"replicas":2}}' --project your-project-id --dry-run=server -o yaml
+  ```
+</Tip>
+
 ## Delete a resource
 
 `datumctl delete` removes one or more resources, selected by type and name, by label selector, or from a manifest file.
