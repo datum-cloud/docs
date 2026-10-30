@@ -1,0 +1,80 @@
+README.md
+  s_882246cd5d7a24::t_225ecdaa75ab6a 51-52,54,61,80-82
+  s_882246cd5d7a24::t_ef1faff2764ed8 53,55-60,62-79
+datumctl/discovering-resources.mdx
+  s_882246cd5d7a24::t_073ff31458539b 168
+  s_882246cd5d7a24::t_9ea23ce8e7db11 169-171
+  s_882246cd5d7a24::t_bf0999f55166cd 23-24,152
+alb/authentication/oidc-auth0.mdx
+  s_882246cd5d7a24::t_e310dc5c2fbaf7 51
+alb/httpproxy/path-routing.mdx
+  s_882246cd5d7a24::t_18daadcc489ed0 44,54
+alb/operations/custom-domains.mdx
+  s_882246cd5d7a24::t_12e0ff15e1f4d2 46-47
+compute/limits-and-quotas.mdx
+  s_882246cd5d7a24::t_64c4f75a053281 62
+datumctl/activity/audit-and-events.mdx
+  s_882246cd5d7a24::t_ebe69240c3b8a9 95,194
+datumctl/activity/change-history-and-feed.mdx
+  s_882246cd5d7a24::t_47dfa1747e3b96 28,37,48,51
+datumctl/activity/overview.mdx
+  s_882246cd5d7a24::t_8df03eb14c5c5b 68,135,161
+datumctl/ai/assistant.mdx
+  s_882246cd5d7a24::t_8af20ef61382d5 58
+datumctl/api-proxy.mdx
+  s_882246cd5d7a24::t_2ab0fb6c278f7d 55,61,97
+datumctl/auth/managing-accounts.mdx
+  s_882246cd5d7a24::t_6b1553a699e968 38,53,65
+datumctl/cicd/github-actions.mdx
+  s_882246cd5d7a24::t_ed2878b618ce9c 42
+datumctl/contexts-and-scoping.mdx
+  s_882246cd5d7a24::t_7be8fb599b9318 153
+datumctl/gitops.mdx
+  s_882246cd5d7a24::t_f6a659118c8d13 95
+datumctl/install.mdx
+  s_882246cd5d7a24::t_dea380eada2baf 116,130
+datumctl/kubectl-interop.mdx
+  s_882246cd5d7a24::t_53f699a7487420 46,51,78,90
+datumctl/kubernetes-tools.mdx
+  s_882246cd5d7a24::t_4bbcd6ae179a0c 55
+datumctl/output-and-scripting.mdx
+  s_882246cd5d7a24::t_6592d3933660dc 42,45,48,51,60,64,68,76,78,86,146,170-171,204
+datumctl/resources/changing.mdx
+  s_882246cd5d7a24::t_6c3683b000c92b 19,22,25,61,64,67,76,79,82,97,100,103,110
+datumctl/resources/reading.mdx
+  s_882246cd5d7a24::t_7b995df5ac430f 25,28,41,44,61,64,67,80,83,86,97,100,103,106
+datumctl/resources/safe-changes.mdx
+  s_882246cd5d7a24::t_6196cb4ebdb1ca 25,28,34,40,58,61,88-89,96,103,125
+domain-dns/dns.mdx
+  s_882246cd5d7a24::t_9ba15a49a88dfb 47
+domain-dns/operations.mdx
+  s_882246cd5d7a24::t_024b13feca9fc9 12
+domain-dns/troubleshooting.mdx
+  s_882246cd5d7a24::t_f951b83e8f065a 59
+getting-started/first-workload.mdx
+  s_882246cd5d7a24::t_7b830ad97d23d8 16
+locations.mdx
+  s_882246cd5d7a24::t_6c104aa28dea46 63,81
+operations/secrets.mdx
+  s_882246cd5d7a24::t_f16db67bc94bfc 34
+platform/kubernetes.mdx
+  s_882246cd5d7a24::t_313c9592d702f0 101
+projects/overview.mdx
+  s_882246cd5d7a24::t_876b352787956f 10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "72fb4b7a71038466fb71997508f991ccea101c6e",
+  "prompts": {},
+  "sessions": {
+    "s_882246cd5d7a24": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "555d55f9-8a2b-4279-9fce-a03f5d9c4671",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
