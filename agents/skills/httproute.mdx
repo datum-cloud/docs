@@ -5,25 +5,20 @@ description: "Teach agents to configure HTTP routing rules — path matching, tr
 
 The HTTPRoute skill helps agents configure HTTP routing rules in Datum Cloud. It covers [Application Load Balancer](/alb/overview) route definitions — matching requests by path, headers, method, and query parameters, then forwarding, splitting, redirecting, rewriting, or mirroring traffic using `HTTPRoute` resources attached to a Gateway.
 
+The skill ships in the `datum-networking` Claude Code plugin, alongside procedures for diagnosing a load balancer that isn't serving and for creating networks, using the same diagnosis Datum's own assistant runs.
+
 ## Install
 
 <CodeGroup>
 
 ```bash Claude Code
-/plugin marketplace add datum-cloud/skills
-/plugin install datum-cloud@datum-cloud
-```
-
-```bash npx skills
-npx skills add https://github.com/datum-cloud/skills
-```
-
-```bash Cursor
-# Settings → Rules → Add Rule → Remote Rule (GitHub)
-# Repository: datum-cloud/skills
+/plugin marketplace add datum-cloud/claude-code-plugins
+/plugin install datum-networking@datum-claude-code-plugins
 ```
 
 </CodeGroup>
+
+Installing it also installs the `datum-cloud` base plugin, which runs [Datum MCP](/agents/datum-mcp). For other agents, copy the [skill folder](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin/skills/httproute) into your agent's skills directory.
 
 <Note>
 Once installed, the skill activates automatically when you ask an agent to configure HTTP routing on Datum. No further configuration needed.
@@ -51,20 +46,20 @@ Once installed, the skill activates automatically when you ask an agent to confi
 
 ## View the full skill
 
-The canonical SKILL.md lives in the [datum-cloud/skills](https://github.com/datum-cloud/skills) repo:
+The canonical SKILL.md lives in the `datum-networking` plugin in the [datum-cloud/network-services-operator](https://github.com/datum-cloud/network-services-operator/tree/main/claude-plugin) repo:
 
 <CardGroup cols={2}>
   <Card
     title="On GitHub"
     icon="github"
-    href="https://github.com/datum-cloud/skills/blob/main/skills/httproute/SKILL.md"
+    href="https://github.com/datum-cloud/network-services-operator/blob/main/claude-plugin/skills/httproute/SKILL.md"
   >
     Browse the skill source, including frontmatter and full instructions.
   </Card>
   <Card
     title="Raw SKILL.md"
     icon="file-code"
-    href="https://raw.githubusercontent.com/datum-cloud/skills/main/skills/httproute/SKILL.md"
+    href="https://raw.githubusercontent.com/datum-cloud/network-services-operator/main/claude-plugin/skills/httproute/SKILL.md"
   >
     Direct URL for agents that fetch skills by URL.
   </Card>
