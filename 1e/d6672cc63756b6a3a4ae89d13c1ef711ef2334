@@ -1,0 +1,19 @@
+locations.mdx
+  s_35f73378763620::t_30865c60b1f7e5 41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1ed6672cc63756b6a3a4ae89d13c1ef711ef2334",
+  "prompts": {},
+  "sessions": {
+    "s_35f73378763620": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1b7c1c6e-ae7c-4c19-9885-fce2995cf8a2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
