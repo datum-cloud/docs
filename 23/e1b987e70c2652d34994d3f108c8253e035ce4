@@ -1,0 +1,19 @@
+styles/config/vocabularies/Mintlify/accept.txt
+  s_35f73378763620::t_f9d4b3eb093381 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "23e1b987e70c2652d34994d3f108c8253e035ce4",
+  "prompts": {},
+  "sessions": {
+    "s_35f73378763620": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1b7c1c6e-ae7c-4c19-9885-fce2995cf8a2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
