@@ -30,7 +30,7 @@ Regions and AZs are defined by distance and policy boundaries.
 - If multiple PoPs exist in the same metro but operate independently (for example, separate network clusters or facilities), they become separate AZs. Increment the Count value to the next letter.
 - If PoPs are within about 5 milliseconds RTT and part of the same operational domain, they remain in the same Region. Example: us-east-1a, us-east-1b, us-east-1c.
 
-_Note: regulatory and export control requirements may restrict or define where data and workloads can reside. These boundaries take precedence over latency-based placement rules._
+*Note: regulatory and export control requirements may restrict or define where data and workloads can reside. These boundaries take precedence over latency-based placement rules.*
 
 ## Regions
 
@@ -38,7 +38,7 @@ _Note: regulatory and export control requirements may restrict or define where d
 | --- | --- |
 | ae-north-1 | Dubai |
 | au-east-1 | Sydney |
-| br-east-1 | São Paolo |
+| br-east-1 | São Paulo |
 | ca-east-1 | Toronto |
 | cl-central-1 | Santiago |
 | de-central-1 | Frankfurt |
@@ -60,7 +60,7 @@ The table above is Datum's global footprint. What you can deploy into is a narro
 `datumctl get locations` lists them:
 
 ```bash
-datumctl get locations --project <project-id>
+datumctl get locations --project your-project-id
 ```
 
 ```text
@@ -78,7 +78,7 @@ Each row is a location you can place work in today. `NAME` is the identifier you
 For the full definition of a location, including its topology, request YAML or JSON:
 
 ```bash
-datumctl get location us-central-1 --project <project-id> -o yaml
+datumctl get location us-central-1 --project your-project-id -o yaml
 ```
 
 ```yaml

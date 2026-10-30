@@ -22,22 +22,22 @@ Two mechanisms let you see exactly what a change will do before committing it.
 
 ```bash
 # Preview changes from a manifest before applying
-datumctl diff -f ./proxy.yaml --project my-project
+datumctl diff -f ./proxy.yaml --project your-project-id
 
 # Diff from stdin
-cat dnszone.yaml | datumctl diff -f - --project my-project
+cat dnszone.yaml | datumctl diff -f - --project your-project-id
 ```
 
 Review the diff, then apply the manifest as a separate step:
 
 ```bash
-datumctl apply -f ./proxy.yaml --project my-project
+datumctl apply -f ./proxy.yaml --project your-project-id
 ```
 
 The diff exits `0` when there are no differences, `1` when there are, and greater than `1` on error. Exit code `1` doesn't mean failure, so don't chain `diff && apply` — the apply would run only when there is nothing to change. In a script, handle each exit code explicitly:
 
 ```bash
-datumctl diff -f ./proxy.yaml --project my-project
+datumctl diff -f ./proxy.yaml --project your-project-id
 case $? in
   0) echo "No changes." ;;
   1) echo "Changes found. Review the diff above, then run apply." ;;
@@ -55,10 +55,10 @@ Every write command accepts `--dry-run=server`, which sends the request to the A
 
 ```bash
 # Validate a manifest against the server without saving
-datumctl apply -f ./proxy.yaml --project my-project --dry-run=server
+datumctl apply -f ./proxy.yaml --project your-project-id --dry-run=server
 
 # Same for create
-datumctl create -f ./project.yaml --organization <org-id> --dry-run=server
+datumctl create -f ./project.yaml --organization your-org-id --dry-run=server
 ```
 
 <Note>
@@ -85,22 +85,22 @@ A repeatable workflow for changing any Datum Cloud resource follows four steps: 
     Review the delta and validate it against the server.
 
     ```bash
-    datumctl diff -f ./proxy.yaml --project my-project
-    datumctl apply -f ./proxy.yaml --project my-project --dry-run=server
+    datumctl diff -f ./proxy.yaml --project your-project-id
+    datumctl apply -f ./proxy.yaml --project your-project-id --dry-run=server
     ```
   </Step>
   <Step title="Apply">
     Once the preview looks right, apply the manifest. `apply` creates the resource if it does not exist and updates it to match your manifest if it does.
 
     ```bash
-    datumctl apply -f ./proxy.yaml --project my-project
+    datumctl apply -f ./proxy.yaml --project your-project-id
     ```
   </Step>
   <Step title="Verify">
     Read the result back to confirm the applied state.
 
     ```bash
-    datumctl get httpproxy my-proxy --project my-project -o yaml
+    datumctl get httpproxy my-proxy --project your-project-id -o yaml
     ```
   </Step>
 </Steps>
@@ -122,7 +122,7 @@ Because the desired state lives entirely in your manifest, you can commit it to 
 Some project-scoped resource types live in a namespace. Where a namespace applies, target it with `--namespace`:
 
 ```bash
-datumctl apply -f ./proxy.yaml --project my-project --namespace default
+datumctl apply -f ./proxy.yaml --project your-project-id --namespace default
 ```
 
 Currently only the `default` namespace is supported, and it is assumed when you omit the flag — so most of the time you can leave `--namespace` off entirely. Which organization or project a command runs against is a separate concern, covered under contexts and scoping; run `datumctl ctx` to see your active context.

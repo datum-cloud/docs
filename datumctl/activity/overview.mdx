@@ -65,7 +65,7 @@ datumctl activity audit --start-time 2026-01-14T00:00:00Z --end-time 2026-01-15T
 
 ```bash
 # CEL: one user, one API group
-datumctl activity audit --project my-project-id \
+datumctl activity audit --project your-project-id \
   --filter='user.username == "swells@datum.net" && objectRef.apiGroup == "networking.datumapis.com"'
 ```
 
@@ -132,7 +132,7 @@ datumctl activity events --type Warning -o yaml
     datumctl activity events --type Warning --start-time now-24h
 
     # Events about one resource
-    datumctl activity events --regarding-kind Project --regarding-name my-project-id
+    datumctl activity events --regarding-kind Project --regarding-name your-project-id
     ```
   </Tab>
   <Tab title="feed">
@@ -158,7 +158,7 @@ datumctl activity events --type Warning -o yaml
 
     ```bash
     # What changed on this project, and how
-    datumctl activity history projects my-project-id --diff
+    datumctl activity history projects your-project-id --diff
     ```
   </Tab>
 </Tabs>

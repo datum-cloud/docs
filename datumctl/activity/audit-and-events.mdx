@@ -92,7 +92,7 @@ Four shorthand flags let you zero in without writing a filter expression. They c
 | `--user` | The identity that performed the action | `--user alice@example.com` |
 | `--verb` | The action taken | `--verb delete` |
 | `--resource` | The resource type acted on | `--resource dnszones` |
-| `--namespace` | The target namespace | `--namespace production` |
+| `--namespace` | The target namespace | `--namespace default` |
 
 For anything the shorthand flags do not cover, `--filter` takes a server-side [Common Expression Language (CEL)](https://cel.dev/) expression that is applied on top of them — for example `--filter "responseStatus.code >= 400"` to find failed requests.
 
@@ -191,7 +191,7 @@ Combine these flags to narrow from "everything" down to the resource you suspect
 | `--reason` | The machine reason for the event | `--reason FailedMount` |
 | `--regarding-kind` | The kind of resource the event is about | `--regarding-kind Workload` |
 | `--regarding-name` | A specific resource by name | `--regarding-name checkout-api` |
-| `--namespace` | The namespace of the regarding resource | `--namespace production` |
+| `--namespace` | The namespace of the regarding resource | `--namespace default` |
 | `--field-selector` | A raw field-selector expression | `--field-selector "type=Warning,reason=Scheduled"` |
 
 The shorthand flags are combined into a single field selector for you; `--field-selector` lets you express conditions the shorthands do not cover. Comma-separated conditions must all match.
