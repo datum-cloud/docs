@@ -80,6 +80,28 @@ Rules:
 
 TODO: MetricsQL queries in the observability pages (`alb/`, `compute/`, `connectors/`, `domain-dns/`, `galactic-vpc/`) still use `PROJECT_ID`, next to other uppercase placeholders like `ALB_NAME` and `INSTANCE_NAME`. Decide whether to switch them to `your-project-id` so they are personalized too.
 
+## Spellcheck
+
+Every pull request runs Mintlify's Vale spellcheck on the files it changes. Its suggestions show as annotations on the `vale-spellcheck` check. `.vale.ini` copies Mintlify's default configuration, so the check reads the vocabulary in this repo. That means Mintlify's own built-in word list no longer applies.
+
+When Vale flags a word:
+
+- If it's a typo, fix it in the page.
+- If it's a correct product or technical term (`datumctl`, `kubeconfig`, `HTTPProxy`), add it to `styles/config/vocabularies/Mintlify/accept.txt`, one term per line, sorted alphabetically.
+- Entries are case-sensitive regular expressions. Use `[Hh]ostnames?` to match `hostname`, `Hostname`, and `hostnames` in one line.
+- Add only real words. Don't add a typo or a misspelled name (`Paolo` for `Paulo`) to silence the check.
+- To make Vale flag a word as an error, add it to `reject.txt` in the same directory.
+
+Check locally before you push (`brew install vale`):
+
+```bash
+vale path/to/page.mdx
+```
+
+The local dictionary differs slightly from the one in CI, so CI may still flag a word that passes locally.
+
+If Vale flags text inside a code block, a pattern in `.vale.ini` is probably hiding the fence. Fix the pattern, not the page. For example, the `BlockIgnores` brace pattern is non-greedy because the default version swallowed everything from a JSON `{` to a later `${...}` in a bash block.
+
 ## Contributing
 
 1. Fork the repo and create a branch
