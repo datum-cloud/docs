@@ -1,7 +1,7 @@
 ---
 title: "ALB limitations and roadmap"
 sidebarTitle: "Limitations and roadmap"
-description: "Review what the Datum Application Load Balancer doesn't support yet and where to follow what comes next."
+description: "Review what the Datum Application Load Balancer doesn't support or document yet, and where to follow what comes next."
 ---
 
 The Application Load Balancer is still being built. This page lists known limitations and where to follow what comes next.
@@ -14,6 +14,10 @@ The Application Load Balancer is still being built. This page lists known limita
 - A `connector` backend must be the only backend in its rule.
 - You can't choose which Datum locations serve a load balancer or set its capacity. [Envoy](/platform/envoy) in every location serves every load balancer, and Datum scales the fleet.
 - Envoy connects to Compute Instances over plain HTTP. TLS ends at the load balancer.
+- Status shows when a change is published, not when every location serves it, and there is no per-location status. See [When a load balancer is not serving](/alb/troubleshooting).
+- Request timeouts aren't documented yet, including how long a streaming response can stay open: Server-Sent Events (SSE), WebSockets, or a long MCP response. `HTTPProxy` has no timeout setting, so test long-lived responses before you rely on them.
+- The headers that Datum adds to requests it forwards to your origin, such as the client's IP address (`X-Forwarded-For`) and the original protocol (`X-Forwarded-Proto`), aren't documented yet.
+- `ClientTrafficPolicy` isn't available in projects, so client-side TLS versions, HTTP versions, and connection limits can't be changed.
 - For limits on load balancers attached to Compute workloads, see [Compute and ALB](/compute/compute-and-alb#limitations).
 
 ## Roadmap

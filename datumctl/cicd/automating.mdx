@@ -99,11 +99,15 @@ datumctl get projects --organization does-not-exist --error-format json
 | `1` | A general error — unknown command, invalid flag value, authentication failure, or a failed API request. |
 | `>1` | A lower-level fatal error from the underlying request machinery. |
 
-`datumctl diff` is the exception: it exits `0` when there are no differences, `1` when there are, and `>1` on error — which makes it a useful gate before a write.
+`datumctl diff` is the exception: it exits `0` when there are no differences, `1` when there are, and `>1` on error. Exit code `1` is not a failure, so don't chain `diff && apply`: the apply would run only when there is nothing to change. Handle each code explicitly:
 
 ```bash
-datumctl diff -f ./project.yaml --organization "$DATUM_ORG" \
-  && datumctl apply -f ./project.yaml --organization "$DATUM_ORG"
+datumctl diff -f ./project.yaml --organization "$DATUM_ORG"
+case $? in
+  0) echo "No changes." ;;
+  1) datumctl apply -f ./project.yaml --organization "$DATUM_ORG" ;;
+  *) echo "diff failed" >&2; exit 1 ;;
+esac
 ```
 
 <Warning>

@@ -33,9 +33,9 @@ datumctl get httpproxy
 
 ---
 
-## Configuration Steps
+## Configuration steps
 
-### Step 1: Set Variables
+### Step 1: Set variables
 
 <Tabs>
   <Tab title="macOS / Linux">
@@ -62,7 +62,7 @@ datumctl get httpproxy
 
 ---
 
-### Step 2: Apply Path Routing Configuration
+### Step 2: Apply path routing configuration
 
 The `/login` path is matched exactly. All other requests fall through to the catch-all `/` rule.
 
@@ -141,7 +141,7 @@ A rule can list up to 16 backends with a `weight` on each to split traffic. This
 
 ## Verification
 
-### Exact Path Match
+### Exact path match
 
 ```bash
 curl -v https://app.example.com/login
@@ -151,7 +151,7 @@ Expected: request reaches `auth-origin.example`.
 
 ---
 
-### Negative Test — Exact Is Truly Exact
+### Negative test — exact is truly exact
 
 ```bash
 curl -v https://app.example.com/login/reset
@@ -161,7 +161,7 @@ Expected: `/login/reset` does **not** match the `Exact /login` rule and falls th
 
 ---
 
-### Catch-All
+### Catch-all
 
 ```bash
 curl -v https://app.example.com/
@@ -194,7 +194,7 @@ Expected: request reaches `web-origin.example`.
 
 ---
 
-## Best Practices
+## Best practices
 
 - Always include a `PathPrefix /` catch-all so no requests are dropped unexpectedly
 - Place more-specific rules (e.g., `Exact`, longer prefixes) before less-specific ones

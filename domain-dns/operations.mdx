@@ -188,6 +188,14 @@ datumctl dns zone import example.com --discover
 
 The importer skips `DS`, `DNSKEY`, `RRSIG`, `NSEC`, and `NSEC3` records and lists them in a warning. That's expected, because Datum DNS doesn't support DNSSEC yet.
 
+Before you import, review what doesn't carry over cleanly:
+
+- **TTLs.** The importer takes each TTL exactly as the file writes it, including any long TTL you lowered for the migration. Check them after the import.
+- **Apex CNAME records.** Standard DNS doesn't allow a CNAME at the zone apex. Some providers accept one through a proprietary extension. Recreate it as an [ALIAS record](/domain-dns/dns#what-is-an-alias-record).
+- **ALIAS, ANAME, and flattened CNAME records.** Providers name these differently, and a BIND zone file can't represent them. Recreate them by hand as ALIAS records.
+- **Provider-specific record types.** Redirect records and pointers to provider-hosted services aren't DNS records. Rebuild that behavior with a service such as an [Application Load Balancer](/alb/overview).
+- **The old SOA and apex NS records.** They name your old provider's nameservers. Leave them out, because [Datum manages them](#records-that-datum-manages) for each zone.
+
 When the records look right, [point your domain at Datum](#point-your-domain-at-datum).
 
 ## Export a zone and keep it in sync

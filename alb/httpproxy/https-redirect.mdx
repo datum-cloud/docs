@@ -31,9 +31,9 @@ At a high level, this setup:
 
 ---
 
-## Configuration Steps
+## Configuration steps
 
-### Step 1: Set Variables
+### Step 1: Set variables
 
 <Tabs>
   <Tab title="macOS / Linux">
@@ -60,7 +60,7 @@ At a high level, this setup:
 
 ---
 
-### Step 2: Apply the Redirect Configuration
+### Step 2: Apply the redirect configuration
 
 The `RequestRedirect` filter requires `type: RequestRedirect`. No backend is needed — the redirect is returned immediately by the proxy.
 
@@ -182,7 +182,7 @@ Confirm that the `Location` header uses `https` and preserves the path.
 
 ---
 
-## Best Practices
+## Best practices
 
 - Use `statusCode: 301` for permanent redirects — browsers and crawlers cache these
 - Use `statusCode: 302` only when the redirect is temporary (e.g., maintenance)

@@ -53,6 +53,8 @@ datumctl plugin browse
 
 ## Installing a plugin
 
+Datum's own plugins are documented with the products they manage. For example, see [DNS operations](/domain-dns/operations) for the `dns` plugin and [Compute commands](/datumctl/compute/overview) for the `compute` plugin.
+
 Install by name from a catalog:
 
 ```bash
@@ -67,10 +69,10 @@ You can also install directly from a GitHub release, without a catalog:
 
 ```bash
 # Latest release
-datumctl plugin install your-org/datumctl-dns
+datumctl plugin install your-org/datumctl-example
 
 # A specific release
-datumctl plugin install your-org/datumctl-dns@v1.2.0
+datumctl plugin install your-org/datumctl-example@v1.2.0
 ```
 
 <Info>
@@ -87,7 +89,7 @@ datumctl plugin install compute@v0.8.0-dev.7
 datumctl plugin install acme/deploy@v2.0.0
 
 # Pin a GitHub release
-datumctl plugin install your-org/datumctl-dns@v1.2.0
+datumctl plugin install your-org/datumctl-example@v1.2.0
 ```
 
 Without `@version`, datumctl installs the version the catalog recommends.

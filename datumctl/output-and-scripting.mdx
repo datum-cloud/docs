@@ -164,11 +164,15 @@ datumctl apply -f ./project.yaml --organization <org-id> --warnings-as-errors
 | `1` | Differences were found. |
 | `>1` | An error occurred. |
 
-This makes `diff` useful as a gate before writing:
+This makes `diff` useful as a gate before writing. Exit code `1` is not a failure, so don't chain `diff && apply`: the apply would run only when there is nothing to change. Handle each code explicitly:
 
 ```bash
-datumctl diff -f ./project.yaml --organization <org-id> \
-  && datumctl apply -f ./project.yaml --organization <org-id>
+datumctl diff -f ./project.yaml --organization <org-id>
+case $? in
+  0) echo "No changes." ;;
+  1) datumctl apply -f ./project.yaml --organization <org-id> ;;
+  *) echo "diff failed" >&2; exit 1 ;;
+esac
 ```
 
 ## Wrapping datumctl in scripts and agents

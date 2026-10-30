@@ -56,7 +56,7 @@ datumctl activity audit --start-time 2026-01-14T00:00:00Z --end-time 2026-01-15T
 ```
 
 <Note>
-  When you omit the time range, `audit`, `events`, and `feed` default to the last 24 hours; `history` defaults to the last 30 days.
+  When you omit the time range, `audit`, `events`, and `feed` default to the last 24 hours; `history` defaults to the last 30 days. These are query windows, not retention. How long audit logs and events are kept isn't documented yet.
 </Note>
 
 ### Filtering

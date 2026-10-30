@@ -32,9 +32,9 @@ At a high level, this setup:
 
 ---
 
-## Configuration Steps
+## Configuration steps
 
-### Step 1: Set Variables
+### Step 1: Set variables
 
 <Tabs>
   <Tab title="macOS / Linux">
@@ -61,7 +61,7 @@ At a high level, this setup:
 
 ---
 
-### Step 2: Apply URL Rewrite Configuration
+### Step 2: Apply URL rewrite configuration
 
 This example strips the `/api` prefix. Requests to `/api/users` are forwarded to the backend as `/users`.
 
@@ -130,9 +130,9 @@ This example strips the `/api` prefix. Requests to `/api/users` are forwarded to
 
 ---
 
-## Path Rewrite Options
+## Path rewrite options
 
-### Replace Prefix
+### Replace prefix
 
 Replaces the matched prefix and preserves the rest of the path.
 
@@ -155,7 +155,7 @@ The match rule's `path.value` and `replacePrefixMatch` must use the same prefix.
 
 ---
 
-### Replace Full Path
+### Replace full path
 
 Replaces the entire path, ignoring what was matched.
 
@@ -178,7 +178,7 @@ Useful for mapping multiple public paths to a single backend endpoint.
 
 ---
 
-### Hostname Rewrite
+### Hostname rewrite
 
 Rewrites the authority (hostname) the backend sees without changing request headers separately.
 
@@ -241,7 +241,7 @@ Look for the `url` field in the response — it should show `/users`, not `/api/
 
 ---
 
-## Best Practices
+## Best practices
 
 - Use `ReplacePrefixMatch` for stripping versioned path prefixes (e.g., `/v1`, `/api`)
 - Use `ReplaceFullPath` when mapping multiple routes to a single backend endpoint
