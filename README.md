@@ -50,7 +50,7 @@ Each product section follows the same layout where it applies: Overview, product
 
 ## Placeholders
 
-When a reader is signed in to Datum Cloud, the docs will swap these tokens for the reader's own values, so a copied command runs as is. Until then the tokens show as written. Use exactly these tokens in examples, and nothing else, for these values:
+When a reader is signed in to Datum Cloud, `docs-vars.js` swaps these tokens in code for the reader's own values, so a copied command runs as is. A token stays as written when the reader is signed out or the portal doesn't vouch for the value: the org only when the portal knows it is the one the reader works in, and the project only when the last portal page the reader opened was inside a project. Use exactly these tokens in examples, and nothing else, for these values:
 
 | Token             | Becomes                                   | Use it for                                                             |
 | ----------------- | ----------------------------------------- | ---------------------------------------------------------------------- |

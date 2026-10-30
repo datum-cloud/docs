@@ -177,31 +177,36 @@
     subtree: true,
   });
 
-  fetch(new URL('/api/website/session-status', portal), {
-    credentials: 'include',
-    signal: AbortSignal.timeout(5000),
-  })
-    .then(function (res) {
-      return res.ok ? res.json() : null;
+  // Shared with docs-vars.js. Mintlify loads the two in no set order, so
+  // whichever runs first starts the one request.
+  if (!window.datumSessionStatus) {
+    window.datumSessionStatus = fetch(new URL('/api/website/session-status', portal), {
+      credentials: 'include',
+      signal: AbortSignal.timeout(5000),
     })
-    .catch(function () {
-      // Origin not in WEBSITE_ORIGINS or portal unreachable: treat as signed out.
-      return null;
-    })
-    .then(function (status) {
-      if (!status || !status.signedIn) {
-        mount({ desktop: buildSignupLink() });
-        return;
-      }
-
-      // Only follow dashboard links that stay on the portal.
-      var dashboardUrl = status.dashboardUrl ? new URL(status.dashboardUrl, portal) : null;
-      var safeDashboardUrl =
-        dashboardUrl && dashboardUrl.origin === portal.origin ? dashboardUrl.href : null;
-
-      mount({
-        desktop: buildUserMenu(status, safeDashboardUrl, MENU_ID),
-        mobile: buildUserMenu(status, safeDashboardUrl, MENU_ID + '-mobile'),
+      .then(function (res) {
+        return res.ok ? res.json() : null;
+      })
+      .catch(function () {
+        // Origin not in WEBSITE_ORIGINS or portal unreachable: treat as signed out.
+        return null;
       });
+  }
+
+  window.datumSessionStatus.then(function (status) {
+    if (!status || !status.signedIn) {
+      mount({ desktop: buildSignupLink() });
+      return;
+    }
+
+    // Only follow dashboard links that stay on the portal.
+    var dashboardUrl = status.dashboardUrl ? new URL(status.dashboardUrl, portal) : null;
+    var safeDashboardUrl =
+      dashboardUrl && dashboardUrl.origin === portal.origin ? dashboardUrl.href : null;
+
+    mount({
+      desktop: buildUserMenu(status, safeDashboardUrl, MENU_ID),
+      mobile: buildUserMenu(status, safeDashboardUrl, MENU_ID + '-mobile'),
     });
+  });
 })();
