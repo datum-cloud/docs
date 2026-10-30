@@ -4,6 +4,7 @@ APIs
 Ashburn
 auditable
 AZs
+boolean
 CDNs
 CI
 CLIs
