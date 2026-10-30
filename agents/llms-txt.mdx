@@ -9,21 +9,24 @@ Datum publishes three forms of its documentation for agents:
 
 | URL | What it is | Use it when |
 | --- | --- | --- |
-| [`datum.net/docs/llms.txt`](https://datum.net/docs/llms.txt) | An index of every docs page, with its title, a one-line description, and a link to its Markdown version. | An agent needs to find the right page for a task. This is the best place to start. |
-| [`datum.net/docs/llms-full.txt`](https://datum.net/docs/llms-full.txt) | The full text of every docs page in one file. | An agent needs the whole documentation set in its context at once. It's large, so prefer `llms.txt` and fetch only the pages you need. |
-| Any page URL with `.md` added | The Markdown version of one page, such as [`datum.net/docs/alb/overview.md`](https://datum.net/docs/alb/overview.md). | An agent needs one page without the site's navigation and layout. |
+| [`www.datum.net/docs/llms.txt`](https://www.datum.net/docs/llms.txt) | An index of every docs page, with its title, a one-line description, and a link to its Markdown version. | An agent needs to find the right page for a task. This is the best place to start. |
+| [`www.datum.net/docs/llms-full.txt`](https://www.datum.net/docs/llms-full.txt) | The full text of every docs page in one file. | An agent can save and search files, such as a coding agent with a shell. Download it once and search it. At about 740 KB, it's too large for a web fetch tool, so other agents should use `llms.txt`. |
+| Any page URL with `.md` added | The Markdown version of one page, such as [`www.datum.net/docs/alb/overview.md`](https://www.datum.net/docs/alb/overview.md). | An agent needs one page without the site's navigation and layout. |
 
 All three are generated from the docs on every deploy, so they always match the live site.
 
-Datum also publishes [`datum.net/llms.txt`](https://www.datum.net/llms.txt), an overview of what Datum is and when to use it, written for agents deciding whether Datum fits a task.
+Every Markdown page, `llms.txt`, and `llms-full.txt` starts with a short **Agent Instructions** block that tells an agent where to start and which of these to use.
+
+For an agent-first overview of Datum, start at [agents.datum.net](https://agents.datum.net/): what Datum is, when to use it, pricing, and how to act. Datum also publishes [`datum.net/llms.txt`](https://www.datum.net/llms.txt), an index of the Datum website.
 
 ## Use it from an agent
 
 Many agents look for `llms.txt` on their own. To point an agent at it explicitly, add an instruction like the following to your prompt, project instructions, or agent configuration:
 
 ```text
-Before answering questions about Datum, fetch https://datum.net/docs/llms.txt.
-Use it to find the relevant pages, then fetch each page's .md URL.
+Before answering questions about Datum, fetch https://www.datum.net/docs/llms.txt
+and read it in full, not as a summary. Use it to find the most specific page for
+the task, then fetch that page's .md URL.
 ```
 
 To give an agent a single page, use the **Copy page** or **Open in Claude** menu at the top of any docs page, or add `.md` to the page's URL.

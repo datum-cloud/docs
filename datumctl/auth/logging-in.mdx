@@ -104,6 +104,10 @@ Project:      Production (production)
 
 If you have set the `DATUM_ORGANIZATION` or `DATUM_PROJECT` environment variables, `whoami` also flags them, since those override the active context for the current shell.
 
+<Note>
+  `datumctl auth whoami` is a different command, for kubectl users only: it asks the control plane which identity and groups your kubeconfig credentials resolve to, and needs a context from `datumctl auth update-kubeconfig`. See [kubectl interop](/datumctl/kubectl-interop). To list the datumctl accounts you are signed in with, use `datumctl auth list`.
+</Note>
+
 ## Log out
 
 To remove a stored session, pass the email address you signed in with:

@@ -16,6 +16,10 @@
   "navbar": {
     "links": [
       {
+        "label": "For agents",
+        "href": "https://agents.datum.net/"
+      },
+      {
         "label": "Status",
         "href": "https://www.datumstatus.net/"
       }
@@ -442,7 +446,15 @@
       "github": "https://link.datum.net/github"
     }
   },
-  "description": "Learn about Datum's edge cloud",
+  "description": "Learn about Datum's edge cloud: Compute, gVPC, the Application Load Balancer, Connectors, and Domains and DNS.",
+  "markdown": {
+    "instructions": [
+      "Agent home for Datum, with what it is, pricing, and how to act: https://agents.datum.net",
+      "If you can only fetch URLs: read https://www.datum.net/docs/llms.txt in full and open the most specific page for the task. Commands, limits, and field paths are on task, operations, and limits pages, not on section overviews. Pages described as \"Documentation is coming soon\" are placeholders.",
+      "If you have a shell or can save files: download https://www.datum.net/docs/llms-full.txt (every page, about 740 KB) once and search it with grep, instead of fetching pages one at a time.",
+      "datumctl describes itself: `datumctl api-resources` lists resource types and `datumctl explain <resource>` shows a schema. To act on live resources, use Datum MCP or datumctl. To search the docs, use the Docs MCP server at https://www.datum.net/docs/mcp."
+    ]
+  },
   "appearance": {
     "default": "system"
   },
@@ -770,6 +782,22 @@
     {
       "source": "/alb/load-balancing",
       "destination": "/alb/configuration/load-balancing"
+    },
+    {
+      "source": "/runtime/alb",
+      "destination": "/alb/overview"
+    },
+    {
+      "source": "/runtime/alb/:slug*",
+      "destination": "/alb/overview"
+    },
+    {
+      "source": "/runtime/dns",
+      "destination": "/domain-dns/dns"
+    },
+    {
+      "source": "/runtime/dns/:slug*",
+      "destination": "/domain-dns/dns"
     }
   ]
 }

@@ -87,6 +87,8 @@ datumctl auth get-token
 
 If the stored token has expired, `datumctl` uses the saved refresh token to fetch a new one before printing, so you always get a valid token.
 
+How long an access token stays valid isn't documented yet, so don't plan around a specific lifetime. Because `get-token` returns a valid token each time it runs, call it again when you need one instead of saving its output for a long-running job.
+
 Common uses:
 
 - **Scripts and direct API calls** — capture the raw token and pass it as a bearer credential to `curl` or another HTTP client.

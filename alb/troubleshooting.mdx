@@ -18,7 +18,7 @@ Two things to read carefully.
 
 **Status conditions report on several hostnames at once and name none of them.** A load balancer reporting a partial failure is telling you something is wrong with at least one hostname, not which. The per-hostname lines below are where the answer is.
 
-**"Published" is not "serving".** A load balancer reports its configuration as published within seconds of a change, while Datum's edge is still catching up, and nothing publishes when that finishes. There is no documented figure for how long, so do not wait on a number — make a request.
+**"Published" is not "serving".** A load balancer reports its configuration as published (`Programmed=True`) within seconds of a change, while Datum's edge is still catching up, and nothing publishes when that finishes. There is no documented figure for how long, so do not wait on a number — make a request.
 
 ## Is anything actually reaching it?
 
