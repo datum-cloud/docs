@@ -1,0 +1,75 @@
+---
+title: "Private DNS for Compute"
+sidebarTitle: "Private DNS"
+description: "How Compute publishes stable private names for instances attached to a Datum VPC."
+---
+
+Compute integrates with [Private DNS](/domain-dns/private-dns) to publish a
+predictable name for an instance in each VPC to which it is attached. The name
+resolves to the instance's programmed private IPv4 and IPv6 addresses and is
+visible only within the associated VPC's DNS context.
+
+<Note>
+  The Compute integration is under active development and is not yet a stable,
+  generally available interface.
+</Note>
+
+## Instance names
+
+Compute publishes instance identity names beneath the `instances` subtree of
+the VPC's managed namespace. A name has this general form:
+
+```text
+<instance-name>.instances.<vpc-managed-suffix>
+```
+
+Compute normalizes the instance name into a valid DNS label when necessary. If
+two instance names normalize to the same DNS name, Private DNS keeps the first
+claim and reports a name conflict for the other instance.
+
+Treat the complete name reported by the service as an output. The managed
+suffix is a platform allocation and should not be constructed or parsed by
+applications.
+
+The allocated hostname and its publication state are reported for each network
+in `Instance.status.dns`.
+
+## Published addresses
+
+Compute publishes:
+
+- `A` records for private IPv4 addresses.
+- `AAAA` records for private IPv6 addresses.
+
+An address is eligible only while the instance is ready, its runtime is ready,
+and its network interface reports that the address is both allocated and
+programmed. Public addresses and delegated prefixes are not published as
+instance identity records.
+
+Instance readiness covers the managed runtime and network attachment. Use the
+application's own health checks or a service-specific discovery mechanism when
+traffic should be sent only to healthy application endpoints.
+
+## Lifecycle behavior
+
+Compute continuously reconciles the DNS records from current instance and
+network state:
+
+- Address changes update the records behind the stable identity name.
+- An unavailable or deprogrammed interface withdraws its addresses.
+- Deleting the instance removes its published records.
+- Resource lifetime checks prevent an old instance from publishing addresses
+  after it has been replaced.
+- An instance attached to more than one VPC receives independently isolated
+  DNS state for each VPC.
+
+Publication is asynchronous. A running instance can become ready before its
+name is visible in every resolver, and clients can retain an older answer until
+the DNS TTL expires.
+
+## Network access
+
+Resolving an instance name does not grant access to the instance. The client
+must still have a valid route and be permitted by the applicable network
+policy. Clients outside the associated VPC context cannot resolve the private
+instance name through public DNS.

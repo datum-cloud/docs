@@ -114,6 +114,7 @@
                 "group": "Compute",
                 "pages": [
                   "compute/overview",
+                  "compute/private-dns",
                   {
                     "group": "Runtimes",
                     "root": "compute/runtimes/overview",
@@ -207,6 +208,7 @@
                   "domain-dns/overview",
                   "domain-dns/domains",
                   "domain-dns/dns",
+                  "domain-dns/private-dns",
                   "domain-dns/operations",
                   "domain-dns/point-to-alb",
                   "domain-dns/observability",
