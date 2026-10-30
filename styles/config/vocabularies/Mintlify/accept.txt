@@ -23,6 +23,7 @@ kubeconfig
 LLMs
 namespaced
 passthrough
+Paulo
 proxied
 RRType
 scriptable
