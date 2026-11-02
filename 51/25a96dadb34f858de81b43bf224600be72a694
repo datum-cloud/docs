@@ -1,0 +1,14 @@
+styles/config/vocabularies/Mintlify/accept.txt
+  h_c7951bc64db670 50-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5125a96dadb34f858de81b43bf224600be72a694",
+  "prompts": {},
+  "humans": {
+    "h_c7951bc64db670": {
+      "author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
