@@ -6,6 +6,17 @@ rss: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
+<Update label="October 29, 2026" description="datumctl" tags={["datumctl"]}>
+  ## Correct version reporting for Nix installs
+
+  `datumctl` installed from the Nix flake now reports a valid version.
+
+  - **Fixed:** `datumctl version` no longer crashes when `datumctl` is installed with `nix profile install` or run with `nix run`.
+  - **Fixed:** plugin compatibility checks and update checks now read a real version in Nix builds instead of a placeholder.
+
+  To pick up the fix, reinstall or upgrade `datumctl` from the flake. See [Install datumctl](/datumctl/install).
+</Update>
+
 <Update label="October 21, 2026" description="Application Load Balancer" tags={["Build", "Connect"]}>
   ## Run gRPC APIs on Datum
 
