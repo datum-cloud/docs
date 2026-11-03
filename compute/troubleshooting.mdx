@@ -10,6 +10,25 @@ This page lists common Compute errors and states, what they mean, and how to fix
   Compute is in preview, and the `v1alpha` API can change.
 </Note>
 
+## IPv6 readiness
+
+Compute and gVPC are IPv6 only. Instances have no IPv4 address, and the internet reaches them only through the ALB. Check these before you deploy your own app:
+
+- **Listen on `::`.** An app bound to `0.0.0.0`, or to `listen 80;` in nginx, is unreachable. Bind the port that you pass to `--http-port` on `::`.
+- **Connect by hostname.** Use a name, not an IPv4 address, for every service the app calls, including database URLs and proxy targets in its config. See [Reach the internet](/galactic-vpc/networks/traffic).
+- **Serve plain HTTP.** Datum terminates TLS at the ALB and connects to your Instances over HTTP.
+
+| Server | Listen on IPv6 |
+| --- | --- |
+| nginx | `listen [::]:80;` |
+| Node.js | `app.listen(8080, "::")` |
+| Python | `uvicorn app:app --host :: --port 8080` |
+| Go | `http.ListenAndServe(":8080", handler)`, which listens on IPv6 and IPv4 |
+
+To check the listen address on a machine with IPv6, run `ss -ltn` and look for `[::]:8080`. An IPv4-only app shows `0.0.0.0:8080` instead.
+
+If you're an agent deploying an app for a user, search the code and config for `0.0.0.0`, `127.0.0.1`, `listen 80`, and IPv4 addresses, change them to `::` and hostnames, and then deploy with `--http-port`.
+
 ## Common problems
 
 The following table lists common errors and states, what they mean, and how to fix them. Errors that Datum returns when you apply a workload appear in the command output. Reasons appear in `datumctl get workloads`, `datumctl get instances`, and `datumctl compute instances describe`.

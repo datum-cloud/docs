@@ -107,7 +107,7 @@ This page deploys [draw.io](https://www.drawio.com/), an open source diagramming
 
 ## What's next
 
-- To deploy your own image, check that your app listens on IPv6 and serves plain HTTP. During the preview, Instances have no persistent disks and no readiness checks. For details, see [Compute limitations](/compute/limitations-and-roadmap#limitations).
+- To deploy your own image, make it listen on `::` (IPv6), not `0.0.0.0`, and serve plain HTTP. See [IPv6 readiness](/compute/troubleshooting#ipv6-readiness). During the preview, Instances have no persistent disks and no readiness checks. For details, see [Compute limitations](/compute/limitations-and-roadmap#limitations).
 - To pass configuration and secrets to a workload, see [Compute configuration](/compute/configuration).
 - To package your own app as a fast-starting unikernel, see [Unikernels](/compute/runtimes/unikernels).
 - To run in more locations or with more Instances, see [Placement and scaling](/compute/placement-and-scaling).

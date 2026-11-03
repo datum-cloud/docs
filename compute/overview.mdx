@@ -1,7 +1,7 @@
 ---
 title: "Compute"
 sidebarTitle: "Overview"
-description: "Run your apps as isolated Instances in Datum Cloud locations, from a standard container image or a fast-starting unikernel."
+description: "Run your apps as isolated Instances in Datum Cloud locations, from a standard container image or a fast-starting unikernel. Instances are IPv6 only."
 ---
 
 <Note>
@@ -65,6 +65,10 @@ If you don't name a runtime class, Datum uses `unikernel`. For a detailed compar
 
 - **`datumctl compute`:** A `datumctl` plugin that deploys, publishes, scales, and deletes workloads with a single command each. The guides in this section use it. For the command reference, see [Compute commands](/datumctl/compute/overview).
 - **Manifests:** Workloads are Kubernetes-style resources. You can write them in YAML and manage them with `datumctl apply`, `datumctl get`, and `datumctl describe`, or with GitOps tooling. For more information, see [Kubernetes](/platform/kubernetes).
+
+## IPv6 readiness
+
+Compute and gVPC are IPv6 only. An app that listens only on IPv4, such as `0.0.0.0`, is unreachable, and any IPv4 address in its configuration, such as a database URL, must become a hostname. Before you deploy your own app, see [IPv6 readiness](/compute/troubleshooting#ipv6-readiness).
 
 ## What's next
 

@@ -21,7 +21,7 @@ You can set environment variables, and load or mount whole ConfigMaps and Secret
 
 ## Set environment variables
 
-To set an environment variable to a fixed value, pass `--env KEY=VALUE` when you deploy. Repeat the flag for each variable. Values can contain commas. The following command sets two variables:
+To set an environment variable to a fixed value, pass `--env KEY=VALUE` when you deploy. Repeat the flag for each variable. Values can contain commas. Instances have IPv6 addresses only, so use hostnames, not IPv4 addresses, in values such as database URLs. The following command sets two variables:
 
 ```bash
 datumctl compute deploy WORKLOAD_NAME \
