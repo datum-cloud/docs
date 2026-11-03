@@ -52,13 +52,13 @@ By default the proxy is a pure passthrough of the platform API surface: the same
 
 ```bash
 # Watch DNS zones on a project control plane through the proxy
-curl "http://127.0.0.1:8001/apis/resourcemanager.miloapis.com/v1alpha1/projects/my-project/control-plane/apis/networking.datumapis.com/v1alpha/dnszones?watch=true"
+curl "http://127.0.0.1:8001/apis/resourcemanager.miloapis.com/v1alpha1/projects/your-project-id/control-plane/apis/networking.datumapis.com/v1alpha/dnszones?watch=true"
 ```
 
 With an explicit `--project` or `--organization` flag, the proxy instead serves that single control plane at its root, so URLs lose the long control-plane prefix:
 
 ```bash
-datumctl api proxy --port 8001 --project my-project
+datumctl api proxy --port 8001 --project your-project-id
 curl "http://127.0.0.1:8001/apis/networking.datumapis.com/v1alpha/dnszones?watch=true"
 ```
 
@@ -94,7 +94,7 @@ One line per request is written to stderr — silence it with `--quiet`:
 
 ```
 10:42:03 GET  /apis/resourcemanager.miloapis.com/v1alpha1/organizations 200 143ms 8.1kB
-10:42:05 GET  /apis/…/projects/my-project/control-plane/…/portalplugins?watch=true 200 …streaming
+10:42:05 GET  /apis/…/projects/your-project-id/control-plane/…/portalplugins?watch=true 200 …streaming
 ```
 
 Streaming responses log once when headers arrive (marked `…streaming`) and again when the stream ends, with total duration and bytes — so an abruptly closed watch is visible.

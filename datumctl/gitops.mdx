@@ -92,7 +92,7 @@ jobs:
       - name: Configure control plane access
         run: |
           datumctl auth update-kubeconfig \
-            --project my-project-id \
+            --project your-project-id \
             --exec-interactive-mode Never
 
       # Run your GitOps step. The tool reads the kubeconfig above and

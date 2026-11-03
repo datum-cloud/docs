@@ -404,6 +404,151 @@ a.nav-anchor {
   color: #0c1d31;
 }
 
+/* Values filled from the reader's account (docs-vars.js). Keeps the code
+   color; the dashed underline marks it as the reader's own. */
+.datum-var {
+  text-decoration: underline dashed;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+
+/* Shiki resets text-decoration on every code span with !important in dark
+   mode (html.dark .shiki span), so outrank it here. */
+html .shiki span.datum-var,
+html.dark .shiki span.datum-var {
+  text-decoration: underline dashed 1px !important;
+}
+
+.datum-var:focus-visible {
+  outline: 1px solid currentColor;
+  outline-offset: 2px;
+}
+
+/* Hover card for a placeholder token (docs-vars.js), styled like .portal-user-menu */
+.datum-var-tip {
+  --tip-fg: #0c1d31;
+  --tip-muted: #5b6672;
+  --tip-bg: #fff;
+  --tip-subtle: #f3f4f5;
+  --tip-border: #c3c6c9;
+  position: fixed;
+  z-index: 100;
+  width: max-content;
+  max-width: min(340px, calc(100vw - 16px));
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--tip-fg);
+  background-color: var(--tip-bg);
+  border: 1px solid var(--tip-border);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.05), 1px 8px 8px 0 rgba(0, 0, 0, 0.02);
+}
+
+.dark .datum-var-tip {
+  --tip-fg: #fff;
+  --tip-muted: rgba(255, 255, 255, 0.64);
+  --tip-bg: #0c1d31;
+  --tip-subtle: rgba(255, 255, 255, 0.06);
+  --tip-border: rgba(255, 255, 255, 0.12);
+}
+
+.datum-var-tip[hidden] {
+  display: none;
+}
+
+.datum-var-tip p {
+  margin: 0;
+}
+
+/* Square like the card, not Mintlify's rounded inline-code pill. The id
+   outranks Mintlify's inline-code color and background. */
+#datum-var-tip code {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  overflow-wrap: anywhere;
+  color: var(--tip-fg);
+  background-color: var(--tip-subtle);
+  border-radius: 0;
+}
+
+.datum-var-tip-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: var(--tip-subtle);
+  border-bottom: 1px solid var(--tip-border);
+}
+
+.datum-var-tip-kicker {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tip-muted);
+}
+
+#datum-var-tip .datum-var-tip-token {
+  padding: 1px 6px;
+  font-size: 0.8125rem;
+  background-color: var(--tip-bg);
+  border: 1px solid var(--tip-border);
+}
+
+.datum-var-tip-body {
+  padding: 12px 16px;
+}
+
+.datum-var-tip-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--tip-muted);
+}
+
+#datum-var-tip .datum-var-tip-value {
+  display: block;
+  margin-top: 4px;
+  padding: 6px 10px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background-color: var(--tip-subtle);
+  border: 1px solid var(--tip-border);
+}
+
+.datum-var-tip-note {
+  margin-top: 10px !important;
+  font-size: 0.8125rem;
+  color: var(--tip-muted);
+}
+
+.datum-var-tip a {
+  color: var(--tip-fg);
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.datum-var-tip-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--tip-border);
+}
+
+.datum-var-tip-copy {
+  padding: 4px 10px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--tip-fg);
+  border: 1px solid var(--tip-border);
+}
+
+.datum-var-tip-copy:hover,
+.datum-var-tip-copy:focus-visible {
+  background-color: var(--tip-subtle);
+}
+
 /* Navbar right: theme selector first, bolder; "Status" last (Polylane-style) */
 div:has(> #theme-preference-menu-trigger) {
   order: -1;

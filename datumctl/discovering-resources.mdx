@@ -20,8 +20,8 @@ Three commands cover discovery:
 <Info>
   These commands read from the control plane for your **currently configured
   context**. Make sure you are logged in (see [Logging in](/datumctl/auth/logging-in))
-  and have an organization or project selected first — pass `--organization <org-id>`
-  or `--project <project-id>`, or set a default context. See
+  and have an organization or project selected first — pass `--organization your-org-id`
+  or `--project your-project-id`, or set a default context. See
   [Contexts & scoping](/datumctl/contexts-and-scoping) for how that scope is chosen.
 </Info>
 
@@ -149,7 +149,7 @@ Discovery feeds directly into authoring manifests for `datumctl apply` and
     discovered, then validate it against the server before persisting.
 
     ```bash
-    datumctl apply -f ./project.yaml --organization <org-id> --dry-run=server
+    datumctl apply -f ./project.yaml --organization your-org-id --dry-run=server
     ```
   </Step>
 </Steps>
@@ -165,10 +165,10 @@ When you know roughly what you're looking for but not its kind or exact name, us
 
 ```text
 $ datumctl search api
-KIND        NAME              NAMESPACE   TENANT       SCORE   AGE
-Workload    api               default     my-project   0.99    3d
-HTTPProxy   api               default     my-project   0.97    3d
-Workload    api-postgres      default     my-project   0.82    3d
+KIND        NAME              NAMESPACE   TENANT            SCORE   AGE
+Workload    api               default     your-project-id   0.99    3d
+HTTPProxy   api               default     your-project-id   0.97    3d
+Workload    api-postgres      default     your-project-id   0.82    3d
 ```
 
 To narrow the results to one or more kinds, add `--kind`, such as `--kind Workload --kind HTTPProxy`. To see which kinds are searchable, run `datumctl search kinds`. For scripts, add `-o json`.
