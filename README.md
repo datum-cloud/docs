@@ -22,7 +22,7 @@ mintlify dev
 
 ## Structure
 
-```
+```bash
 ├── docs.json           # Mintlify configuration (navigation, redirects, theme)
 ├── index.mdx           # Landing page (Introduction > Overview)
 ├── changelog.mdx       # Release notes, curated from GitHub changelog discussions
