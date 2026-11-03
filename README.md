@@ -4,7 +4,7 @@ Documentation for [Datum Cloud](https://www.datum.net), built with [Mintlify](ht
 
 ## Live Site
 
-[datum.net/docs](https://www.datum.net/docs)
+[Datum Docs](https://www.datum.net/docs)
 
 ## Development
 
