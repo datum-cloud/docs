@@ -1,0 +1,30 @@
+README.md
+  s_c2b37c33237a85::t_5ce4770d38d067 74
+  s_c2b37c33237a85::t_55a90dcdce9e47 75
+docs-vars.js
+  s_c2b37c33237a85::t_714d58c2d72de6 200
+  s_c2b37c33237a85::t_e760f953645868 141-147
+  s_c2b37c33237a85::t_48538d442205a8 65-68
+  s_c2b37c33237a85::t_38af5eedf36d96 16-26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bb9000b52648dc972db485726850163b89a019fe",
+  "prompts": {},
+  "humans": {
+    "h_c7951bc64db670": {
+      "author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_c2b37c33237a85": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "aa49386a-e5e7-4b06-837d-a2982603d568",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
