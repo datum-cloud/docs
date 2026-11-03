@@ -1,7 +1,7 @@
 // Marks the placeholder tokens in code (see "Placeholders" in README.md) for a
 // signed-in reader. The token stays as written; hovering it opens a card with
-// the reader's own value and buttons to copy that value or, in a code block,
-// the whole block with every token filled in. Tokens aren't marked when the
+// the reader's own value and buttons to copy that value or the whole code
+// (block or inline) with every token filled in. Tokens aren't marked when the
 // reader is signed out, the request fails, or the portal doesn't vouch for
 // the value.
 (function () {
@@ -221,8 +221,10 @@
         return span.dataset.value;
       })
     );
-    var block = span.closest('pre');
-    if (block) {
+    // A code block, or inline code like `datumctl ctx use your-org-id/...`.
+    // Skipped when the code is the token alone: it would copy the value again.
+    var block = span.closest('pre') || span.closest('code');
+    if (block && filledCode(block, values).trim() !== span.dataset.value) {
       actions.appendChild(
         buildCopyButton('Copy code with my values', function () {
           return filledCode(block, values);

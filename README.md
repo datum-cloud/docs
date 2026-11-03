@@ -50,7 +50,7 @@ Each product section follows the same layout where it applies: Overview, product
 
 ## Placeholders
 
-When a reader is signed in to Datum Cloud, `docs-vars.js` marks these tokens in code. The token stays as written; hovering it shows the reader's own value with buttons to copy that value or, in a code block, the whole block with the tokens filled in. A token isn't marked when the reader is signed out or the portal doesn't vouch for the value: the org only when the portal knows it is the one the reader works in, and the project only when the last portal page the reader opened was inside a project. Use exactly these tokens in examples, and nothing else, for these values:
+When a reader is signed in to Datum Cloud, `docs-vars.js` marks these tokens in code. The token stays as written; hovering it shows the reader's own value with buttons to copy that value or the whole code (a code block or inline code) with the tokens filled in. A token isn't marked when the reader is signed out or the portal doesn't vouch for the value: the org only when the portal knows it is the one the reader works in, and the project only when the last portal page the reader opened was inside a project. Use exactly these tokens in examples, and nothing else, for these values:
 
 | Token             | Becomes                                   | Use it for                                                             |
 | ----------------- | ----------------------------------------- | ---------------------------------------------------------------------- |
