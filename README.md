@@ -71,14 +71,13 @@ NAMESPACE="default"
 
 Rules:
 
-- Write the token exactly, in lowercase. Variants such as `my-project`, `my-project-id`, `<project-id>`, `PROJECT_ID`, `<org-id>` or `ORG_ID` are not replaced.
+- Write the token exactly, in lowercase. Variants such as `my-project`, `my-project-id`, `<project-id>`, `<org-id>` or `ORG_ID` are not replaced.
+- `PROJECT_ID` and `$PROJECT_ID` are aliases of `your-project-id` and get the same value (the MetricsQL queries in the observability pages use `PROJECT_ID`). `${PROJECT_ID}`, `MY_PROJECT_ID` and `PROJECT_ID_2` are not replaced.
 - Don't wrap a token in `<…>`. Shiki reads `<` as a shell redirect and splits the token across several spans, so it can't be replaced.
 - Replace values only, never variable references: `PROJECT="your-project-id"` uses the token, `--project $PROJECT` stays.
 - Use `your-email` only for the reader's own account. Someone else's identity (an audit filter, an allowed-users list) keeps an example address like `alice@example.com`.
 - Other placeholders (`ALB_NAME`, `INSTANCE_NAME`, `my-zone`, `example.com`) are fine. They are never replaced, so readers still swap them by hand.
 - Prose that explains flag syntax, like ``--project <project>``, can keep the angle brackets. It isn't a value to copy.
-
-TODO: MetricsQL queries in the observability pages (`alb/`, `compute/`, `connectors/`, `domain-dns/`, `galactic-vpc/`) still use `PROJECT_ID`, next to other uppercase placeholders like `ALB_NAME` and `INSTANCE_NAME`. Decide whether to switch them to `your-project-id` so they are personalized too.
 
 ## Spellcheck
 
