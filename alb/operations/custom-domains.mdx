@@ -43,8 +43,8 @@ Each custom hostname passes through these, in order:
 Datum gives you a record to create. Look it up on the domain:
 
 ```bash
-datumctl get domains --project <project>
-datumctl describe domain example-com --project <project>
+datumctl get domains --project your-project-id
+datumctl describe domain example-com --project your-project-id
 ```
 
 Create that record exactly as given, at your DNS provider. Then leave it — Datum picks it up on its own once it is publicly visible. There is no command to force a re-check, and no deadline, because this step waits on you rather than on Datum.

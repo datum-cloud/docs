@@ -22,10 +22,10 @@ Pass a resource type to list every resource of that type in your current scope:
 
 ```bash
 # List all DNS zones in a project
-datumctl get dnszones --project <project-id>
+datumctl get dnszones --project your-project-id
 
 # List all projects in an organization
-datumctl get projects --organization <org-id>
+datumctl get projects --organization your-org-id
 ```
 
 <Tip>
@@ -38,10 +38,10 @@ Add a name to fetch just one resource. Pairing this with `-o yaml` is the usual 
 
 ```bash
 # Table row for one zone
-datumctl get dnszone my-zone --project <project-id>
+datumctl get dnszone my-zone --project your-project-id
 
 # The complete resource definition
-datumctl get dnszone my-zone --project <project-id> -o yaml
+datumctl get dnszone my-zone --project your-project-id -o yaml
 ```
 
 ### Choose an output format
@@ -58,13 +58,13 @@ The `-o` (`--output`) flag controls how results are rendered. The formats you'll
 
 ```bash
 # Extra columns in the table
-datumctl get dnszones --project <project-id> -o wide
+datumctl get dnszones --project your-project-id -o wide
 
 # Full JSON for scripting
-datumctl get dnszones --project <project-id> -o json
+datumctl get dnszones --project your-project-id -o json
 
 # Bare identifiers to feed another command
-datumctl get dnszones --project <project-id> -o name
+datumctl get dnszones --project your-project-id -o name
 ```
 
 <Note>
@@ -77,13 +77,13 @@ A few flags make lists easier to work with:
 
 ```bash
 # Filter by label selector
-datumctl get dnszones --project <project-id> -l app=my-app
+datumctl get dnszones --project your-project-id -l app=my-app
 
 # List across every namespace in scope
-datumctl get dnszones --organization <org-id> --all-namespaces
+datumctl get dnszones --organization your-org-id --all-namespaces
 
 # Watch for changes and stream updates as they happen
-datumctl get projects --organization <org-id> --watch
+datumctl get projects --organization your-org-id --watch
 ```
 
 ---
@@ -94,16 +94,16 @@ Where `get` gives you a concise row, `datumctl describe` prints a detailed, huma
 
 ```bash
 # Describe one resource
-datumctl describe dnszone my-zone --project <project-id>
+datumctl describe dnszone my-zone --project your-project-id
 
 # Describe every resource of a type in a namespace
-datumctl describe dnszones --project <project-id>
+datumctl describe dnszones --project your-project-id
 
 # Describe by label selector
-datumctl describe dnszones -l app=my-app --project <project-id>
+datumctl describe dnszones -l app=my-app --project your-project-id
 
 # Describe resources named in a manifest file
-datumctl describe -f ./zone.yaml --project <project-id>
+datumctl describe -f ./zone.yaml --project your-project-id
 ```
 
 You can select resources by name, by label selector (`-l`), or from a manifest file (`-f`). Passing a name prefix shows details for every resource whose name starts with that prefix.

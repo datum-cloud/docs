@@ -43,12 +43,12 @@ flags are mutually exclusive.
 <Tabs>
   <Tab title="Organization control plane">
     ```bash
-    datumctl auth update-kubeconfig --organization my-org-id
+    datumctl auth update-kubeconfig --organization your-org-id
     ```
   </Tab>
   <Tab title="Project control plane">
     ```bash
-    datumctl auth update-kubeconfig --project my-project-id
+    datumctl auth update-kubeconfig --project your-project-id
     ```
   </Tab>
 </Tabs>
@@ -75,7 +75,7 @@ write to an explicit file — handy for keeping Datum Cloud entries separate fro
 your other clusters.
 
 ```bash
-datumctl auth update-kubeconfig --organization my-org-id --kubeconfig ~/.kube/datum-config
+datumctl auth update-kubeconfig --organization your-org-id --kubeconfig ~/.kube/datum-config
 ```
 
 ### Non-interactive use in CI and scripts
@@ -87,7 +87,7 @@ plugin's interactive mode to `Never` so kubectl fails fast instead of waiting
 on a prompt that can never be answered.
 
 ```bash
-datumctl auth update-kubeconfig --project my-project-id --exec-interactive-mode Never
+datumctl auth update-kubeconfig --project your-project-id --exec-interactive-mode Never
 ```
 
 <Note>

@@ -98,7 +98,7 @@ Because the API follows Kubernetes conventions, many tools can use it, and they 
 Under the hood, a project's resources live under a path like the following, which [`datumctl api-proxy`](/datumctl/api-proxy) exposes on your machine:
 
 ```text
-https://api.datum.net/apis/resourcemanager.miloapis.com/v1alpha1/projects/PROJECT_ID/control-plane/apis/networking.datumapis.com/v1alpha/...
+https://api.datum.net/apis/resourcemanager.miloapis.com/v1alpha1/projects/your-project-id/control-plane/apis/networking.datumapis.com/v1alpha/...
 ```
 
 To see every resource type your project offers, run `datumctl api-resources`. To read the schema of one, run `datumctl explain`. For more information, see [Discovering resources](/datumctl/discovering-resources).

@@ -39,7 +39,7 @@ jobs:
           credentials: ${{ secrets.DATUM_SA_CREDENTIALS }}
 
       - name: List projects
-        run: datumctl get projects --organization my-org-id
+        run: datumctl get projects --organization your-org-id
 ```
 
 Because the setup step authenticates for you, later steps run `datumctl` without a login command. Pass `--organization` (and `--project` where relevant) explicitly on every command so the workflow does not depend on ambient context state.
