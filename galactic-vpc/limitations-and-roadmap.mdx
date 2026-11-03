@@ -17,6 +17,9 @@ In addition to the [networking limitations that apply to all of Compute](/comput
 - The `networkPolicy` field of a network interface has no effect. Don't rely on it to restrict traffic. Firewall rules are a planned capability.
 - You can't choose a network's address ranges or create your own subnets.
 - Networks carry Compute traffic only in the locations where Compute runs: `us-central-1`, `us-east-1`, and `us-west-1`.
+- Every network can reach the internet, and you can't turn that off.
+- Outbound internet traffic leaves from addresses that are shared with other Datum customers. Datum doesn't publish them, so a destination can't allowlist your Instances by address.
+- Instances reach IPv4-only internet services by hostname only. A connection to an IPv4 address fails. See [Reach the internet](/galactic-vpc/networks/traffic#reach-the-internet).
 
 ## Planned capabilities
 
@@ -24,8 +27,10 @@ Datum is working on the following networking capabilities:
 
 - **Firewall rules:** Security groups that control the traffic to and from your Instances.
 - **Private DNS:** Private DNS names, so Instances can find each other without IP addresses.
+- **Internet access setting:** A setting that turns internet access on or off for every Instance on a network.
+- **Datum DNS resolver:** A DNS resolver that Datum runs for Instances, which also performs DNS64.
 
-Outbound internet access, including IPv4 destinations, and viewing networks in the Datum Cloud portal are already available. For details, see [Traffic and connecting](/galactic-vpc/networks/traffic).
+Outbound internet access, including IPv4 destinations, and viewing networks in the Datum Cloud portal are already available. For details, see [Reach the internet](/galactic-vpc/networks/traffic#reach-the-internet).
 
 For what Datum is building next across the platform, see the [Platform roadmap](/platform/roadmap).
 

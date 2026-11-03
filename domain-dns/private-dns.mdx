@@ -1,35 +1,30 @@
 ---
 title: "Private DNS"
-description: "Resolve private service and resource names within a Datum VPC."
+description: "Resolve private service and resource names within a gVPC network."
 ---
 
-Private DNS gives resources in a Datum VPC names that resolve only from that
-VPC. It provides a consistent discovery layer for private addresses without
-requiring every product or workload to run its own DNS server.
-
-<Note>
-  Private DNS is under active development. Availability and supported service
-  integrations may vary while the feature is in preview.
-</Note>
+Private DNS gives resources in a [gVPC](/galactic-vpc/overview) network names
+that resolve only from that network. It provides a consistent discovery layer
+for private addresses without requiring every product or workload to run its
+own DNS server.
 
 ## What you can do
 
 With Private DNS, you can:
 
 - **Reach resources by name:** Use DNS names instead of private IP addresses
-  that may change over a resource's lifetime.
+  that can change over a resource's lifetime.
 - **Use automatic service names:** Integrated Datum services publish names for
-  resources such as Compute instances.
-- **Create private namespaces:** Organize internal applications under private
-  zones that are available only to associated VPCs.
-- **Reuse internal names safely:** Different VPCs can use the same names and
-  overlapping private addresses without exposing answers to each other.
+  resources such as Compute Instances.
+- **Create private namespaces:** Organize internal apps under private zones
+  that only associated networks can resolve.
+- **Reuse internal names safely:** Different networks can use the same names
+  and overlapping private addresses without exposing answers to each other.
 - **Keep records aligned with resources:** Service-managed records update or
   disappear as their resources and addresses change.
 
-Applications use ordinary DNS lookups. When they run in an associated VPC,
-private names resolve alongside public names without application-specific
-resolver configuration.
+Apps use ordinary DNS lookups. On an associated network, private names
+resolve alongside public names with no resolver configuration in the app.
 
 ## Private and public DNS
 
@@ -38,46 +33,46 @@ Datum offers two complementary DNS capabilities:
 | Capability | Where names resolve | Typical use |
 | --- | --- | --- |
 | [Authoritative DNS](/domain-dns/dns) | The public internet | Websites, public APIs, email, and domain records |
-| Private DNS | Inside an associated VPC | Private instances, internal services, and service discovery |
+| Private DNS | Inside an associated network | Private Instances, internal services, and service discovery |
 
-Private DNS records are not published to the public DNS. Creating a private
-name does not make a resource reachable from the internet or grant network
-access to it.
+Private DNS records aren't published to public DNS. A private name doesn't
+make a resource reachable from the internet or grant network access to it.
 
 ## Names and zones
 
-Each VPC receives a managed DNS suffix for automatic service names. You can
-also associate private zones with a VPC for organization-specific names.
+Each network receives a managed DNS suffix for automatic service names. You can
+also associate private zones with a network for your own names.
 
-- **Managed names:** Datum services publish predictable names beneath the VPC's
-  managed suffix.
-- **Private zones:** Your internal names are visible only from the VPCs with
-  which the zone is associated.
+- **Managed names:** Datum services publish predictable names beneath the
+  network's managed suffix.
+- **Private zones:** Your internal names resolve only from the networks that
+  the zone is associated with.
 
-The complete service-managed name includes the VPC's allocated suffix. Use the
-name reported by the service instead of constructing it in application code.
+The complete service-managed name includes the network's allocated suffix. Use
+the name that the service reports instead of building it in your app.
 
 ## Service integrations
 
-The resource name, published record types, and eligibility rules are defined by
-the service that owns the resource.
+The service that owns a resource defines its name, its record types, and when
+it's published.
 
 <CardGroup cols={2}>
   <Card title="Compute" icon="microchip" href="/compute/private-dns">
-    Learn how Compute publishes stable private names for instance addresses.
+    Learn how Compute publishes stable private names for Instances.
   </Card>
 </CardGroup>
 
-Additional Datum services will be documented here as Private DNS integrations
+Datum will document more services here as their Private DNS integrations
 become available.
 
-## What Private DNS does not do
+## What Private DNS doesn't do
 
-- **Provide public discovery:** Private names are not available through public
+- **Provide public discovery:** Private names aren't available through public
   DNS.
-- **Grant network access:** Routing and access policy still determine whether a
-  client can reach the returned address.
-- **Replace application health checks:** A name can resolve while the
-  application itself is unavailable.
-- **Remove cached answers immediately:** Clients may retain an older answer
+- **Grant network access:** Whether a client can reach the returned address
+  depends on the network, not on DNS. See
+  [Traffic and connecting](/galactic-vpc/networks/traffic).
+- **Replace app health checks:** A name can resolve while the app itself is
+  unavailable.
+- **Remove cached answers immediately:** Clients can keep an older answer
   until its DNS TTL expires.

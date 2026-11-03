@@ -1,75 +1,68 @@
 ---
 title: "Private DNS for Compute"
 sidebarTitle: "Private DNS"
-description: "How Compute publishes stable private names for instances attached to a Datum VPC."
+description: "How Compute publishes stable private names for Instances on a gVPC network."
 ---
 
 Compute integrates with [Private DNS](/domain-dns/private-dns) to publish a
-predictable name for an instance in each VPC to which it is attached. The name
-resolves to the instance's programmed private IPv4 and IPv6 addresses and is
-visible only within the associated VPC's DNS context.
-
-<Note>
-  The Compute integration is under active development and is not yet a stable,
-  generally available interface.
-</Note>
+predictable name for each Instance on the [network](/galactic-vpc/overview)
+that it attaches to. The name resolves to the Instance's private addresses and
+resolves only from inside that network.
 
 ## Instance names
 
-Compute publishes instance identity names beneath the `instances` subtree of
-the VPC's managed namespace. A name has this general form:
+Compute publishes Instance names beneath the `instances` subtree of the
+network's managed DNS suffix. A name has this general form:
 
 ```text
-<instance-name>.instances.<vpc-managed-suffix>
+<instance-name>.instances.<network-managed-suffix>
 ```
 
-Compute normalizes the instance name into a valid DNS label when necessary. If
-two instance names normalize to the same DNS name, Private DNS keeps the first
-claim and reports a name conflict for the other instance.
+Compute normalizes the Instance name into a valid DNS label when necessary. If
+two Instance names normalize to the same DNS name, Private DNS keeps the first
+claim and reports a name conflict for the other Instance.
 
-Treat the complete name reported by the service as an output. The managed
-suffix is a platform allocation and should not be constructed or parsed by
-applications.
+Treat the complete name that Datum reports as an output. The managed suffix is
+a platform allocation, so don't build or parse it in your app.
 
-The allocated hostname and its publication state are reported for each network
-in `Instance.status.dns`.
+Datum reports the allocated hostname and its publication state in
+`Instance.status.dns`.
 
 ## Published addresses
 
 Compute publishes:
 
-- `A` records for private IPv4 addresses.
 - `AAAA` records for private IPv6 addresses.
+- `A` records for private IPv4 addresses. Instances have IPv6 addresses only
+  during the preview, so they have no `A` records.
 
-An address is eligible only while the instance is ready, its runtime is ready,
-and its network interface reports that the address is both allocated and
-programmed. Public addresses and delegated prefixes are not published as
-instance identity records.
+An address is published only while the Instance is ready, its runtime is
+ready, and its network interface reports that the address is both allocated
+and programmed. Public addresses and delegated prefixes aren't published as
+Instance records.
 
-Instance readiness covers the managed runtime and network attachment. Use the
-application's own health checks or a service-specific discovery mechanism when
-traffic should be sent only to healthy application endpoints.
+Instance readiness covers the runtime and the network attachment, not your
+app. To send traffic only to healthy app endpoints, use your app's own health
+checks or a [network service](/galactic-vpc/networks/network-services).
 
 ## Lifecycle behavior
 
-Compute continuously reconciles the DNS records from current instance and
-network state:
+Compute keeps the DNS records in step with the current Instance and network
+state:
 
-- Address changes update the records behind the stable identity name.
+- Address changes update the records behind the stable name.
 - An unavailable or deprogrammed interface withdraws its addresses.
-- Deleting the instance removes its published records.
-- Resource lifetime checks prevent an old instance from publishing addresses
-  after it has been replaced.
-- An instance attached to more than one VPC receives independently isolated
-  DNS state for each VPC.
+- Deleting the Instance removes its records.
+- An old Instance can't publish addresses after it has been replaced.
 
-Publication is asynchronous. A running instance can become ready before its
-name is visible in every resolver, and clients can retain an older answer until
+Publication is asynchronous. A running Instance can become ready before its
+name is visible in every resolver, and clients can keep an older answer until
 the DNS TTL expires.
 
 ## Network access
 
-Resolving an instance name does not grant access to the instance. The client
-must still have a valid route and be permitted by the applicable network
-policy. Clients outside the associated VPC context cannot resolve the private
-instance name through public DNS.
+Resolving an Instance name doesn't grant access to the Instance. The client
+must still be able to reach the Instance on the network. Firewall rules aren't
+available yet, so any Instance on the same network can connect to any port.
+See [Traffic and connecting](/galactic-vpc/networks/traffic). Clients outside
+the network can't resolve the name through public DNS.
