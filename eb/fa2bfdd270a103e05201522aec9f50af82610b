@@ -1,0 +1,22 @@
+docs-vars.js
+  s_df0bb119594b8b::t_1198f34d355dc3 3-4
+  s_df0bb119594b8b::t_ff2f10f607bd24 204-207
+README.md
+  s_df0bb119594b8b::t_0f3ac23e035607 53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ebfa2bfdd270a103e05201522aec9f50af82610b",
+  "prompts": {},
+  "sessions": {
+    "s_df0bb119594b8b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "40dd6387-2026-40d2-b311-cc231ffc9bba",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
