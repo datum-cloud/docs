@@ -13,7 +13,17 @@
 
   var VAR_CLASS = 'datum-var';
   // A whole token only: `your-project-id-2` is someone's own name, not a token.
-  var TOKEN_PATTERN = /(?<![\w-])(your-org-id|your-project-id|your-email)(?![\w-])/g;
+  // `$` and `{` before it are excluded so `${PROJECT_ID}` stays as written.
+  var TOKEN_PATTERN =
+    /(?<![\w${-])(your-org-id|your-project-id|your-email|\$PROJECT_ID|PROJECT_ID)(?![\w-])/g;
+  // Other spellings that mean the same value as a token.
+  var TOKEN_ALIASES = {
+    PROJECT_ID: 'your-project-id',
+    $PROJECT_ID: 'your-project-id',
+  };
+  var canonicalToken = function (token) {
+    return TOKEN_ALIASES[token] || token;
+  };
   // Milo resource names (Kubernetes DNS subdomains).
   var NAME_PATTERN = /^[a-z0-9]([a-z0-9.-]{0,251}[a-z0-9])?$/;
   // Narrower than RFC 5322 on purpose: the email lands unquoted in copied shell
@@ -52,6 +62,10 @@
     if (status.user && EMAIL_PATTERN.test(status.user.email)) {
       values['your-email'] = status.user.email;
     }
+    Object.keys(TOKEN_ALIASES).forEach(function (alias) {
+      var value = values[TOKEN_ALIASES[alias]];
+      if (value) values[alias] = value;
+    });
     return values;
   };
 
@@ -124,7 +138,13 @@
   var fill = function (values) {
     document.querySelectorAll('code').forEach(function (code) {
       // The hover card names the token in a <code> too; that one stays plain.
-      if (code.textContent.indexOf('your-') === -1 || code.closest('#' + TIP_ID)) return;
+      var text = code.textContent;
+      if (
+        (text.indexOf('your-') === -1 && text.indexOf('PROJECT_ID') === -1) ||
+        code.closest('#' + TIP_ID)
+      ) {
+        return;
+      }
       var walker = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
       var nodes = [];
       while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -177,7 +197,7 @@
   // Header (which token), body (the reader's value and where to change it),
   // footer (copy buttons).
   var fillTip = function (tip, span, values) {
-    var copy = TIP_COPY[span.dataset.token];
+    var copy = TIP_COPY[canonicalToken(span.dataset.token)];
 
     var header = tipPart('div', 'header');
     header.appendChild(tipPart('span', 'kicker')).textContent = 'Placeholder';
