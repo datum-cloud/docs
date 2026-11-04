@@ -11,22 +11,45 @@ resolves only from inside that network.
 
 ## Instance names
 
-Compute publishes Instance names beneath the `instances` subtree of the
-network's managed DNS suffix. A name has this general form:
+Compute publishes each Instance under the `instances` subdomain of the
+network's `datum.internal` zone:
 
 ```text
-<instance-name>.instances.<network-managed-suffix>
+<instance-name>.instances.datum.internal
 ```
 
-Compute normalizes the Instance name into a valid DNS label when necessary. If
-two Instance names normalize to the same DNS name, Private DNS keeps the first
-claim and reports a name conflict for the other Instance.
+For example, from another Instance on the same network:
 
-Treat the complete name that Datum reports as an output. The managed suffix is
-a platform allocation, so don't build or parse it in your app.
+```shell
+$ dig +short AAAA web-01.instances.datum.internal
+fd20:1::5
+$ curl http://web-01.instances.datum.internal:8080/
+```
 
-Datum reports the allocated hostname and its publication state in
-`Instance.status.dns`.
+Instances get `datum.internal` as a search domain, so `web-01.instances` also
+works. Records have a 30 second TTL.
+
+Compute turns the Instance name into a valid DNS label: it lowercases the
+name, replaces characters other than letters, digits, and `-` with `-`, and
+trims leading and trailing `-`. An Instance named `Web_01` is
+`web-01.instances.datum.internal`. Names longer than 63 characters are
+shortened and given a hash suffix. If two Instances end up with the same DNS
+name, Private DNS keeps the first and reports a name conflict for the other.
+
+Each Instance reports its hostname and whether it's published in
+`Instance.status.dns`:
+
+```yaml
+status:
+  dns:
+    - network:
+        name: default
+      hostnames: [web-01.instances.datum.internal]
+      conditions:
+        - type: Ready
+          status: "True"
+          reason: Published
+```
 
 ## Published addresses
 
