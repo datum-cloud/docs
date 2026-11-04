@@ -1,0 +1,80 @@
+style.css
+  s_d70eb69d1c1e9d::t_65aa131fea028e 200,206,212,218,223,231,237,243,249,254,595,600-631,633-645
+  s_d70eb69d1c1e9d::t_060d0d7e752c6a 197-199
+  s_d70eb69d1c1e9d::t_c6c5855bf3a86b 201-205
+  s_d70eb69d1c1e9d::t_9f75db64ad60d3 207-211
+  s_d70eb69d1c1e9d::t_8855f5492855dd 215-217
+  s_d70eb69d1c1e9d::t_4751a8f5d8238b 219-222
+  s_d70eb69d1c1e9d::t_1cd929a8dbc6e1 228-230
+  s_d70eb69d1c1e9d::t_6c94dc31a8febf 232-236
+  s_d70eb69d1c1e9d::t_46f886c13a9974 238-242
+  s_d70eb69d1c1e9d::t_ec9741fcb0b702 246-248
+  s_d70eb69d1c1e9d::t_9c9b9e83fb3db2 250-253
+  s_d70eb69d1c1e9d::t_8fe19f6b2abf59 632
+  s_d70eb69d1c1e9d::t_6a6ec5f536850a 646
+docs-vars.js
+  s_d70eb69d1c1e9d::t_4491635e8ced7e 19,21,24-25,39-45,62-67,70,73,82-84,86-90,93-96,98-101,103-105,107,109-122,125-128,138-141,143-144,146,148-153,155,158-159,163,165,169-172,183,189,196,209,216,226,231-232,234,240-243,245
+  s_d70eb69d1c1e9d::t_b6174472504650 261,273-275,279,282,285,287,289-290,292-304,312-314,316,319-320,322-323,325-329,331,333-334,336,338-340,347-348,350,352,354-356,499
+  s_d70eb69d1c1e9d::t_46494d3406e055 408-417,421,424
+  s_d70eb69d1c1e9d::t_3a058089966258 386
+  s_d70eb69d1c1e9d::t_c1b153a57b1c7d 453-454,456-458,460
+  s_d70eb69d1c1e9d::t_0df773488c861e 467-470,476,484-486,488-494,496-498
+  s_d70eb69d1c1e9d::t_f06d7e9cd06974 85
+  s_d70eb69d1c1e9d::t_184bd37cebe9c6 91-92
+  s_d70eb69d1c1e9d::t_4e68995bf493da 97
+  s_d70eb69d1c1e9d::t_5e58f01235d7ba 102
+  s_d70eb69d1c1e9d::t_f5092d143d8a81 106
+  s_d70eb69d1c1e9d::t_2a0abf07e9d6a5 108
+  s_d70eb69d1c1e9d::t_f5f4e5c8248cbb 123-124
+  s_d70eb69d1c1e9d::t_2b0f6be0e02579 154
+  s_d70eb69d1c1e9d::t_bb87d65f9b6c83 156-157
+  s_d70eb69d1c1e9d::t_aa36f5831d542f 160-162
+  s_d70eb69d1c1e9d::t_ee98b2fe9cc5cf 164
+  s_d70eb69d1c1e9d::t_21097c61fa75e0 210
+  s_d70eb69d1c1e9d::t_ad8e366cc717ca 214-215
+  s_d70eb69d1c1e9d::t_03b094acbbcb86 217
+  s_d70eb69d1c1e9d::t_9f8bb509c1f0ba 225
+  s_d70eb69d1c1e9d::t_2948d89ae61e30 260
+  s_d70eb69d1c1e9d::t_d94addaa7cdbc8 276-278
+  s_d70eb69d1c1e9d::t_66a0a1571cfca4 280-281
+  s_d70eb69d1c1e9d::t_d170985eb93536 283-284
+  s_d70eb69d1c1e9d::t_bb248bdb8c1c47 286
+  s_d70eb69d1c1e9d::t_33c4bec555b49e 288
+  s_d70eb69d1c1e9d::t_04d723d9a4c35a 291
+  s_d70eb69d1c1e9d::t_fa1208e70d1c93 310-311
+  s_d70eb69d1c1e9d::t_9a30f5a74ccfce 315
+  s_d70eb69d1c1e9d::t_69800b8859b99a 317-318
+  s_d70eb69d1c1e9d::t_e504256ba66b82 324
+  s_d70eb69d1c1e9d::t_cf98fd4deeca99 337
+  s_d70eb69d1c1e9d::t_1659be64631c55 341-342
+  s_d70eb69d1c1e9d::t_7c5b2476e1ac7e 346
+  s_d70eb69d1c1e9d::t_160694c036df82 349
+  s_d70eb69d1c1e9d::t_12c1661d82d5cf 353
+  s_d70eb69d1c1e9d::t_98b8310c7c362d 357-358
+  s_d70eb69d1c1e9d::t_10b8d9d9b50858 387
+  s_d70eb69d1c1e9d::t_650d1ba7a0145e 455
+  s_d70eb69d1c1e9d::t_39b0e662929e6d 459
+  s_d70eb69d1c1e9d::t_df4353c6abc445 461
+  s_d70eb69d1c1e9d::t_ba4a680a8ee6f2 487
+  s_d70eb69d1c1e9d::t_d68d506af0bff1 495
+alb/operations/overview.mdx
+  s_d70eb69d1c1e9d::t_594c9155194018 14,19,48
+README.md
+  s_d70eb69d1c1e9d::t_a8a677f779dd78 60,80-81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ec73f1dca2ddda8535db29d890157e33bda36779",
+  "prompts": {},
+  "sessions": {
+    "s_d70eb69d1c1e9d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "854d9dfb-83ba-42f5-a21b-1d83ac9225e1",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
