@@ -6,6 +6,124 @@ rss: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
+<Update label="November 4, 2026" description="gVPC" tags={["Fix"]}>
+  ## Read-only users can open VPC pages
+
+  Members with read-only access can now open the VPC pages in the [Cloud Portal](https://cloud.datum.net).
+
+  - **Fixed:** viewers no longer get a permission error when they open VPC pages.
+  - Create, edit, **Enable IPv6**, and delete controls for networks and network services are hidden when you don't have permission to use them.
+
+  See [Network services](/galactic-vpc/networks/network-services).
+</Update>
+
+<Update label="November 3, 2026" description="Application Load Balancer" tags={["Fix"]}>
+  ## Clear status for wildcard hostnames that aren't enabled
+
+  - **Fixed:** an ALB whose only problem is a wildcard hostname that isn't enabled for your project now reports `ListenersNotValid` instead of staying `Pending` indefinitely.
+
+  Wildcard hostnames are early access. See [Wildcard hostnames](/alb/configuration/wildcard-hostnames).
+</Update>
+
+<Update label="November 2, 2026" description="Billing" tags={["GA"]}>
+  ## Billing is generally available
+
+  Organization owners can now manage billing in the [Cloud Portal](https://cloud.datum.net) without a feature flag.
+
+  - **Owners only:** billing accounts, payment methods, and invoices are visible only to organization owners. Other members don't see billing pages or links.
+  - **Payment terms:** if you can't pay by card, apply for payment terms during setup or from billing settings. Datum reviews the application, and the portal shows whether it's under review, approved, or declined.
+  - **Invoice email:** each billing account sends invoices to one invoice email. If you leave it empty, invoices go to the billing contact.
+  - **Discounts:** a read-only **Discounts** section on the billing account shows any discount that applies. Discounts are applied to invoices automatically.
+  - **Cleaner invoice list:** old invoices that are no longer updated are hidden from past invoices.
+  - **CLI:** view metered usage and spend for an organization or project with `datumctl plugin install billing`.
+
+  See [Usage](/organizations/usage).
+</Update>
+
+<Update label="October 30, 2026" description="Network Load Balancer" tags={["Connect", "Early access"]}>
+  ## Network load balancers
+
+  Publish a network service on a public TCP or UDP port with a network load balancer (NLB).
+
+  - **Addresses and hostnames:** each location gets a public IPv6 address and a generated hostname you can point a CNAME at. IPv4 is available for single-port listeners where Datum has enabled it.
+  - **Health checks:** NLBs actively check backends and send new connections only to healthy ones.
+  - **UDP ports:** network services now accept UDP ports, and the create-service dialog has a TCP/UDP selector per port. A UDP listener also needs a TCP port on the backend for its health check.
+  - **Portal:** create an NLB, copy its hostname and address, and add, edit, or delete listeners in the [Cloud Portal](https://cloud.datum.net).
+
+  NLBs are early access. TLS listeners aren't supported yet, but a TCP listener forwards TLS traffic unchanged to your backend. Each route serves one backend. An ALB that points at a UDP port now reports a clear unsupported-protocol error.
+
+  See [Network services](/galactic-vpc/networks/network-services).
+</Update>
+
+<Update label="October 26, 2026" description="Application Load Balancer" tags={["Deliver"]}>
+  ## DNS status for hostnames hosted elsewhere
+
+  When a custom hostname's DNS is hosted outside Datum, the [Cloud Portal](https://cloud.datum.net) now shows whether it points at your ALB.
+
+  - **DNS Ready** appears once Datum sees the CNAME or matching IPs pointing at the ALB.
+  - **Awaiting DNS** appears until then, with a tooltip that names the record to add. The chip no longer spins indefinitely.
+  - **Fixed:** an ALB whose single backend carries the Host override can now be edited in the portal instead of showing **Managed with datumctl**.
+
+  See [Custom domains](/alb/operations/custom-domains).
+</Update>
+
+<Update label="October 23, 2026" description="Patch" tags={["AX/DX/UX"]}>
+  ## Patch can change your load balancers
+
+  Patch, the Datum assistant, can now update Application Load Balancer settings, headers, hostnames, routes, and origins.
+
+  - Every change is previewed and validated before it's written.
+  - The change applies only if the load balancer hasn't changed since the preview.
+  - Changes made by Patch stay editable in the Cloud Portal.
+
+  See [Assistant](/datumctl/ai/assistant).
+</Update>
+
+<Update label="October 23, 2026" description="datumctl" tags={["Fix"]}>
+  ## Activity times shown in UTC
+
+  - **Fixed:** the activity feed and the audit and events tables now print times in UTC. Previously they printed local time with a `Z` suffix.
+
+  See [Activity](/datumctl/activity/overview).
+</Update>
+
+<Update label="October 21, 2026" description="Private DNS" tags={["Connect"]}>
+  ## Private DNS for gVPC networks
+
+  Resources on a gVPC network can now reach each other by name instead of by private IP address.
+
+  - **Instance names:** each Compute Instance gets a name such as `web-default-us-central-1-0.instances.datum.internal` that resolves to its private addresses.
+  - **Private to the network:** every network has its own `datum.internal` zone. Names resolve only from that network and aren't published to public DNS.
+  - **Kept in sync:** records update when addresses change and are removed when the Instance is deleted.
+  - **Portal:** Private DNS zones show **Private** in the DNS list, along with the VPC they serve, instead of a nameserver lookup.
+
+  See [Private DNS](/domain-dns/private-dns) and [Private DNS for Compute](/compute/private-dns).
+</Update>
+
+<Update label="October 21, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
+  ## Guided setup for new projects
+
+  A new project's home page now walks you from your first network to a running service.
+
+  - Create the project's network from the home page.
+  - Then pick a toolbox action or ask Patch, side by side.
+  - Once resources exist, the page suggests the next useful step.
+
+  See [Projects](/projects/overview).
+</Update>
+
+<Update label="October 19, 2026" description="Domains" tags={["AX/DX/UX"]}>
+  ## Warning for domains held by another project
+
+  When you add a domain that another project in your organization already holds, the [Cloud Portal](https://cloud.datum.net) now tells you.
+
+  - The warning names the project and its verification state, and links to the existing domain.
+  - Choose **Add here anyway** to continue.
+  - Bulk and CSV adds don't prompt. The task summary marks matching rows instead.
+
+  See [Domains](/domain-dns/domains).
+</Update>
+
 <Update label="October 29, 2026" description="datumctl" tags={["datumctl"]}>
   ## Correct version reporting for Nix installs
 
