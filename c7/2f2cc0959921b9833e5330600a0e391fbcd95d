@@ -1,0 +1,21 @@
+style.css
+  s_d70eb69d1c1e9d::t_3b9d48335b21cf 618,622
+  s_d70eb69d1c1e9d::t_eab33e48e1bdcf 633-634,637,641-649
+  s_d70eb69d1c1e9d::t_d5c90f69e909bf 650-651
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c72f2cc0959921b9833e5330600a0e391fbcd95d",
+  "prompts": {},
+  "sessions": {
+    "s_d70eb69d1c1e9d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "854d9dfb-83ba-42f5-a21b-1d83ac9225e1",
+        "model": "unknown"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
