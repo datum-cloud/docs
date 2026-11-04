@@ -27,7 +27,7 @@ Both [runtime classes](/compute/runtimes/overview), `general-purpose` and `unike
 ## Names
 
 - Every network's managed zone is `datum.internal`. Each network has its own copy.
-- Compute publishes Instances at `<instance-name>.instances.datum.internal`. Compute owns every name at or below `instances.datum.internal`, so you can't add records there or create a zone that covers it.
+- Compute publishes Instances at `<instance-name>.instances.datum.internal`. Long or unusual Instance names are shortened, so read the exact name from the Instance's `status.dns`. Compute owns every name at or below `instances.datum.internal`, so you can't add records there or create a zone that covers it.
 - Use full names. Don't rely on short names such as `web-default-us-central-1-0`: they depend on search domains that can differ between Instances.
 - Zone domains use lowercase letters, digits, and hyphens, have at least two labels, and are at most 253 characters long.
 - Record names are relative to their zone, such as `api`, or fully qualified. `@` means the zone's own domain. Names aren't case-sensitive.
@@ -38,6 +38,7 @@ Both [runtime classes](/compute/runtimes/overview), `general-purpose` and `unike
 - `ALIAS` and `SOA` records aren't supported. Datum manages each private zone's `SOA` record.
 - A zone's own domain (`@`) can't be a `CNAME`.
 - A `CNAME` can't share a name with another record type.
+- Point a `CNAME` at a name in the same zone. A `CNAME` that points into another zone, or at a public name, may return only the `CNAME`, which most apps can't follow.
 - An `SRV` target must be a name with `A` or `AAAA` records in the same zone.
 - If two record sets have the same name and type, the older one keeps it, and the newer one isn't accepted.
 - A record set is accepted or rejected as a whole. One invalid record keeps every name in it from resolving.

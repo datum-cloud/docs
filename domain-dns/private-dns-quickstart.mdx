@@ -9,7 +9,7 @@ This quickstart deploys two small workloads on the same [gVPC](/galactic-vpc/ove
 ## Before you begin
 
 - Install `datumctl` and the `compute` plugin, and select a project. See [Compute commands](/datumctl/compute/overview).
-- Your account needs the **Compute Admin** and **DNS Admin** roles in the project.
+- Your account needs the **Compute Admin**, **Network Admin**, and **DNS Admin** roles in the project.
 
 ## Reach an Instance by name
 
@@ -64,7 +64,7 @@ This quickstart deploys two small workloads on the same [gVPC](/galactic-vpc/ove
       nslookup -type=AAAA web-default-us-central-1-0.instances.datum.internal
     ```
 
-    The answer is the web server's private IPv6 address. Now connect to it by name:
+    The answer is the web server's private IPv6 address. Note it for later. Now connect to it by name:
 
     ```bash
     datumctl compute exec client-default-us-central-1-0 -- \
@@ -77,7 +77,7 @@ This quickstart deploys two small workloads on the same [gVPC](/galactic-vpc/ove
 
 ## Give the web server your own name
 
-Instance names change when a workload replaces its Instances. To give the web server a name you choose, add a record to your own private zone.
+To give the web server a name you choose, create a private zone of your own, attach it to the network, and add a record.
 
 <Steps>
   <Step title="Find the network's DNS context">
@@ -88,11 +88,11 @@ Instance names change when a workload replaces its Instances. To give the web se
       -o custom-columns='CONTEXT:.metadata.name,NETWORK:.metadata.ownerReferences[0].name'
     ```
 
-    Note the `CONTEXT` for the `default` network, such as `dns-default-90c5adf1dd1c`.
+    Note the `CONTEXT` for the `default` network, such as `dns-default-4f1c2a9e7b30`.
   </Step>
 
   <Step title="Create a zone, attach it, and add a record">
-    Save the following as `private-zone.yaml`. Replace `CONTEXT_NAME` with the context from the previous step:
+    Save the following as `private-zone.yaml`. Replace `CONTEXT_NAME` with the context from the previous step, and `WEB_ADDRESS` with the web server's address from the lookup:
 
     ```yaml
     apiVersion: dns.networking.miloapis.com/v1alpha1
@@ -121,12 +121,12 @@ Instance names change when a workload replaces its Instances. To give the web se
     spec:
       dnsZoneRef:
         name: corp-internal
-      recordType: CNAME
+      recordType: AAAA
       records:
         - name: www
           ttl: 60
-          cname:
-            content: web-default-us-central-1-0.instances.datum.internal.
+          aaaa:
+            content: WEB_ADDRESS
     ```
 
     Apply it:
@@ -157,6 +157,8 @@ Instance names change when a workload replaces its Instances. To give the web se
     ```
 
     The output is the same welcome page. The name resolves only from the `default` network.
+
+    This record holds an address, so update it if Compute replaces the web server's Instance. For names that follow an Instance, see [Find services by name](/domain-dns/private-dns-zones#find-services-by-name).
   </Step>
 </Steps>
 

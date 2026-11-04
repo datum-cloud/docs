@@ -33,7 +33,7 @@ The output is similar to the following:
 
 ```text
 CONTEXT                    NETWORK   ZONE
-dns-default-90c5adf1dd1c   default   managed-c2de65a88ad9
+dns-default-4f1c2a9e7b30   default   managed-8d03b6e1f2a4
 ```
 
 Use `CONTEXT` when you associate a zone with the network, and `ZONE` when you add records to the network's `datum.internal` zone.
@@ -94,7 +94,7 @@ spec:
   dnsZoneRef:
     name: corp-internal
   resolverContextRef:
-    name: dns-default-90c5adf1dd1c
+    name: dns-default-4f1c2a9e7b30
 ```
 
 To share the zone with another network, create another association that names that network's context. To stop a network from resolving the zone, delete its association. The zone and its records stay.
@@ -138,7 +138,7 @@ Private zones support `A`, `AAAA`, `CNAME`, `TXT`, `MX`, `SRV`, `CAA`, `NS`, `PT
 Use one of the following, depending on what you need:
 
 - **One Instance:** use its Compute name, such as `web-default-us-central-1-0.instances.datum.internal`. Read it from the Instance's `status.dns`. See [Private DNS for Compute](/compute/private-dns).
-- **A stable name for a service:** create a `CNAME` in your own zone that points at an Instance name, such as `api.corp.internal` → `web-default-us-central-1-0.instances.datum.internal.`. Update the `CNAME` when you replace the Instance.
+- **A stable name for a service:** add a `CNAME` to the network's `datum.internal` zone that points at an Instance name, such as `api.datum.internal` → `web-default-us-central-1-0.instances.datum.internal.`. Update the `CNAME` when you replace the Instance.
 - **Several Instances behind one name:** create `AAAA` records for each address under one name, as in the example above. Clients pick an address from the answer. DNS doesn't check whether each address is healthy.
 
 ## Check status

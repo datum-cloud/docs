@@ -90,6 +90,7 @@ Work through these checks in order, from an Instance on the network:
 4. **Check the Instance.** An Instance name exists only while the Instance is ready. Run `datumctl get instance INSTANCE_NAME -o yaml` and check `status.dns`. If its condition isn't `Ready`, the reason says why.
 5. **Check the zone.** Run `datumctl get dnszone ZONE_NAME`. If `PROGRAMMED` isn't `True`, wait a minute and check again. A zone that isn't associated with any network shows no status.
 6. **Check the record or association.** See the next section.
+7. **Check `CNAME` targets.** A `CNAME` that points into another zone may return only the `CNAME`. Point it at a name in the same zone, or use `AAAA` records.
 
 ### A record set or association isn't accepted
 
@@ -97,6 +98,8 @@ Read the reason:
 
 ```bash
 datumctl get dnsrecordset RECORDSET_NAME \
+  -o jsonpath='{.status.conditions[?(@.type=="Accepted")].reason}'
+datumctl get dnszoneassociation ASSOCIATION_NAME \
   -o jsonpath='{.status.conditions[?(@.type=="Accepted")].reason}'
 ```
 
@@ -108,10 +111,10 @@ datumctl get dnsrecordset RECORDSET_NAME \
 | `MissingSRVTargetAddress` | An `SRV` target has no `A` or `AAAA` record in the same zone. | Add an address record for the target in the zone. |
 | `ConflictingTTL` | One name in the record set has two different TTLs. | Use one TTL for each name. |
 | `InvalidRecord`, `InvalidTTL` | A value doesn't match its record type, or the TTL is out of range. | Fix the value. |
-| `ApexConflict` | Another zone with the same domain is already associated with this network. | Delete one of the two associations. |
-| `InvalidReference` | The association's zone or network context was deleted and replaced. | Delete the association and create it again. |
+| `ApexConflict` | Another zone with the same domain is associated with this network. The association whose name sorts first keeps the domain. | Delete the association you don't want. |
+| `InvalidReference` | The association's zone or DNS context doesn't exist, was deleted, or was replaced by a new one with the same name. | Check both names. If they exist, delete the association and create it again. |
 
-A request can also be refused when you apply it. A message that starts with `ReservedScope:` means the same as the reason above. `private zone lookup` or `resolver context lookup` errors mean the zone or DNS context you named doesn't exist in the project.
+A request can also be refused when you apply it. A message that starts with `ReservedScope:` means the same as the reason above. A `not found` error, or one that mentions `private zone lookup` or `resolver context lookup`, means the zone or DNS context you named doesn't exist in the project.
 
 ### A name returns an old answer
 
