@@ -18,7 +18,7 @@ Manage these resources with `datumctl apply`, `datumctl get`, and `datumctl dele
 | Zone association | A `DNSZoneAssociation` that lets one network resolve one private zone. |
 | Record set | A `DNSRecordSet` that holds records in a zone. |
 
-A private zone resolves only from the networks it's associated with. Networks never see each other's private zones, even when the zones have the same name.
+A private zone resolves only from the networks it's associated with. Two networks can each have a zone with the same domain, and each gets its own answers.
 
 ## Find a network's DNS context and zone
 

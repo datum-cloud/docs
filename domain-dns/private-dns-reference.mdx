@@ -47,7 +47,7 @@ Both [runtime classes](/compute/runtimes/overview), `general-purpose` and `unike
 
 | Limit | Value |
 | --- | --- |
-| Private zones a network can resolve, including `datum.internal` | 256 |
+| Private zones a network can resolve, including `datum.internal` | 256. Keep to this or fewer: a 257th association isn't refused yet, but the network then stops picking up DNS changes. |
 | Zone domain length | 253 characters |
 | Default TTL of a record you create | 300 seconds |
 | TTL of an Instance name | 30 seconds |
@@ -65,7 +65,7 @@ Publication is asynchronous. Wait for the status conditions described in [Check 
 
 ## Privacy
 
-- A private name resolves only from networks that the zone is associated with. Other networks, other projects, and the internet get no answer.
+- A private name resolves only from networks that its zone is associated with. Private names aren't published to public DNS.
 - A network resolves another network's zone only through an association that you create.
 - Resolving a name doesn't grant network access. See [Traffic and connecting](/galactic-vpc/networks/traffic).
 - Public names keep resolving through the same resolvers.
