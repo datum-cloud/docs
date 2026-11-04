@@ -6,6 +6,55 @@ rss: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
+<Update label="November 4, 2026" description="Cloud portal" tags={["AX/DX/UX"]}>
+  ## Faster pages and access fixes
+
+  The cloud portal loads faster and handles a few edge cases more reliably.
+
+  - **Faster first load:** dashboard and project pages render right away instead of showing a blank page while they load. Tablets no longer see the navigation collapse and shift the page.
+  - **Fixed:** members with read-only access can now open the VPC pages. Create, edit, and delete controls are hidden when you don't have permission to use them.
+  - **Fixed:** an organization you delete no longer appears in your organizations list.
+  - **Fixed:** your first and last name can no longer be set to an email address.
+</Update>
+
+<Update label="November 3, 2026" description="Private DNS" tags={["Connect"]}>
+  ## Clearer Private DNS zones in the portal
+
+  Private DNS zones for your VPC networks are now easy to tell apart from public zones.
+
+  - The DNS list shows **Private** in the DNS host column instead of a lookup that never finishes.
+  - The zone page hides the **Nameservers** tab, since private zones don't use public nameservers.
+  - Each zone's description names the VPC it serves.
+
+  See [Private DNS](/domain-dns/private-dns).
+</Update>
+
+<Update label="November 2, 2026" description="Billing" tags={["GA"]}>
+  ## Billing is available to all organization owners
+
+  Billing in the cloud portal is now generally available. Organization owners can manage billing accounts, payment methods, and invoices.
+
+  - **Owners only:** billing pages, menu items, and links appear only for organization owners. Other members don't see them.
+  - **Discounts:** a billing account now shows any discount that applies to it, per service or across all usage. Discounts are applied to invoices automatically.
+  - **Payment terms:** organizations that can't pay by card can apply to pay by invoice. Track the application's status from onboarding or **Payment methods**.
+  - **One invoice email:** billing settings now have a single **Invoice email** field. Leave it empty to send invoices to the billing contact.
+  - **Fixed:** past invoices no longer include old invoices that stayed open with outdated totals.
+
+  See [Organizations](/organizations/overview).
+</Update>
+
+<Update label="October 30, 2026" description="Network Load Balancer" tags={["Deliver"]}>
+  ## Network load balancers in the portal
+
+  Publish TCP and UDP services from your VPC network to the internet, and manage them from the cloud portal under **NLB**.
+
+  - **Create and manage:** create a network load balancer, then add, edit, or delete its listeners. Editing a listener keeps its address.
+  - **Overview:** each load balancer shows its generated hostname, IPv6 address, network, and locations, plus every listener's port, backend, health, and health check.
+  - **UDP ports:** [network services](/galactic-vpc/networks/network-services) now accept UDP ports. An HTTPProxy that points at a UDP port reports an unsupported-protocol reason that tells you to use an HTTP port over TCP.
+
+  Each route forwards to one backend. TLS listeners aren't supported yet, but a TCP listener passes TLS traffic through unchanged.
+</Update>
+
 <Update label="October 29, 2026" description="datumctl" tags={["datumctl"]}>
   ## Correct version reporting for Nix installs
 
@@ -15,6 +64,18 @@ Each entry links to the original announcement in our [changelog discussions](htt
   - **Fixed:** plugin compatibility checks and update checks now read a real version in Nix builds instead of a placeholder.
 
   To pick up the fix, reinstall or upgrade `datumctl` from the flake. See [Install datumctl](/datumctl/install).
+</Update>
+
+<Update label="October 26, 2026" description="Application Load Balancer" tags={["Deliver"]}>
+  ## DNS status for hostnames hosted outside Datum
+
+  If a custom hostname's DNS is hosted elsewhere, the ALB now shows whether that hostname points at your load balancer.
+
+  - **DNS Ready** appears once Datum sees your CNAME, or matching IP addresses, pointing at the ALB.
+  - **Awaiting DNS** appears until then. The tooltip names the record to add.
+  - **Fixed:** a wildcard hostname that your project isn't entitled to now reports `ListenersNotValid` instead of staying `Pending` indefinitely.
+
+  See [Point a domain to your ALB](/domain-dns/point-to-alb) and [Wildcard hostnames](/alb/configuration/wildcard-hostnames).
 </Update>
 
 <Update label="October 21, 2026" description="Application Load Balancer" tags={["Build", "Connect"]}>
