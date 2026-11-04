@@ -6,6 +6,51 @@ rss: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
+<Update label="November 4, 2026" description="Network Load Balancer" tags={["Connect"]}>
+  ## Network load balancers in the cloud portal
+
+  Put a public address in front of TCP and UDP services on your VPC networks, and manage it from the [cloud portal](https://cloud.datum.net).
+
+  - **Create and manage:** a new Network Load Balancers page lists your load balancers. Each one shows its hostname with a copy button, its address, network, locations, and status.
+  - **Listeners:** add, edit, and delete listeners. Change a listener's protocol and port in place without losing its address, or point it at another backend.
+  - **UDP:** UDP listeners and UDP port ranges are supported, and listeners can share one address.
+  - **Faster setup:** a load balancer gets its address as soon as its route, backend, and network are ready.
+  - **Access:** Network Admin has full access to load balancers and their routes. Network Viewer has read access.
+</Update>
+
+<Update label="November 4, 2026" description="Billing" tags={["Billing"]}>
+  ## Billing for organization owners
+
+  Billing in the cloud portal is now available to every organization owner.
+
+  - **Owners only:** the Billing pages, the project **Billing** tab, and the header's **Billing Accounts** item show only to organization owners.
+  - **Discounts:** a read-only **Discounts** section on the billing account page shows any discount that applies to your account. Discounts are applied to invoices automatically.
+  - **One invoice email:** billing settings now take a single **Invoice email**. Invoices go to that address, or to the billing contact when it's empty.
+  - **Payment terms:** organizations that can't pay by card can apply for payment terms. Datum reviews each application, and billing settings show the terms in effect or an application under review.
+
+  To see what your organization uses, see [Usage](/organizations/usage).
+</Update>
+
+<Update label="November 4, 2026" description="VPC" tags={["Connect"]}>
+  ## Clearer VPC and Private DNS pages
+
+  - **Private DNS zones:** the DNS list shows **Private** for a VPC's Private DNS zone instead of a lookup that never finished. The zone description names its VPC, for example "Private DNS for the my-network VPC", and the zone page hides the **Nameservers** tab. See [Private DNS](/domain-dns/private-dns).
+  - **Read-only access:** users with read access can now open the VPC pages. Create, edit, **Enable IPv6**, and delete controls are hidden for users who lack those permissions.
+  - **UDP ports:** the create-service dialog has a TCP or UDP protocol select per port, and the same port number can be used for both protocols. The services table shows each port's protocol. See [Network services](/galactic-vpc/networks/network-services).
+  - **Internet access setting:** a network can now turn internet access on or off for every Instance on it, including running Instances. See [Traffic](/galactic-vpc/networks/traffic).
+</Update>
+
+<Update label="November 4, 2026" description="Cloud portal" tags={["Cloud portal"]}>
+  ## Bug fixes
+
+  - **ALB:** a custom hostname whose DNS is hosted outside Datum now shows **DNS Ready** once its CNAME points at the load balancer, or **Awaiting DNS** until then, instead of a spinner that never stopped. See [Custom domains](/alb/operations/custom-domains).
+  - **ALB:** a wildcard hostname the project isn't entitled to no longer shows as pending forever. It now reports that the listener isn't valid. See [Wildcard hostnames](/alb/configuration/wildcard-hostnames).
+  - **ALB:** pointing an HTTP proxy at a UDP port now explains that the backend must serve HTTP over TCP, instead of reporting a missing port.
+  - **Organizations:** a deleted organization no longer appears in the organizations list after you delete it.
+  - **Notifications:** unsubscribing from a mailing list and then subscribing again now saves correctly.
+  - **Profile:** first and last name fields no longer accept an email address.
+</Update>
+
 <Update label="October 29, 2026" description="datumctl" tags={["datumctl"]}>
   ## Correct version reporting for Nix installs
 
