@@ -55,6 +55,17 @@ Each entry links to the original announcement in our [changelog discussions](htt
   See [Network services](/galactic-vpc/networks/network-services).
 </Update>
 
+<Update label="October 29, 2026" description="datumctl" tags={["datumctl"]}>
+  ## Correct version reporting for Nix installs
+
+  `datumctl` installed from the Nix flake now reports a valid version.
+
+  - **Fixed:** `datumctl version` no longer crashes when `datumctl` is installed with `nix profile install` or run with `nix run`.
+  - **Fixed:** plugin compatibility checks and update checks now read a real version in Nix builds instead of a placeholder.
+
+  To pick up the fix, reinstall or upgrade `datumctl` from the flake. See [Install datumctl](/datumctl/install).
+</Update>
+
 <Update label="October 26, 2026" description="Application Load Balancer" tags={["Deliver"]}>
   ## DNS status for hostnames hosted elsewhere
 
@@ -112,29 +123,6 @@ Each entry links to the original announcement in our [changelog discussions](htt
   See [Projects](/projects/overview).
 </Update>
 
-<Update label="October 19, 2026" description="Domains" tags={["AX/DX/UX"]}>
-  ## Warning for domains held by another project
-
-  When you add a domain that another project in your organization already holds, the [Cloud Portal](https://cloud.datum.net) now tells you.
-
-  - The warning names the project and its verification state, and links to the existing domain.
-  - Choose **Add here anyway** to continue.
-  - Bulk and CSV adds don't prompt. The task summary marks matching rows instead.
-
-  See [Domains](/domain-dns/domains).
-</Update>
-
-<Update label="October 29, 2026" description="datumctl" tags={["datumctl"]}>
-  ## Correct version reporting for Nix installs
-
-  `datumctl` installed from the Nix flake now reports a valid version.
-
-  - **Fixed:** `datumctl version` no longer crashes when `datumctl` is installed with `nix profile install` or run with `nix run`.
-  - **Fixed:** plugin compatibility checks and update checks now read a real version in Nix builds instead of a placeholder.
-
-  To pick up the fix, reinstall or upgrade `datumctl` from the flake. See [Install datumctl](/datumctl/install).
-</Update>
-
 <Update label="October 21, 2026" description="Application Load Balancer" tags={["Build", "Connect"]}>
   ## Run gRPC APIs on Datum
 
@@ -148,6 +136,18 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Origins added by URL, including servers outside Datum, still use HTTP/1.1. If your app uses WebSockets, serve them on a separate port without HTTP/2.
 
   [Read the announcement](https://github.com/orgs/datum-cloud/discussions/310)
+</Update>
+
+<Update label="October 19, 2026" description="Domains" tags={["AX/DX/UX"]}>
+  ## Warning for domains held by another project
+
+  When you add a domain that another project in your organization already holds, the [Cloud Portal](https://cloud.datum.net) now tells you.
+
+  - The warning names the project and its verification state, and links to the existing domain.
+  - Choose **Add here anyway** to continue.
+  - Bulk and CSV adds don't prompt. The task summary marks matching rows instead.
+
+  See [Domains](/domain-dns/domains).
 </Update>
 
 <Update label="October 13, 2026" description="datumctl" tags={["datumctl", "Patch"]}>
