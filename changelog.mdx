@@ -6,6 +6,66 @@ rss: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
+<Update label="November 2, 2026" description="Billing" tags={["Billing"]}>
+  ## Billing is available to every organization owner
+
+  Organization owners can now manage billing in the [cloud portal](https://cloud.datum.net) without asking Datum to turn it on.
+
+  - **Owners only:** billing accounts, payment methods, and invoices appear only for members with the owner role. Other members don't see billing pages or links.
+  - **Discounts:** a billing account now shows any discount that applies to it, such as "20% discount on all usage." Discounts are applied to invoices automatically.
+  - **Invoice email:** set one invoice email in billing settings. Datum sends every invoice to that address, or to the billing contact when the field is empty.
+  - **Payment terms:** organizations that can't pay by card can apply to pay by invoice and track the application's status in the portal.
+  - **Cleaner invoice list:** past invoices that no longer receive updates are hidden.
+</Update>
+
+<Update label="October 30, 2026" description="Network Load Balancer" tags={["Connect", "Early access"]}>
+  ## Network load balancers for TCP and UDP
+
+  Publish a [network service](/galactic-vpc/networks/network-services) on a public TCP or UDP port with a network load balancer.
+
+  - **Portal pages:** create a load balancer, see its hostname, addresses, locations, and serving status, and add, edit, or delete listeners.
+  - **Health checks:** active health checks keep failed backends out of rotation. Each listener shows its backend's health.
+  - **UDP:** network services accept UDP ports, and the create-service dialog lets you choose TCP or UDP for each port. A UDP listener needs a TCP port on the backend for its health check.
+  - **Shared addresses and port ranges:** listeners can share one address, and a listener can expose a range of UDP ports.
+  - **Faster setup:** a new load balancer gets its address as soon as its route, backend, and network are ready.
+  - **Access:** the Network Admin role can manage load balancers, and the Network Viewer role can view them.
+
+  Network load balancers are in early access.
+</Update>
+
+<Update label="October 29, 2026" description="Private DNS" tags={["Connect"]}>
+  ## Private DNS for gVPC networks
+
+  Resources on a [gVPC](/galactic-vpc/overview) network can now reach each other by name instead of private IP address.
+
+  - **Instance names:** Compute publishes a stable name for each Instance that resolves to its private addresses. See [Private DNS for Compute](/compute/private-dns).
+  - **Private zones:** associate private zones with a network to resolve your own internal names.
+  - **Isolation:** private names resolve only from associated networks. Different networks can reuse the same names without seeing each other's answers.
+  - **Portal:** private zones show "Private" in the DNS list and name the VPC they serve, instead of a nameserver lookup that never finishes.
+
+  A private name doesn't grant network access to a resource. See [Private DNS](/domain-dns/private-dns).
+</Update>
+
+<Update label="October 26, 2026" description="Application Load Balancer" tags={["Deliver"]}>
+  ## Clearer DNS status for externally hosted hostnames
+
+  The portal now shows whether a custom hostname whose DNS is hosted outside Datum points at your ALB.
+
+  - **DNS Ready** appears once Datum sees the CNAME or matching addresses pointing at the ALB.
+  - **Awaiting DNS** appears until then, and its tooltip names the record to add. It replaces a spinner that never stopped.
+
+  See [Point a domain at a load balancer](/domain-dns/point-to-alb).
+</Update>
+
+<Update label="November 4, 2026" description="Cloud portal" tags={["AX/DX/UX"]}>
+  ## Cloud portal fixes
+
+  - **Fixed:** users with read-only access can open the VPC pages. Create, edit, and delete controls are hidden when you lack permission for them.
+  - **Fixed:** an ALB with a wildcard hostname that the project isn't entitled to no longer stays in Pending. It reports the listener as not valid instead.
+  - **Fixed:** a deleted organization no longer appears in the organizations list right after you delete it.
+  - **Fixed:** first and last name fields no longer accept an email address.
+</Update>
+
 <Update label="October 29, 2026" description="datumctl" tags={["datumctl"]}>
   ## Correct version reporting for Nix installs
 
