@@ -1,9 +1,9 @@
 ---
 title: "Traffic and connecting"
-description: "Learn which traffic a gVPC network carries and how Instances connect to each other."
+description: "Learn which traffic a gVPC network carries, how Instances connect to each other, and how they reach IPv6 and IPv4 internet services."
 ---
 
-A network carries private traffic between Instances. This page describes which kinds of traffic are possible and how Instances connect to each other. To learn how Instances get their addresses, see [Addressing](/galactic-vpc/networks/addressing).
+A network carries private traffic between Instances. This page describes which kinds of traffic are possible, how Instances connect to each other, and how they reach the internet. To learn how Instances get their addresses, see [Addressing](/galactic-vpc/networks/addressing).
 
 <Note>
   [gVPC](/galactic-vpc/overview) is in preview, and the `networking.datumapis.com/v1alpha` API can change.
@@ -20,8 +20,8 @@ The following table describes which kinds of traffic are possible:
 | Between different networks | No | Networks are isolated from each other. |
 | To or from other addresses through an Instance | No | A network only delivers a packet addressed to an Instance's own address, and only accepts a packet from an Instance's own address. An Instance can't route traffic for other addresses, so a router or VPN appliance needs an overlay, such as VXLAN or a UDP tunnel, between Instances. |
 | Inbound from the internet | Through Datum's ALB | Instance addresses aren't reachable from the internet directly. Public HTTP and HTTPS traffic reaches Instances through Datum's [Application Load Balancer](/alb/overview). Raw TCP and UDP exposure is a preview limitation. |
-| Outbound to the internet | Yes | Instances can reach internet destinations, including services that have only IPv4 addresses. |
-| Lookups by name | Not in the preview | Private DNS names for Instances are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities). Use IPv6 addresses in the preview. |
+| Outbound to the internet | Yes | Instances can reach internet destinations over IPv6, and services that have only IPv4 addresses by hostname. See [Reach the internet](#reach-the-internet). |
+| Lookups by name | Public names only | Instances resolve public DNS names. Private DNS names for Instances are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities). Use IPv6 addresses to reach other Instances in the preview. |
 | Firewall filtering | Not in the preview | Firewall rules to filter traffic between Instances on a network are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities). |
 
 The workload API accepts a `networkPolicy` field on each network interface, but the field has no effect. Don't rely on it to restrict traffic. To limit who can reach a service, check credentials in your app, or put services that must stay apart on different networks. Firewall rules for networks are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
@@ -33,6 +33,24 @@ To connect from one Instance to another on the same network, use the peer's priv
 - Make your app listen on IPv6 (`::`). An app that listens only on `0.0.0.0` accepts IPv4 connections only, and Instances don't have IPv4 addresses.
 - In a URL, put an IPv6 address in square brackets, such as `http://[fd20:4a3b:91c2:1::1:0:2]:8080/`.
 - Private DNS names aren't available in the preview. To tell an app about its peers, pass their addresses in environment variables or a ConfigMap.
+
+## Reach the internet
+
+Instances can connect to the internet with no setup. Every network has internet access in every location.
+
+Instances have private IPv6 addresses only, so Datum's edge translates their outbound traffic:
+
+- **To IPv6 destinations:** Datum replaces the Instance's private source address with a public IPv6 address (NAT66).
+- **To IPv4-only destinations:** When an app looks up a name that has only IPv4 addresses, the Instance's DNS resolver answers with a synthesized IPv6 address that stands for the IPv4 address (DNS64). Datum's edge translates connections to that address into IPv4 (NAT64). The app connects by name as usual and doesn't see the translation.
+
+TCP, UDP, and ICMP, such as `ping`, work to both IPv6 and IPv4 destinations.
+
+Keep the following points in mind:
+
+- **Connect to IPv4 services by hostname, not by IPv4 address.** An Instance has no IPv4 address or route, so a connection to an IPv4 address such as `203.0.113.10` fails. If a service has only a public IPv4 address and no name, create an `A` record for it in a public [DNS zone](/domain-dns/dns) you control, and connect by that name. Private IPv4 addresses, such as `10.0.0.5`, aren't reachable.
+- **Use the DNS resolvers that the Instance is given.** Datum configures resolvers that perform DNS64. In a `general-purpose` Instance, they're in `/etc/resolv.conf`. An app or image that uses its own resolver without DNS64, such as DNS over HTTPS or a hard-coded public resolver, gets only IPv4 addresses for IPv4-only names, and can't connect to them. The resolver addresses can change, so don't hard-code them.
+- **Outbound traffic leaves from shared addresses.** The Instances in a location share their outbound addresses with each other and with other Datum customers. Datum doesn't publish these addresses, and they can change. Don't ask a destination to allowlist them. Authenticate to the destination instead, for example with an API key or a client certificate.
+- **You can't turn off internet access.** Every Instance can reach the internet. A setting to turn off internet access for a network is on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
 
 ## What's next
 

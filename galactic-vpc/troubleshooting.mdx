@@ -23,6 +23,7 @@ Start with `datumctl network describe NETWORK_NAME` or `datumctl network service
 | A network is rejected for not including IPv6 | `spec.ipFamilies` doesn't include `IPv6`. | Keep the default, `[IPv6]`. |
 | Connections between locations stall | `spec.mtu` is larger than the default of `1440`. | Keep the default MTU. |
 | An Instance can't reach a peer | The app listens only on IPv4, or the URL doesn't bracket the IPv6 address. | Listen on `::` and use `http://[ADDRESS]:PORT/`. See [Traffic and connecting](/galactic-vpc/networks/traffic#connect-to-other-instances). |
+| An Instance can't reach an IPv4-only internet service | The app connects to an IPv4 address instead of a hostname, or uses its own DNS resolver instead of the ones that Datum configures. | Connect by hostname, and use the Instance's resolvers. See [Reach the internet](/galactic-vpc/networks/traffic#reach-the-internet). |
 | `NoMatchingInterfaces`, `MultipleNetworks`, or `NoServingLocations` | A network service isn't serving. | See [Check a network service](/galactic-vpc/networks/network-services#check-a-network-service). |
 
 ## MTU
