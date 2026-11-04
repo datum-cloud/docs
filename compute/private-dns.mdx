@@ -11,22 +11,42 @@ resolves only from inside that network.
 
 ## Instance names
 
-Compute publishes Instance names beneath the `instances` subtree of the
-network's managed DNS suffix. A name has this general form:
+Compute publishes each Instance under the `instances` subdomain of the
+network's `datum.internal` zone:
 
 ```text
-<instance-name>.instances.<network-managed-suffix>
+<instance-name>.instances.datum.internal
 ```
 
-Compute normalizes the Instance name into a valid DNS label when necessary. If
-two Instance names normalize to the same DNS name, Private DNS keeps the first
-claim and reports a name conflict for the other Instance.
+The Instance name is the one `datumctl get instances` shows. Instances that a
+Workload creates are named `<workload>-<placement>-<location>-<index>`, so the
+first Instance of a Workload named `web` is reachable from another Instance on
+the same network at:
 
-Treat the complete name that Datum reports as an output. The managed suffix is
-a platform allocation, so don't build or parse it in your app.
+```shell
+$ dig +short AAAA web-default-us-central-1-0.instances.datum.internal
+fd20:1::5
+$ curl http://web-default-us-central-1-0.instances.datum.internal:8080/
+```
 
-Datum reports the allocated hostname and its publication state in
-`Instance.status.dns`.
+Records have a 30 second TTL.
+
+Compute turns the Instance name into a valid DNS label by replacing `.` with
+`-`. Names longer than 63 characters are shortened and given a hash suffix.
+Read the exact hostname from `Instance.status.dns` rather than building it
+yourself:
+
+```yaml
+status:
+  dns:
+    - network:
+        name: default
+      hostnames: [web-default-us-central-1-0.instances.datum.internal]
+      conditions:
+        - type: Ready
+          status: "True"
+          reason: Published
+```
 
 ## Published addresses
 

@@ -40,16 +40,21 @@ make a resource reachable from the internet or grant network access to it.
 
 ## Names and zones
 
-Each network receives a managed DNS suffix for automatic service names. You can
-also associate private zones with a network for your own names.
+Every network gets a managed private zone named `datum.internal`. Datum
+services publish their names in it. For example, an Instance named
+`web-default-us-central-1-0` is reachable at:
 
-- **Managed names:** Datum services publish predictable names beneath the
-  network's managed suffix.
-- **Private zones:** Your internal names resolve only from the networks that
-  the zone is associated with.
+```text
+web-default-us-central-1-0.instances.datum.internal
+```
 
-The complete service-managed name includes the network's allocated suffix. Use
-the name that the service reports instead of building it in your app.
+Every network uses the same zone name, but each network has its own copy. A
+lookup of that name returns the Instance on the client's network, and returns
+nothing on any other network. Use the full name: short names depend on the
+search domains the client is configured with.
+
+You can also associate private zones with a network for your own names. Their
+records resolve only from the networks the zone is associated with.
 
 ## Service integrations
 
