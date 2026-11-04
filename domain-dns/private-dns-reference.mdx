@@ -29,7 +29,7 @@ Both [runtime classes](/compute/runtimes/overview), `general-purpose` and `unike
 - Every network's managed zone is `datum.internal`. Each network has its own copy.
 - Compute publishes Instances at `<instance-name>.instances.datum.internal`. Long or unusual Instance names are shortened, so read the exact name from the Instance's `status.dns`. Compute owns every name at or below `instances.datum.internal`, so you can't add records there or create a zone that covers it.
 - Use full names. Don't rely on short names such as `web-default-us-central-1-0`: they depend on search domains that can differ between Instances.
-- Zone domains use lowercase letters, digits, and hyphens, have at least two labels, and are at most 253 characters long.
+- Zone domains use lowercase letters, digits, and hyphens, with each label starting and ending with a letter or digit. They have at least two labels and are at most 253 characters long.
 - Record names are relative to their zone, such as `api`, or fully qualified. `@` means the zone's own domain. Names aren't case-sensitive.
 - A private zone hides the public records of the same domain from the networks it's associated with.
 
