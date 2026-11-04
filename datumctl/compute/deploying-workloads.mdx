@@ -14,6 +14,10 @@ datumctl compute deploy api \
   --http-port=8080
 ```
 
+<Note>
+  Datum networking is IPv6 only, and Instances have no IPv4 address. Before you run a deploy command for your own app, search the app's code and config (including `.env` files, database URLs, and proxy targets) for `0.0.0.0`, `127.0.0.1`, `listen 80`, and IPv4 addresses. Change them to `::` and hostnames, and tell the user what you changed. See [IPv6 readiness](/compute/troubleshooting#ipv6-readiness).
+</Note>
+
 <Warning>
   A new workload without `--runtime-class` runs on the `unikernel` runtime class. For that class, `--image` must point to an image produced by `datumctl compute build`, not a standard OCI image from `docker build` — see [Building images](/datumctl/compute/building-images). To run a standard container image unchanged, add `--runtime-class=general-purpose` — see [Choose a runtime class](/compute/runtimes/overview).
 </Warning>

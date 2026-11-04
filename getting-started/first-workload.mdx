@@ -7,6 +7,10 @@ description: "Deploy draw.io to Datum Compute and open it in your browser throug
   Compute is in preview. The `v1alpha` APIs can change, and Datum reviews Compute access requests manually.
 </Note>
 
+<Note>
+  Datum networking is IPv6 only. draw.io already listens on IPv6, so this tutorial works as written. To deploy your own app, make it listen on `::` first. See [IPv6 readiness](/compute/troubleshooting#ipv6-readiness).
+</Note>
+
 ## Before you begin
 
 - Create a Datum Cloud account, an organization, and a project. For more information, see [Account setup](/getting-started/account-setup).
@@ -106,7 +110,7 @@ This page deploys [draw.io](https://www.drawio.com/), an open source diagramming
 
 ## What's next
 
-- To deploy your own image, check that your app listens on IPv6 and serves plain HTTP. During the preview, Instances have no persistent disks and no readiness checks. For details, see [Compute limitations](/compute/limitations-and-roadmap#limitations).
+- To deploy your own image, check that your app listens on IPv6 and serves plain HTTP. See [IPv6 readiness](/compute/troubleshooting#ipv6-readiness). During the preview, Instances have no persistent disks and no readiness checks. For details, see [Compute limitations](/compute/limitations-and-roadmap#limitations).
 - To pass configuration and secrets to a workload, see [Compute configuration](/compute/configuration).
 - To package your own app as a fast-starting unikernel, see [Unikernels](/compute/runtimes/unikernels).
 - To run in more locations or with more Instances, see [Placement and scaling](/compute/placement-and-scaling).
