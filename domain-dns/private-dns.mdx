@@ -41,20 +41,17 @@ make a resource reachable from the internet or grant network access to it.
 ## Names and zones
 
 Every network gets a managed private zone named `datum.internal`. Datum
-services publish their names in it, so an Instance named `web-01` is reachable
-at:
+services publish their names in it. For example, an Instance named
+`web-default-us-central-1-0` is reachable at:
 
 ```text
-web-01.instances.datum.internal
+web-default-us-central-1-0.instances.datum.internal
 ```
 
 Every network uses the same zone name, but each network has its own copy. A
-lookup of `web-01.instances.datum.internal` returns the `web-01` on the
-client's network, and returns nothing on any other network.
-
-Instances also get `datum.internal` as a DNS search domain, so the shorter
-`web-01.instances` works too. Use the full name in configuration that might
-run somewhere without that search domain.
+lookup of that name returns the Instance on the client's network, and returns
+nothing on any other network. Use the full name: short names depend on the
+search domains the client is configured with.
 
 You can also associate private zones with a network for your own names. Their
 records resolve only from the networks the zone is associated with.
