@@ -615,10 +615,11 @@ html.dark .shiki span.datum-var {
 }
 
 .datum-var-tip-option {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 4px 10px;
+  padding: 4px 32px 4px 10px;
   text-align: left;
   color: var(--tip-fg);
   border: 1px solid var(--tip-border);
@@ -629,9 +630,23 @@ html.dark .shiki span.datum-var {
   background-color: var(--tip-subtle);
 }
 
+/* The picked one: a heavier border and a check mark. aria-pressed already
+   tells screen readers, so the mark has empty alt text. */
 .datum-var-tip-option[aria-pressed="true"] {
   border-color: var(--tip-fg);
+  box-shadow: inset 0 0 0 1px var(--tip-fg);
   background-color: var(--tip-subtle);
+}
+
+.datum-var-tip-option[aria-pressed="true"]::after {
+  content: "✓" / "";
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 #datum-var-tip .datum-var-tip-option-name {
