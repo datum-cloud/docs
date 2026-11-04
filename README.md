@@ -57,6 +57,7 @@ When a reader is signed in to Datum Cloud, `docs-vars.js` marks these tokens in 
 | `your-org-id`     | The reader's org, e.g. `personal-org-2650fdb4` | `--organization`, the org half of `datumctl ctx use ORG/PROJECT`       |
 | `your-project-id` | The reader's project, e.g. `my-api`       | `--project`, `PROJECT=` variables, project paths in API URLs, sample output that echoes the project |
 | `your-email`      | The reader's sign-in email                | Commands that take the reader's own account, e.g. `datumctl auth switch` |
+| `ALB_NAME`        | One of the reader's load balancers in the current project, picked on hover when there are several | An existing load balancer: `datumctl alb describe\|logs\|delete\|auth`, `gateway_name=` in metrics |
 | `default`         | Stays `default` (not replaced)            | `--namespace`, `NAMESPACE=`. It is the only namespace Datum supports   |
 
 For example:
@@ -76,7 +77,8 @@ Rules:
 - Don't wrap a token in `<…>`. Shiki reads `<` as a shell redirect and splits the token across several spans, so it can't be replaced.
 - Replace values only, never variable references: `PROJECT="your-project-id"` uses the token, `--project $PROJECT` stays.
 - Use `your-email` only for the reader's own account. Someone else's identity (an audit filter, an allowed-users list) keeps an example address like `alice@example.com`.
-- Other placeholders (`ALB_NAME`, `INSTANCE_NAME`, `my-zone`, `example.com`) are fine. They are never replaced, so readers still swap them by hand.
+- `ALB_NAME` is for a load balancer that already exists. For a name the reader makes up (`datumctl alb create`), write `NEW_ALB_NAME`, which is never replaced. With one load balancer, `ALB_NAME` is filled in. With several, nothing is filled until the reader picks one, and the pick applies to every `ALB_NAME` on the page.
+- Other placeholders (`INSTANCE_NAME`, `my-zone`, `example.com`) are fine. They are never replaced, so readers still swap them by hand.
 - Prose that explains flag syntax, like ``--project <project>``, can keep the angle brackets. It isn't a value to copy.
 
 ## Spellcheck
