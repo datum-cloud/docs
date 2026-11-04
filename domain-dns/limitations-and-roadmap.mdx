@@ -13,6 +13,7 @@ Domains and DNS are still being built. This page lists known limitations and whe
 - **A zone's domain name can't change.** To use a different domain, create a new zone.
 - **One zone for each domain.** A domain can belong to only one zone on Datum.
 - **`ALIAS` isn't portable.** `ALIAS` isn't a standard record type, so a zone file exported from Datum can't carry it to another provider. See [ALIAS](/domain-dns/dns#alias-/-cname-flattening).
+- **Private DNS has no `datumctl dns` or Portal editing yet.** Manage private zones, associations, and records with `datumctl apply`. See [Manage private zones and records](/domain-dns/private-dns-zones).
 - **The DNS API is `v1alpha1`.** Field names in `DNSZone` and `DNSRecordSet` can change between releases. The `datumctl dns` plugin keeps up with those changes for you.
 
 ## Roadmap

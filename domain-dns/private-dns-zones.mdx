@@ -1,0 +1,167 @@
+---
+title: "Manage private zones and records"
+sidebarTitle: "Private zones and records"
+description: "Add your own private names, choose which gVPC networks can resolve them, and find services by name."
+---
+
+[Private DNS](/domain-dns/private-dns) publishes Instance names for you. This page covers the names you manage yourself: records in a network's `datum.internal` zone, private zones of your own, and which networks can resolve them.
+
+Manage these resources with `datumctl apply`, `datumctl get`, and `datumctl delete`. Your account needs the **DNS Admin** role to change them, and **DNS Viewer** to read them.
+
+## How the pieces fit
+
+| Resource | What it is |
+| --- | --- |
+| DNS context | One per network, created for you. It decides which private zones the network can resolve. |
+| Managed zone | The network's `datum.internal` zone, created for you. Compute publishes Instance names in it. |
+| Private zone | A `DNSZone` with `visibility: Private` that you create, such as `corp.internal`. |
+| Zone association | A `DNSZoneAssociation` that lets one network resolve one private zone. |
+| Record set | A `DNSRecordSet` that holds records in a zone. |
+
+A private zone resolves only from the networks it's associated with. Networks never see each other's private zones, even when the zones have the same name.
+
+## Find a network's DNS context and zone
+
+To list each network's DNS context and managed zone, run:
+
+```bash
+datumctl get dnsresolvercontexts \
+  -o custom-columns='CONTEXT:.metadata.name,NETWORK:.metadata.ownerReferences[0].name,ZONE:.status.managedNamespace.dnsZoneRef.name'
+```
+
+The output is similar to the following:
+
+```text
+CONTEXT                    NETWORK   ZONE
+dns-default-90c5adf1dd1c   default   managed-c2de65a88ad9
+```
+
+Use `CONTEXT` when you associate a zone with the network, and `ZONE` when you add records to the network's `datum.internal` zone.
+
+## Add a record to datum.internal
+
+To add a name to one network without creating a zone, add a record set to the network's managed zone. Replace `MANAGED_ZONE` with the `ZONE` from the previous section:
+
+```yaml
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSRecordSet
+metadata:
+  name: db
+spec:
+  dnsZoneRef:
+    name: MANAGED_ZONE
+  recordType: AAAA
+  records:
+    - name: db
+      ttl: 60
+      aaaa:
+        content: fd20:1::20
+```
+
+`db.datum.internal` now resolves on that network only. You can't add records at or below `instances.datum.internal`, which Compute owns.
+
+## Create a private zone
+
+Create a zone when you want a namespace of your own, or one that several networks share:
+
+```yaml
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSZone
+metadata:
+  name: corp-internal
+spec:
+  domainName: corp.internal
+  visibility: Private
+  dnsZoneClassName: private-coredns
+```
+
+Keep the following points in mind:
+
+- You can't change a zone's domain or visibility after you create it. Create a new zone instead.
+- A private zone resolves nowhere until you associate it with a network.
+- Prefer a domain you control, or one under `.internal`. If you create a private zone for a public domain, such as `example.com`, associated networks get your private answers instead of the public ones for every name in that domain.
+
+## Choose which networks resolve a zone
+
+Associate the zone with each network that should resolve it:
+
+```yaml
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSZoneAssociation
+metadata:
+  name: corp-internal-default
+spec:
+  dnsZoneRef:
+    name: corp-internal
+  resolverContextRef:
+    name: dns-default-90c5adf1dd1c
+```
+
+To share the zone with another network, create another association that names that network's context. To stop a network from resolving the zone, delete its association. The zone and its records stay.
+
+An association can't be edited to point at a different zone or network. Delete it and create a new one. If you delete and recreate a zone with the same name, also recreate its associations.
+
+A network can't have two associated zones with the same domain. A zone can sit below another associated zone, such as `db.corp.internal` below `corp.internal`. Lookups use the zone with the longest matching domain.
+
+## Add records to a private zone
+
+Records in a private zone use the same `DNSRecordSet` resource as [public DNS](/domain-dns/dns):
+
+```yaml
+apiVersion: dns.networking.miloapis.com/v1alpha1
+kind: DNSRecordSet
+metadata:
+  name: corp-api
+spec:
+  dnsZoneRef:
+    name: corp-internal
+  recordType: AAAA
+  records:
+    - name: api
+      ttl: 60
+      aaaa:
+        content: fd20:1::5
+    - name: api
+      ttl: 60
+      aaaa:
+        content: fd20:1::6
+```
+
+Private zones support `A`, `AAAA`, `CNAME`, `TXT`, `MX`, `SRV`, `CAA`, `NS`, `PTR`, `TLSA`, `HTTPS`, and `SVCB` records. For the rules that apply, see [Private DNS limits and behavior](/domain-dns/private-dns-reference#record-rules).
+
+<Note>
+  Instances have IPv6 addresses only. Use `AAAA` records for addresses on your network.
+</Note>
+
+## Find services by name
+
+Use one of the following, depending on what you need:
+
+- **One Instance:** use its Compute name, such as `web-default-us-central-1-0.instances.datum.internal`. Read it from the Instance's `status.dns`. See [Private DNS for Compute](/compute/private-dns).
+- **A stable name for a service:** create a `CNAME` in your own zone that points at an Instance name, such as `api.corp.internal` → `web-default-us-central-1-0.instances.datum.internal.`. Update the `CNAME` when you replace the Instance.
+- **Several Instances behind one name:** create `AAAA` records for each address under one name, as in the example above. Clients pick an address from the answer. DNS doesn't check whether each address is healthy.
+
+## Check status
+
+A change goes through two steps. First the record set or association is accepted. Then the zone is programmed, and the name resolves.
+
+```bash
+datumctl get dnsrecordset corp-api \
+  -o jsonpath='{.status.conditions[?(@.type=="Accepted")].reason}'
+datumctl get dnszone corp-internal
+```
+
+| Where | Condition | What it means |
+| --- | --- | --- |
+| Record set, association | `Accepted` | The change is valid. If it's `False`, the reason says why. |
+| Zone | `Programmed` | The zone's latest records resolve from at least one resolver. |
+| Zone | `Published` | Every resolver the zone needs has the latest records. |
+
+For what each reason means, see [Troubleshooting](/domain-dns/troubleshooting#private-dns).
+
+## Delete names and zones
+
+- Delete a record set to remove its names. Clients can keep an old answer until its TTL expires.
+- Delete a zone association to stop one network from resolving the zone.
+- Delete a zone to remove it from every network. Delete its record sets and associations too.
+- Don't delete a network's managed zone or its association. Instance names on that network stop resolving. If you deleted one by mistake, contact [support@datum.net](mailto:support@datum.net).
