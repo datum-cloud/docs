@@ -1,0 +1,19 @@
+README.md
+  s_27ed6d9f9c3ccb::t_2dfa546a03ae28 55-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aa1676da922821f75573c095ec3cf2a27d6d577e",
+  "prompts": {},
+  "sessions": {
+    "s_27ed6d9f9c3ccb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fb16a048-b57c-49a8-90dd-12440eaa861b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "AriaEdo <aria.edo@gmail.com>"
+    }
+  }
+}
