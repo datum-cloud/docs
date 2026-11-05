@@ -6,6 +6,23 @@ rss: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
+<Update label="November 4, 2026" description="Private DNS" tags={["Early access", "Connect"]}>
+  ## Private DNS for gVPC networks
+
+  Resources on a [gVPC](/galactic-vpc/overview) network can now reach each other by name, with answers that resolve only from inside that network.
+
+  - **Managed zone:** every network gets its own `datum.internal` zone. Compute publishes each Instance at `<instance-name>.instances.datum.internal`. See [Private DNS for Compute](/compute/private-dns).
+  - **Your own private zones:** associate private zones with a network for internal names. The zone class is now optional for private zones.
+  - **Network isolation:** a network can't be pointed at another network's private DNS, and the same names can be reused across networks without leaking answers.
+  - **Availability:** lookups go only to healthy DNS servers, so server updates no longer stall lookups until they time out.
+  - **Regions:** a private zone is served only in the regions its networks use, and is withdrawn from regions it leaves.
+  - **Fixed:** a CNAME that points into another private zone now returns the target's answer over UDP, not just the CNAME.
+  - **Fixed:** the managed `datum.internal` zone can't be deleted while its network uses it. Deleting a project still removes it.
+  - **Changed:** the DNS Admin role can no longer create service-owned name registrations or naming policies. It keeps read access.
+
+  Private DNS is in preview, and Instances have IPv6 addresses only. Learn more in [Private DNS](/domain-dns/private-dns).
+</Update>
+
 <Update label="October 29, 2026" description="datumctl" tags={["datumctl"]}>
   ## Correct version reporting for Nix installs
 
