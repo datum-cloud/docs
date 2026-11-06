@@ -75,6 +75,8 @@ datumctl plugin install your-org/datumctl-example
 datumctl plugin install your-org/datumctl-example@v1.2.0
 ```
 
+Without a version, datumctl installs the release GitHub marks as latest. If the repository has published only pre-releases, datumctl installs the highest pre-release instead, and `datumctl plugin upgrade` follows newer pre-releases the same way.
+
 <Info>
   If a bare name exists in more than one catalog, datumctl lists the matches instead of guessing. Qualify the name with its catalog (for example `acme/deploy`) to choose.
 </Info>
