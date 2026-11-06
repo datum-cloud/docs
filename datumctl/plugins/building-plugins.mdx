@@ -184,7 +184,7 @@ Users can always install directly from a GitHub release without a catalog:
 datumctl plugin install your-org/datumctl-dns
 ```
 
-This path requires a `checksums.txt` alongside your release archives, in goreleaser's default two-column format.
+This path requires a `checksums.txt` alongside your release archives, in goreleaser's default two-column format. Tag releases with a semantic version such as `v1.2.3` or `v1.2.3-rc.1`. If you have published only pre-releases, datumctl installs the highest pre-release tag.
 
 ## Next steps
 
