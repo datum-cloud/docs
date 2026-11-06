@@ -1,0 +1,243 @@
+---
+title: "How the load balancer handles requests"
+sidebarTitle: "Request handling"
+description: "Find the client's IP address, see which headers Datum adds and passes through, and learn the response time limit, plain HTTP behavior, and protocol support."
+---
+
+Datum's Application Load Balancer (ALB) runs on Datum's edge, the proxies that sit between your clients and your origin. This page documents how Datum's edge handles requests and responses, including forwarded headers, client IP addresses, supported protocols, origin connections, and timeouts.
+
+| Question | Short answer |
+|---|---|
+| Where is the client's IP address? | The last entry of `X-Forwarded-For`, and `X-Envoy-External-Address`. See [Find the client's IP address](#find-the-clients-ip-address). |
+| How long can a response stay open? | About 15 seconds by default, streaming included. You can raise it to 1 hour. See [How long a response can stay open](#how-long-a-response-can-stay-open). |
+| Is plain HTTP redirected to HTTPS? | Only when Force HTTPS or a redirect rule is on. See [Plain HTTP](#plain-http). |
+
+## Find the client's IP address
+
+The edge adds the client's IP address to two request headers before your origin sees the request:
+
+| Header | Value |
+|---|---|
+| `X-Forwarded-For` | The client's IP address, appended to the end. If the client sent its own `X-Forwarded-For`, the edge keeps those values in front of the real address. |
+| `X-Envoy-External-Address` | The client's IP address. The edge replaces any value the client sent. |
+
+Use the **last** entry of `X-Forwarded-For`, or `X-Envoy-External-Address`. Every entry before the last one in `X-Forwarded-For` came from the client and can be anything.
+
+```text
+Client sends:   X-Forwarded-For: 198.51.100.23
+Origin sees:    X-Forwarded-For: 198.51.100.23,203.0.113.7
+                X-Envoy-External-Address: 203.0.113.7
+```
+
+<Warning>
+  Many frameworks take the **first** entry of `X-Forwarded-For` by default. Behind Datum, that is whatever the client chose to send. Before you use the address for rate limits, audit logs, or access rules, configure your framework to trust exactly one proxy hop, so it reads the last entry. In Express, for example, that is `app.set('trust proxy', 1)`. `app.set('trust proxy', true)` does the opposite and reads the first entry.
+
+  This assumes the edge is the only proxy in front of your app. If your origin runs behind its own proxy or platform router, which adds its own entry, trust one more hop for each. If you put another proxy or CDN in front of Datum, the client's address is no longer the last entry.
+</Warning>
+
+## Headers added to requests
+
+| Header | What the origin sees |
+|---|---|
+| `X-Forwarded-For` | The client's IP address, appended. See [Find the client's IP address](#find-the-clients-ip-address). |
+| `X-Envoy-External-Address` | The client's IP address. Replaces any value the client sent. |
+| `X-Forwarded-Proto` | `https` or `http`: the protocol the client used to reach the edge. Replaces any value the client sent. Measured on `networkService` backends. |
+| `X-Request-Id` | A unique ID that the edge generates for each request. |
+| `X-Forwarded-Host` | `endpoint` backends only: the hostname the client used, appended to any value the client sent. Use the last entry. |
+
+The edge doesn't add `X-Forwarded-Port`.
+
+Where your origin finds the hostname the client used depends on the backend. See [The Host header](#the-host-header).
+
+### Headers passed through unchanged
+
+The edge forwards these headers exactly as the client sent them, so don't trust them for anything that matters:
+
+- `X-Real-IP`
+- `True-Client-IP`
+- `Forwarded`
+- `X-Forwarded-Host`, on `networkService` backends
+- `X-Forwarded-Port`
+
+## Response headers
+
+The edge passes your origin's response headers to the client unchanged, including every `Set-Cookie` header, CORS headers such as `Access-Control-Allow-Origin`, and caching headers such as `Cache-Control`. It adds one header:
+
+| Header | Value |
+|---|---|
+| `Alt-Svc` | `h3=":443"; ma=86400`, which tells clients they can use HTTP/3. |
+
+The edge doesn't remove headers such as `Server` or `X-Powered-By`, and it doesn't add security headers such as `Strict-Transport-Security`. Set or remove those in your origin.
+
+## How long a response can stay open
+
+By default, an HTTP response must **finish within about 15 seconds** of the request reaching the edge. If it doesn't, the edge ends it:
+
+- If your origin hasn't started answering by then, the client gets a `504 Gateway Timeout` from the edge.
+- If your origin has started answering, the edge cuts the response off at about 15 seconds, even while data is still flowing. This includes streaming responses such as Server-Sent Events (SSE), LLM token streams, and long MCP responses.
+
+WebSockets are the exception. See [WebSockets](#websockets).
+
+### Raise the limit
+
+`HTTPProxy` has no timeout field. Set the limit with a `BackendTrafficPolicy`, up to `1h`. Attach it to one of these, which Datum creates for your proxy with the same name as the `HTTPProxy`:
+
+- The `HTTPRoute`, as in the following example, for this proxy's routes.
+- The `Gateway`, for every route on the proxy. [Run your app on ALB without a proxy container](/guides/alb-as-httpd#response-timeout) uses this form.
+
+<Tabs>
+  <Tab title="macOS / Linux">
+
+  ```bash
+  PROJECT="your-project-id"
+  PROXY_NAME="your-proxy"
+
+  cat <<EOF | datumctl apply --project $PROJECT --namespace default -f -
+  apiVersion: gateway.envoyproxy.io/v1alpha1
+  kind: BackendTrafficPolicy
+  metadata:
+    name: ${PROXY_NAME}-timeout
+  spec:
+    targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: ${PROXY_NAME}
+    timeout:
+      http:
+        requestTimeout: 1h
+  EOF
+  ```
+
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+
+  ```powershell
+  $PROJECT    = "your-project-id"
+  $PROXY_NAME = "your-proxy"
+
+  @"
+  apiVersion: gateway.envoyproxy.io/v1alpha1
+  kind: BackendTrafficPolicy
+  metadata:
+    name: $PROXY_NAME-timeout
+  spec:
+    targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: $PROXY_NAME
+    timeout:
+      http:
+        requestTimeout: 1h
+  "@ | datumctl apply --project $PROJECT --namespace default -f -
+  ```
+
+  </Tab>
+</Tabs>
+
+`requestTimeout` limits the whole response, from the request arriving to the last byte, so set it longer than your longest stream or download. A larger value is rejected with `duration must be less than or equal to 1h0m0s`.
+
+If you've already attached a `BackendTrafficPolicy` to the same route or Gateway, add the `timeout` block to that policy instead of creating a second one.
+
+If you added the timeout to an existing policy, remove its `timeout` block and apply the policy again. If you created a dedicated policy with the example above, delete it to restore the default:
+
+<Tabs>
+  <Tab title="macOS / Linux">
+
+  ```bash
+  datumctl delete backendtrafficpolicy ${PROXY_NAME}-timeout --project $PROJECT --namespace default
+  ```
+
+  </Tab>
+  <Tab title="Windows (PowerShell)">
+
+  ```powershell
+  datumctl delete backendtrafficpolicy "$PROXY_NAME-timeout" --project $PROJECT --namespace default
+  ```
+
+  </Tab>
+</Tabs>
+
+### WebSockets
+
+The 15-second limit doesn't end a WebSocket. In testing, an upgraded connection stayed open while messages flowed, and through idle gaps of 2 minutes over 6 minutes in total. No idle limit has been measured.
+
+### gRPC
+
+In testing, bidirectional gRPC streams of 25 and 45 seconds weren't cut at 15 seconds. This isn't a documented guarantee. If your calls can run longer than 15 seconds, [raise the limit](#raise-the-limit).
+
+## Plain HTTP
+
+The load balancer listens on both HTTP (port 80) and HTTPS (port 443). Whether plain HTTP is redirected depends on how the load balancer was set up:
+
+- `datumctl alb create` turns on Force HTTPS, which redirects plain HTTP to HTTPS. Turn it off or on with `datumctl alb update NAME --no-force-https` or `--force-https`.
+- `datumctl compute deploy --http-port` creates a load balancer that serves plain HTTP with no redirect. To add the redirect, run `datumctl alb update NAME --force-https`.
+- An `HTTPProxy` you write yourself serves plain HTTP like any other request, with `X-Forwarded-Proto: http`. To redirect it, add the rule in [HTTP to HTTPS redirect](/alb/httpproxy/https-redirect).
+
+## Client protocols
+
+| Protocol | Supported | Notes |
+|---|---|---|
+| HTTP/1.1 | Yes | On ports 80 and 443. |
+| HTTP/2 | Yes | Negotiated over HTTPS. HTTP/2 without TLS (`h2c`, with prior knowledge) also works on port 80. |
+| HTTP/3 | Yes | HTTP/3 ends at the edge. The `Alt-Svc` response header tells clients it's available. |
+| WebSockets | Yes | Tested with `wss://` to a Compute workload. See [WebSockets](#websockets). |
+| gRPC | Yes | Over HTTPS. The origin must receive HTTP/2. See [gRPC to your origin](#grpc-to-your-origin). |
+
+Whatever protocol the client uses, the edge makes its own connection to your origin.
+
+## How the edge connects to your origin
+
+### HTTP or HTTPS
+
+The backend type decides how the edge connects:
+
+| Backend | Connection to the origin |
+|---|---|
+| `endpoint: https://...` | HTTPS, using HTTP/2 when the origin offers it. The edge checks the origin's certificate, including its expiry and hostname. If the certificate is self-signed, expired, or doesn't match the hostname, the client gets a `503` whose body includes `TLS_error` and `CERTIFICATE_VERIFY_FAILED`. |
+| `endpoint: http://...` | Plain HTTP. |
+| `networkService` (a [Compute](/compute/compute-and-alb) workload) | Plain HTTP/1.1, or plain HTTP/2 (`h2c`) when the port is set up for it. See [gRPC to your origin](#grpc-to-your-origin). TLS ends at the edge. |
+
+### The Host header
+
+| Backend | `Host` the origin sees | Hostname the client used |
+|---|---|---|
+| `endpoint` | The endpoint's hostname. For `endpoint: https://api.example.com`, the origin sees `Host: api.example.com`. | The last entry of `X-Forwarded-Host`. |
+| `networkService` | The hostname the client used. | `Host`. The edge doesn't add `X-Forwarded-Host`. |
+
+To send a different `Host`, see [Host header override](/alb/httpproxy/host-header-override).
+
+### Persistent connections
+
+The edge keeps connections to your origin open and reuses them for later requests. Requests arrive over many connections at once, so don't rely on one client's requests sharing an origin connection.
+
+### gRPC to your origin
+
+gRPC needs HTTP/2 all the way to the origin.
+
+- **`endpoint: https://...`:** works when your origin offers HTTP/2 over TLS, as gRPC servers do.
+- **`networkService`:** the port must use `h2c`. Without it, the edge sends HTTP/1.1, which is incompatible with standard gRPC, and every call fails with `502` and `upstream_reset_before_response_started{protocol_error}`.
+
+To set up the port:
+
+- With `datumctl compute deploy`, add `--http2`. See [Compute and ALB](/compute/compute-and-alb).
+- On a [network service](/galactic-vpc/networks/network-services), use `--port=name=grpc,port=9090,app-protocol=h2c`.
+- In a manifest, set `appProtocol: kubernetes.io/h2c` on the port:
+
+```yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: NetworkService
+metadata:
+  name: my-grpc-service
+spec:
+  networkInterfaces:
+    selector:
+      matchLabels:
+        compute.datumapis.com/workload-name: my-grpc-workload
+  ports:
+  - name: grpc
+    port: 9090
+    protocol: TCP
+    appProtocol: kubernetes.io/h2c
+```
+
+With `h2c` set, every request on that port reaches your instances as HTTP/2, even when the client sent HTTP/1.1. Most servers accept WebSockets only over HTTP/1.1, so serve WebSockets on a different port.
