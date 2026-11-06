@@ -80,7 +80,8 @@
                 "pages": [
                   "organizations/overview",
                   "organizations/team-management",
-                  "organizations/usage"
+                  "organizations/usage",
+                  "organizations/billing"
                 ],
                 "expanded": false
               },
