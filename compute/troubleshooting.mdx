@@ -17,7 +17,7 @@ The following table lists common errors and states, what they mean, and how to f
 | Error or reason | Meaning | What to do |
 | --- | --- | --- |
 | `must include a registry` | The image reference has no registry host. | Use a full reference, such as `docker.io/library/redis:7`. |
-| `... are not supported by the "CLASS" runtime class` | The workload uses a feature that its runtime class doesn't offer, such as `envFrom` or added capabilities on `unikernel`. | Remove the feature, or deploy a new workload with a class that offers it. See [Choose a runtime class](/compute/runtimes/overview). |
+| `... are not supported by the "CLASS" runtime class` | The workload uses a feature that its runtime class doesn't offer, such as a `disk` volume on either class, or `envFrom` or added capabilities on `unikernel`. | Remove the feature, or deploy a new workload with a class that offers it. See [Choose a runtime class](/compute/runtimes/overview). |
 | `resources: Forbidden: not implemented` | The workload sets CPU or memory for a container. | Remove `resources`, and set `runtime.resources.instanceType` to `datumcloud/d1-standard-2`. |
 | `permission to use the network was denied` | You don't have permission to attach workloads to the network. | Ask a project administrator for the **Network Admin** role. |
 | `permission to get ... was denied` | You can't read a ConfigMap or Secret that the workload references. | Ask for read access to the object, or reference another object. |
