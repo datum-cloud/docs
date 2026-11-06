@@ -373,7 +373,8 @@
             "group": "Guides",
             "pages": [
               "guides/overview",
-              "guides/alb-as-httpd"
+              "guides/alb-as-httpd",
+              "guides/migrate-from-vercel"
             ]
           }
         ]
