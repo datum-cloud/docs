@@ -53,6 +53,30 @@ It then opens an interactive picker so you can select the organization or projec
 
 From then on, commands like `datumctl get projects` act inside that context. To view or change your context later, use `datumctl ctx` and `datumctl ctx use`.
 
+If you have access to only one organization and no projects, `datumctl` selects it for you and skips the picker.
+
+### Choose the context without the picker
+
+To skip the picker, name the context when you log in with `--project` or `--organization`. `--project` accepts a project ID or `org/project`:
+
+```bash
+datumctl login --project acme-corp/production
+```
+
+If neither flag is set, `datumctl login` reads `DATUM_PROJECT` and `DATUM_ORGANIZATION` the same way. If none of your organizations or projects match the value, `datumctl` keeps your session and exits with an error that names the value. Run `datumctl ctx` to list the contexts you can use.
+
+### Log in without a terminal
+
+The picker needs an interactive terminal. Coding agents and scripts that run `datumctl` without one can still sign a person in. Without a terminal and without a named context, `datumctl login` signs you in, saves the session, and leaves the context unset. It prints this message and exits with status `0`:
+
+```text
+Signed in. No context selected: choosing one needs an interactive terminal.
+Run 'datumctl ctx use <org>/<project>' to pick one ('datumctl ctx' lists them),
+or sign in with 'datumctl login --project <project>' next time.
+```
+
+Choose a context afterwards with `datumctl ctx use your-org-id/your-project-id`, or pass `--project` to each command. If the active context belonged to a different account, `datumctl` clears it so the account you just signed in with becomes the active one.
+
 <Note>
   If context discovery fails (for example, on a restricted network), `datumctl` still saves your credentials and tells you to set a context manually with `datumctl ctx use`. Your login is not lost.
 </Note>
