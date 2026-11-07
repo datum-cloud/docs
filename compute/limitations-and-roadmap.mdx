@@ -35,7 +35,6 @@ The Compute preview has the following limitations. For limitations of each [runt
 - During the preview, Instances have private IPv6 addresses only. Private IPv4 addresses and public IP addresses are a preview limitation.
 - Instances reach IPv4-only internet services by hostname only, through DNS64 and NAT64. A connection to an IPv4 address fails. See [Reach the internet](/galactic-vpc/networks/traffic#reach-the-internet).
 - Every Instance can reach the internet, and you can't turn that off. Outbound traffic leaves from shared addresses that Datum doesn't publish, so you can't allowlist your Instances at a destination.
-- Private DNS names for Instances are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
 - Firewall rules to filter traffic between Instances on a network are on the [roadmap](/galactic-vpc/limitations-and-roadmap#planned-capabilities).
 - Public access is HTTP and HTTPS only, served through Datum's [ALB](/alb/overview). Raw TCP and UDP exposure is a preview limitation.
 

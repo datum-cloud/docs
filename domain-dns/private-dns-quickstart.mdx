@@ -1,0 +1,178 @@
+---
+title: "Private DNS quickstart"
+sidebarTitle: "Private DNS quickstart"
+description: "Deploy two workloads on a gVPC network and reach one from the other by its private name."
+---
+
+This quickstart deploys two small workloads on the same [gVPC](/galactic-vpc/overview) network. From the first, you look up the second by its [Private DNS](/domain-dns/private-dns) name and connect to it. Then you give it a name of your own. It takes about ten minutes.
+
+## Before you begin
+
+- Install `datumctl` and the `compute` plugin, and select a project. See [Compute commands](/datumctl/compute/overview).
+- Your account needs the **Compute Admin**, **Network Admin**, and **DNS Admin** roles in the project.
+
+## Reach an Instance by name
+
+<Steps>
+  <Step title="Deploy a web server">
+    Deploy an `nginx` workload named `web` to Dallas:
+
+    ```bash
+    datumctl compute deploy web \
+      --image=docker.io/library/nginx:1.27-alpine \
+      --runtime-class=general-purpose \
+      --location=us-central-1
+    ```
+
+    If this is the first deploy in the project, the command asks whether to create a network named `default`. Enter `y`. Then enter `y` to apply the plan.
+  </Step>
+
+  <Step title="Deploy a client">
+    Deploy a second workload named `client` on the same network. It uses the same image, because the image includes `nslookup` and `wget`:
+
+    ```bash
+    datumctl compute deploy client \
+      --image=docker.io/library/nginx:1.27-alpine \
+      --runtime-class=general-purpose \
+      --location=us-central-1
+    ```
+  </Step>
+
+  <Step title="Find the web server's name">
+    Compute publishes each Instance at `<instance-name>.instances.datum.internal`. Read the exact name from the Instance:
+
+    ```bash
+    datumctl compute instances --workload=web
+    datumctl get instance web-default-us-central-1-0 \
+      -o jsonpath='{.status.dns[0].hostnames[0]}'
+    ```
+
+    The output is similar to the following:
+
+    ```text
+    web-default-us-central-1-0.instances.datum.internal
+    ```
+
+    If the output is empty, wait a few seconds and run the command again. The name appears once the Instance is ready.
+  </Step>
+
+  <Step title="Look up and connect by name">
+    Open a shell in the client and look up the web server:
+
+    ```bash
+    datumctl compute exec client-default-us-central-1-0 -- \
+      nslookup -type=AAAA web-default-us-central-1-0.instances.datum.internal
+    ```
+
+    The answer is the web server's private IPv6 address. Note it for later. Now connect to it by name:
+
+    ```bash
+    datumctl compute exec client-default-us-central-1-0 -- \
+      wget -qO- http://web-default-us-central-1-0.instances.datum.internal/
+    ```
+
+    The output is the `nginx` welcome page.
+  </Step>
+</Steps>
+
+## Give the web server your own name
+
+To give the web server a name you choose, create a private zone of your own, attach it to the network, and add a record.
+
+<Steps>
+  <Step title="Find the network's DNS context">
+    Each network has one DNS context. To list them with the network each one belongs to, run:
+
+    ```bash
+    datumctl get dnsresolvercontexts \
+      -o custom-columns='CONTEXT:.metadata.name,NETWORK:.metadata.ownerReferences[0].name'
+    ```
+
+    Note the `CONTEXT` for the `default` network, such as `dns-default-4f1c2a9e7b30`.
+  </Step>
+
+  <Step title="Create a zone, attach it, and add a record">
+    Save the following as `private-zone.yaml`. Replace `CONTEXT_NAME` with the context from the previous step, and `WEB_ADDRESS` with the web server's address from the lookup:
+
+    ```yaml
+    apiVersion: dns.networking.miloapis.com/v1alpha1
+    kind: DNSZone
+    metadata:
+      name: corp-internal
+    spec:
+      domainName: corp.internal
+      visibility: Private
+    ---
+    apiVersion: dns.networking.miloapis.com/v1alpha1
+    kind: DNSZoneAssociation
+    metadata:
+      name: corp-internal-default
+    spec:
+      dnsZoneRef:
+        name: corp-internal
+      resolverContextRef:
+        name: CONTEXT_NAME
+    ---
+    apiVersion: dns.networking.miloapis.com/v1alpha1
+    kind: DNSRecordSet
+    metadata:
+      name: www
+    spec:
+      dnsZoneRef:
+        name: corp-internal
+      recordType: AAAA
+      records:
+        - name: www
+          ttl: 60
+          aaaa:
+            content: WEB_ADDRESS
+    ```
+
+    Apply it:
+
+    ```bash
+    datumctl apply -f private-zone.yaml
+    ```
+  </Step>
+
+  <Step title="Wait for the zone">
+    Check that the association and record are accepted, and that the zone is programmed:
+
+    ```bash
+    datumctl get dnszoneassociation corp-internal-default \
+      -o jsonpath='{.status.conditions[?(@.type=="Accepted")].status}'
+    datumctl get dnsrecordset www \
+      -o jsonpath='{.status.conditions[?(@.type=="Accepted")].status}'
+    datumctl get dnszone corp-internal
+    ```
+
+    Continue when both commands print `True` and the zone's `PROGRAMMED` column shows `True`. This usually takes less than a minute. If something stays `False`, see [Troubleshooting](/domain-dns/troubleshooting#private-dns).
+  </Step>
+
+  <Step title="Connect by your name">
+    ```bash
+    datumctl compute exec client-default-us-central-1-0 -- \
+      wget -qO- http://www.corp.internal/
+    ```
+
+    The output is the same welcome page. The name resolves only from the `default` network.
+
+    This record holds an address, so update it if Compute replaces the web server's Instance. For names that follow an Instance, see [Find services by name](/domain-dns/private-dns-zones#find-services-by-name).
+  </Step>
+</Steps>
+
+## Clean up
+
+```bash
+datumctl delete -f private-zone.yaml
+datumctl compute destroy client
+datumctl compute destroy web
+```
+
+Deleting the workloads removes their Instance names.
+
+## What's next
+
+- [Manage private zones and records](/domain-dns/private-dns-zones)
+- [Private DNS limits and behavior](/domain-dns/private-dns-reference)
+- [Private DNS for Compute](/compute/private-dns)

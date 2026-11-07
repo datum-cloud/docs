@@ -1,0 +1,71 @@
+---
+title: "Private DNS limits and behavior"
+sidebarTitle: "Private DNS limits"
+description: "Where Private DNS is available, naming rules, limits, and how long changes take."
+---
+
+This page lists the rules and limits for [Private DNS](/domain-dns/private-dns).
+
+<Note>
+  Private DNS is in preview, and the `v1alpha1` API can change.
+</Note>
+
+## Locations and runtimes
+
+Private DNS works on every [gVPC](/galactic-vpc/overview) network, in these locations:
+
+| Location | City |
+| --- | --- |
+| `us-central-1` | Dallas |
+| `us-east-1` | Ashburn |
+| `us-west-1` | San Jose |
+
+A network that spans several locations has one set of names. An Instance in one location resolves the names of Instances in the other locations on the same network.
+
+Both [runtime classes](/compute/runtimes/overview), `general-purpose` and `unikernel`, get Private DNS. Instances use the resolvers that Datum configures for them. In a `general-purpose` Instance, they're in `/etc/resolv.conf`. An app that uses its own resolver, such as a hard-coded public resolver or DNS over HTTPS, can't resolve private names.
+
+## Names
+
+- Every network's managed zone is `datum.internal`. Each network has its own copy.
+- Compute publishes Instances at `<instance-name>.instances.datum.internal`. Long or unusual Instance names are shortened, so read the exact name from the Instance's `status.dns`. Compute owns every name at or below `instances.datum.internal`, so you can't add records there or create a zone that covers it.
+- Use full names. Don't rely on short names such as `web-default-us-central-1-0`: they depend on search domains that can differ between Instances.
+- Zone domains use lowercase letters, digits, and hyphens, with each label starting and ending with a letter or digit. They have at least two labels and are at most 253 characters long.
+- Record names are relative to their zone, such as `api`, or fully qualified. `@` means the zone's own domain. Names aren't case-sensitive.
+- A private zone hides the public records of the same domain from the networks it's associated with.
+
+## Record rules
+
+- `ALIAS` and `SOA` records aren't supported. Datum manages each private zone's `SOA` record.
+- A zone's own domain (`@`) can't be a `CNAME`.
+- A `CNAME` can't share a name with another record type.
+- Point a `CNAME` at a name in the same zone. A `CNAME` that points into another zone, or at a public name, may return only the `CNAME`, which most apps can't follow.
+- An `SRV` target must be a name with `A` or `AAAA` records in the same zone.
+- If two record sets have the same name and type, the older one keeps it, and the newer one isn't accepted.
+- A record set is accepted or rejected as a whole. One invalid record keeps every name in it from resolving.
+
+## Limits
+
+| Limit | Value |
+| --- | --- |
+| Private zones a network can resolve, including `datum.internal` | 256. Keep to this or fewer: a 257th association isn't refused yet, but the network then stops picking up DNS changes. |
+| Zone domain length | 253 characters |
+| Default TTL of a record you create | 300 seconds |
+| TTL of an Instance name | 30 seconds |
+
+## How long changes take
+
+| Change | When it takes effect |
+| --- | --- |
+| New Instance | Its name usually resolves within about 30 seconds of the Instance becoming ready. |
+| New record, zone, or association | Usually within a minute of being accepted, and longer when a project changes many names at once. The zone's `Programmed` condition says when. |
+| Changed or removed record | New lookups get the new answer once the zone is programmed. Clients that cached the old answer keep it until its TTL expires. |
+| Deleted or unready Instance | Its addresses are withdrawn. Clients can keep the old answer for up to 30 seconds. |
+
+Publication is asynchronous. Wait for the status conditions described in [Check status](/domain-dns/private-dns-zones#check-status) rather than a fixed delay.
+
+## Privacy
+
+- A private name resolves only from networks that its zone is associated with. Private names aren't published to public DNS.
+- A network resolves another network's zone only through an association that you create.
+- Resolving a name doesn't grant network access. See [Traffic and connecting](/galactic-vpc/networks/traffic).
+- Public names keep resolving through the same resolvers.
