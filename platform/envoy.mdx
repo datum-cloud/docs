@@ -57,7 +57,7 @@ Datum runs Envoy as a shared fleet, deployed in every Datum location:
 
 Envoy is how public traffic reaches your [Compute](/compute/overview) Instances, which have private addresses only on your [gVPC](/galactic-vpc/overview) network.
 
-For each request, Envoy opens a new connection to a healthy Instance, preferring one in the same location. If the location has no healthy Instance, Envoy sends the request to the nearest location that has one, over Datum's backbone. Datum terminates TLS at Envoy and connects to your Instances over plain HTTP on your private network. For how to publish a workload, see [Compute and ALB](/compute/compute-and-alb).
+Envoy sends each request to a healthy Instance, preferring one in the same location, and reuses its connections to your Instances across requests. If the location has no healthy Instance, Envoy sends the request to the nearest location that has one, over Datum's backbone. Datum terminates TLS at Envoy and connects to your Instances over plain HTTP on your private network. For how to publish a workload, see [Compute and ALB](/compute/compute-and-alb).
 
 Because the fleet is shared, Envoy must never confuse your network with another customer's, even when both use the same private addresses. Datum handles this below Envoy, in the [Galactic](/platform/galactic) network:
 
