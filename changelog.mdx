@@ -6,6 +6,23 @@ rss: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
+<Update label="November 4, 2026" description="Private DNS" tags={["Early access", "Connect"]}>
+  ## Private DNS for gVPC networks
+
+  Resources on a [gVPC](/galactic-vpc/overview) network can now reach each other by name, with answers that resolve only from inside that network.
+
+  - **Managed zone:** every network gets its own `datum.internal` zone. Compute publishes each Instance at `<instance-name>.instances.datum.internal`. See [Private DNS for Compute](/compute/private-dns).
+  - **Your own private zones:** associate private zones with a network for internal names. The zone class is now optional for private zones.
+  - **Network isolation:** a network can't be pointed at another network's private DNS, and the same names can be reused across networks without leaking answers.
+  - **Availability:** lookups go only to healthy DNS servers, so server updates no longer stall lookups until they time out.
+  - **Regions:** a private zone is served only in the regions its networks use, and is withdrawn from regions it leaves.
+  - **Fixed:** a CNAME that points into another private zone now returns the target's answer over UDP, not just the CNAME.
+  - **Fixed:** the managed `datum.internal` zone can't be deleted while its network uses it. Deleting a project still removes it.
+  - **Changed:** the DNS Admin role can no longer create service-owned name registrations or naming policies. It keeps read access.
+
+  Private DNS is in preview, and Instances have IPv6 addresses only. Learn more in [Private DNS](/domain-dns/private-dns).
+</Update>
+
 <Update label="November 4, 2026" description="gVPC" tags={["Fix"]}>
   ## Read-only users can open VPC pages
 
@@ -55,7 +72,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   See [Network services](/galactic-vpc/networks/network-services).
 </Update>
 
-<Update label="October 29, 2026" description="datumctl" tags={["datumctl"]}>
+<Update label="October 29, 2026" description="datumctl" tags={["Fix"]}>
   ## Correct version reporting for Nix installs
 
   `datumctl` installed from the Nix flake now reports a valid version.
@@ -98,19 +115,6 @@ Each entry links to the original announcement in our [changelog discussions](htt
   See [Activity](/datumctl/activity/overview).
 </Update>
 
-<Update label="October 21, 2026" description="Private DNS" tags={["Connect"]}>
-  ## Private DNS for gVPC networks
-
-  Resources on a gVPC network can now reach each other by name instead of by private IP address.
-
-  - **Instance names:** each Compute Instance gets a name such as `web-default-us-central-1-0.instances.datum.internal` that resolves to its private addresses.
-  - **Private to the network:** every network has its own `datum.internal` zone. Names resolve only from that network and aren't published to public DNS.
-  - **Kept in sync:** records update when addresses change and are removed when the Instance is deleted.
-  - **Portal:** Private DNS zones show **Private** in the DNS list, along with the VPC they serve, instead of a nameserver lookup.
-
-  See [Private DNS](/domain-dns/private-dns) and [Private DNS for Compute](/compute/private-dns).
-</Update>
-
 <Update label="October 21, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
   ## Guided setup for new projects
 
@@ -150,7 +154,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   See [Domains](/domain-dns/domains).
 </Update>
 
-<Update label="October 13, 2026" description="datumctl" tags={["datumctl", "Patch"]}>
+<Update label="October 13, 2026" description="datumctl" tags={["Patch"]}>
   ## New datumctl plugins and assistant capabilities
 
   Install plugins from the official catalog with `datumctl plugin install <name>`.
@@ -164,7 +168,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   [Read the announcement](https://github.com/orgs/datum-cloud/discussions/306)
 </Update>
 
-<Update label="October 13, 2026" description="datumctl v0.22.0" tags={["datumctl"]}>
+<Update label="October 13, 2026" description="datumctl v0.22.0" tags={["Release"]}>
   ## Upgrade every plugin in one command
 
   - `datumctl plugin upgrade --all` upgrades every installed plugin that has a newer release and skips the rest.

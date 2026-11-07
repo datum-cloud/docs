@@ -186,6 +186,7 @@
                       "alb/operations/traffic-protection"
                     ]
                   },
+                  "alb/request-handling",
                   "alb/observability",
                   "alb/troubleshooting",
                   "alb/limits-and-quotas",
@@ -373,7 +374,8 @@
             "group": "Guides",
             "pages": [
               "guides/overview",
-              "guides/alb-as-httpd"
+              "guides/alb-as-httpd",
+              "guides/migrate-from-vercel"
             ]
           }
         ]

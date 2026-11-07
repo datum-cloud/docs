@@ -193,6 +193,16 @@ Keep the following rules in mind:
 
 ConfigMap and Secret volumes work with both runtime classes.
 
+## Disk volumes
+
+The `spec.template.spec.volumes` field also accepts a `disk` volume type, which `datumctl explain` lists with a size request and a populator. No runtime class serves disk volumes during the preview, so Datum rejects a workload that declares one with the following error:
+
+```text
+disk-backed volumes are not supported by the "CLASS" runtime class
+```
+
+A runtime class serves disk volumes only when its `spec.capabilities.features` list includes `diskVolumes`. To check a class, see [View the runtime class catalog](/compute/runtimes/overview#view-the-runtime-class-catalog).
+
 ## Apply a configuration change
 
 Running Instances don't restart when a ConfigMap or Secret changes. To make your app pick up the new values, restart the workload:

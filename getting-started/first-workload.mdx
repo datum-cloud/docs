@@ -4,7 +4,7 @@ description: "Deploy draw.io to Datum Compute and open it in your browser throug
 ---
 
 <Note>
-  Compute is in preview. The `v1alpha` APIs can change, and Datum reviews Compute access requests manually.
+  Compute is in preview, and the `v1alpha` APIs can change.
 </Note>
 
 ## Before you begin
@@ -14,7 +14,6 @@ description: "Deploy draw.io to Datum Compute and open it in your browser throug
 - Run `datumctl login`. For more information, see [Logging in](/datumctl/auth/logging-in).
 - Run `datumctl plugin install compute`. For more information, see [Using plugins](/datumctl/plugins/using-plugins).
 - Select the project to deploy in with `datumctl ctx use your-org-id/your-project-id`. To confirm your account and project, run `datumctl whoami`. For more information, see [Contexts and scoping](/datumctl/contexts-and-scoping).
-- Make sure that Compute access is active for the project. Run `datumctl compute access` and check that the `Status` line shows `Active`. If it doesn't, see [Request Compute access](/compute/limits-and-quotas#request-access).
 
 ## Deploy draw.io
 
@@ -38,6 +37,8 @@ This page deploys [draw.io](https://www.drawio.com/), an open source diagramming
     - `--runtime-class=general-purpose`: runs the image as a standard container in a lightweight virtual machine. Without this flag, Datum uses the `unikernel` class, which needs a [specially packaged image](/compute/runtimes/unikernels). To compare the two, see [Choose a runtime class](/compute/runtimes/overview).
     - `--location=us-central-1`: runs one Instance in Dallas.
     - `--http-port=8080`: attaches an ALB to the workload and publishes port `8080`, where draw.io serves HTTP.
+
+    If this is the first Compute command in the project, it first enables Compute for the project, which takes a few seconds. For more information, see [Enable Compute](/compute/limits-and-quotas#enable-compute).
 
     The command asks you two questions:
 

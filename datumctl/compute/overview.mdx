@@ -5,7 +5,7 @@ description: "Deploy and manage containerized workloads on Datum Cloud with the 
 ---
 
 <Note>
-  Compute is in preview, and each project needs approved access before it can deploy. For product guides, see [Compute](/compute/overview). To deploy your first app, see [Deploy an app](/getting-started/first-workload).
+  Compute is in preview. It turns on for a project the first time you run a `datumctl compute` command there. For product guides, see [Compute](/compute/overview). To deploy your first app, see [Deploy an app](/getting-started/first-workload).
 </Note>
 
 `datumctl compute` deploys a container image as a *workload* that runs in one or more Datum Cloud locations, and provides the day-to-day commands to scale, restart, and delete it. It's a first-party plugin instead of a built-in command. After you install it, its commands behave like the rest of the CLI.
@@ -32,65 +32,36 @@ A handful of terms recur across every `compute` command:
 
 `compute` is project-scoped: every command reads `--project` (or your active context's project, injected automatically — see [Contexts & scoping](/datumctl/contexts-and-scoping)). There is no organization-level view and no `--namespace` flag; all compute resources live in the project's `default` namespace.
 
-## Requesting access
+## Enabling Compute
 
-Compute is a gated service. The first time you run a command that needs it, `datumctl` checks whether your project is entitled to use Compute:
-
-<CardGroup cols={2}>
-  <Card title="Not requested" icon="circle-question">
-    No request has been made yet. On an interactive terminal, the gate offers to submit one for you.
-  </Card>
-  <Card title="Pending approval" icon="hourglass-half">
-    A request is awaiting a manual decision by the service provider. Latency is unbounded.
-  </Card>
-  <Card title="Active" icon="circle-check">
-    The project is entitled — every `compute` command runs normally.
-  </Card>
-  <Card title="Denied / Revoked" icon="circle-xmark">
-    The provider rejected the request (or later revoked it). Recovery is submitting a new request.
-  </Card>
-</CardGroup>
-
-### The automatic gate
-
-Run any gated command — `deploy`, `workloads`, `instances`, and so on — without access, and on a TTY `datumctl` prompts you inline:
+Compute is a self-service service: you don't request access, and no one at Datum reviews it. The first time you run a command that needs Compute, such as `deploy`, `workloads`, `instances`, or `build`, `datumctl` checks whether Compute is enabled for the project. If it isn't, `datumctl` enables it, waits a few seconds for it to become active, and then runs your command:
 
 ```bash
 datumctl compute deploy api --image=ghcr.io/acme/api:1.4.2 --location=us-central-1 --min=1
 ```
 
-`datumctl` checks if Compute is enabled for the project, and — if not — asks whether to request access; on confirmation, it submits the request and waits briefly to see whether the platform approves it immediately or the request needs manual review.
+`datumctl` doesn't prompt before it enables Compute, so the first command works the same way on a terminal, in CI, and in a script. Enabling Compute also gives the project its default compute quota.
 
-Decline, and nothing is submitted — run `datumctl compute access request` yourself whenever you're ready. In a non-interactive shell (CI, a script, or a piped command), the gate never prompts; it fails immediately and tells you which command to run.
+### Checking access explicitly
 
-### Checking and requesting access explicitly
-
-Use `datumctl compute access` to check the current state directly, and `access request` for more control over submitting one than the automatic prompt gives you:
+To see whether Compute is enabled, or to enable it without running another command, use `datumctl compute access`:
 
 ```bash
-# Show the current access state
+# Show the current state
 datumctl compute access
 
-# Submit a request with a justification, useful for the provider's review
-datumctl compute access request --message="Onboarding the api service"
-
-# Submit and block until the platform's first decision (or --timeout elapses)
-datumctl compute access request --wait
-
-# A denied or revoked request is terminal — --renew deletes it and submits fresh
-datumctl compute access request --renew
+# Enable Compute for the project now
+datumctl compute access request
 ```
 
-`datumctl compute access` prints the state, the platform's explanation, and — when there's a next step — the exact command to run:
+`datumctl compute access` prints the service, the project, and an `Access` line with one of the following states:
 
-```text
-Service:  Compute (compute.datumapis.com)
-Project:  acme-prod
-Status:   Not requested
-          This service is not enabled for this project.
-
-Request access with: datumctl compute access request
-```
+| State | Meaning |
+|-------|---------|
+| `Not requested` | Compute isn't enabled yet. The next `compute` command enables it. |
+| `Processing` | Datum is enabling Compute. This normally takes a few seconds. |
+| `Active` | Compute is enabled, and every `compute` command runs normally. |
+| `Unavailable` | Compute isn't available to your project. |
 
 Add `-o json` or `-o yaml` to script against the state instead of parsing prose.
 
