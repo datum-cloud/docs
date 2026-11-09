@@ -103,7 +103,8 @@
                     "pages": [
                       "galactic-vpc/networks/addressing",
                       "galactic-vpc/networks/traffic",
-                      "galactic-vpc/networks/network-services"
+                      "galactic-vpc/networks/network-services",
+                      "galactic-vpc/networks/network-load-balancers"
                     ]
                   },
                   "galactic-vpc/configuration",

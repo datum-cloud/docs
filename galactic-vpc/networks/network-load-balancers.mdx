@@ -1,0 +1,117 @@
+---
+title: "Network load balancers"
+sidebarTitle: "Network load balancers"
+description: "Publish a network service on a public TCP or UDP port with a network load balancer (NLB), and point a hostname at it in each location."
+---
+
+A network load balancer (NLB) publishes a [network service](/galactic-vpc/networks/network-services) on a public TCP or UDP port. Use an NLB for traffic that isn't HTTP, such as a database, a game server, or a DNS server. For HTTP and HTTPS traffic, use Datum's [Application Load Balancer](/alb/overview) instead.
+
+<Note>
+  Network load balancers are in early access, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## How network load balancers work
+
+An NLB has two parts:
+
+- **Listeners:** each listener accepts one protocol, TCP or UDP, on one public port, such as TCP `5432`.
+- **Routes:** each route connects one listener to one named port on a network service.
+
+Keep the following points in mind:
+
+- **One network:** An NLB belongs to one network, and its backends must be network services on that network. You can't change the network after you create the NLB.
+- **An address in each location:** Datum gives the NLB a public IPv6 address in every location where the backend has Instances. Adding a location doesn't change the addresses in the other locations.
+- **A hostname for each location:** Each location also gets a generated hostname. Point a CNAME record for a name you own at it. A hostname doesn't carry a port, so clients still connect to the listener's port.
+- **Traffic stays in the location:** Traffic to a location's address goes to a healthy Instance in that location. Each new TCP connection or UDP flow goes to the next healthy Instance in turn, and stays on that Instance.
+- **Health checks:** Datum checks each Instance over TCP and sends new connections only to healthy ones. If a location has no healthy Instance, Datum stops announcing its address. The address stays assigned to your NLB, so it comes back when an Instance is healthy again.
+
+## Before you begin
+
+- Create a network service for the workload, with a port for the traffic that you want to publish. For more information, see [Create a network service](/galactic-vpc/networks/network-services#create-a-network-service).
+- For a UDP listener, the network service also needs a TCP port that Datum can health check. Datum checks UDP backends over TCP.
+- Make your app listen on IPv6 (`::`). Instances have IPv6 addresses only.
+
+`datumctl network service create` adds TCP ports only. To add a UDP port, create the service in the [Cloud Portal](https://cloud.datum.net) and choose **UDP** for the port, or set `protocol: UDP` on the port in a manifest.
+
+## Create a network load balancer in the Cloud Portal
+
+1. In the [Cloud Portal](https://cloud.datum.net), open your project and select **NLB**.
+2. Click **Create**.
+3. Enter a **Name** and select the **Network** of your backend.
+4. Under **Listen**, select the **Protocol** and enter the public **Port**.
+5. Under **Send to**, select the **Backend** network service and the **Backend port**.
+6. Under **Health check**, select the **TCP probe port**. For a TCP listener, you can keep the serving port. For a UDP listener, select one of the service's TCP ports.
+7. Click **Create**.
+
+The portal opens the new load balancer's page, which shows its hostname, IPv6 addresses, network, and healthy endpoints. To add, change, or delete listeners, use the listeners table on that page. An NLB needs at least one listener, so to remove the last listener, delete the NLB instead.
+
+## Create a network load balancer with datumctl
+
+To create an NLB from the command line, describe the NLB and its route in a file, such as `nlb.yaml`. The following example publishes the `postgres` port of a network service named `db` on TCP port `5432`:
+
+```yaml nlb.yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: NetworkLoadBalancer
+metadata:
+  name: db-nlb
+spec:
+  networkRef:
+    name: default
+  exposure:
+    addresses:
+      - name: tcp-5432
+        families: ["IPv6"]
+  listeners:
+    - name: tcp-5432
+      protocol: TCP
+      port: 5432
+      addressRefs: ["tcp-5432"]
+---
+apiVersion: networking.datumapis.com/v1alpha
+kind: NetworkLoadBalancerRoute
+metadata:
+  name: db-nlb-tcp-5432
+spec:
+  parentRefs:
+    - name: db-nlb
+      listener: tcp-5432
+  backends:
+    - networkService:
+        name: db
+        port: postgres
+      healthCheck:
+        protocol: TCP
+```
+
+For a UDP listener, set `protocol: UDP` on the listener, and set `healthCheck.port` to the name of a TCP port on the network service.
+
+Then apply the file:
+
+```bash
+datumctl apply -f nlb.yaml
+```
+
+To see the hostname and addresses that Datum assigned in each location, run the following command:
+
+```bash
+datumctl get networkloadbalancer db-nlb -o yaml
+```
+
+Each entry under `status.endpoints` lists a location, its `canonicalHostname`, and its addresses.
+
+## Early access limits
+
+The following features aren't available in early access:
+
+- **IPv4 addresses:** network load balancers serve public IPv6 addresses. IPv4 addresses aren't generally available yet.
+- **TLS listeners:** a TCP listener forwards TLS traffic unchanged, so your backend keeps its certificate and handles the TLS handshake. Listeners that end TLS or route by server name aren't supported.
+- **More than one backend for each route:** each route sends traffic to one network service.
+- **Shared addresses and UDP port ranges:** each listener uses its own address, and each listener takes one port.
+- **Custom health check timing:** Datum runs TCP health checks on a fixed schedule. Health check intervals, timeouts, and thresholds can't be changed.
+
+An NLB takes up to 16 listeners.
+
+## What's next
+
+- To publish HTTP and HTTPS traffic, see [Application Load Balancer](/alb/overview).
+- To learn which traffic a network carries, see [Traffic and connecting](/galactic-vpc/networks/traffic).
