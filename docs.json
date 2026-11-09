@@ -80,7 +80,8 @@
                 "pages": [
                   "organizations/overview",
                   "organizations/team-management",
-                  "organizations/usage"
+                  "organizations/usage",
+                  "organizations/billing"
                 ],
                 "expanded": false
               },
@@ -186,6 +187,7 @@
                       "alb/operations/traffic-protection"
                     ]
                   },
+                  "alb/request-handling",
                   "alb/observability",
                   "alb/troubleshooting",
                   "alb/limits-and-quotas",
@@ -376,7 +378,8 @@
             "group": "Guides",
             "pages": [
               "guides/overview",
-              "guides/alb-as-httpd"
+              "guides/alb-as-httpd",
+              "guides/migrate-from-vercel"
             ]
           }
         ]

@@ -141,7 +141,7 @@ A workload manifest can't declare an ALB, and `datumctl compute deploy -f` doesn
 
 In addition to the [limitations that apply to all of Compute](/compute/limitations-and-roadmap), the ALB has the following limitations:
 
-- Clients always connect over HTTPS. Datum connects to your Instances over plain HTTP, and TLS between Datum and your Instances isn't supported.
+- The ALB serves plain HTTP alongside HTTPS, with no redirect. To redirect plain HTTP to HTTPS, run `datumctl alb update NAME --force-https`. Datum connects to your Instances over plain HTTP, and TLS between Datum and your Instances isn't supported. See [How the load balancer handles requests](/alb/request-handling).
 - `datumctl compute deploy` attaches one ALB to each workload, on one port.
 - With `--http2`, WebSocket connections also reach your Instances over HTTP/2, and most servers accept WebSockets only over HTTP/1.1. To serve WebSockets alongside gRPC, serve them on a separate port through a [network service](/galactic-vpc/networks/network-services).
 

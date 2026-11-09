@@ -17,7 +17,8 @@ The Compute preview has the following limitations. For limitations of each [runt
 ### Runtime and sizing
 
 - One instance type is available, and you can't set CPU or memory for each container.
-- Persistent disks, raw devices, GPUs, and custom virtual machine images aren't available. Files written at runtime are lost when Datum replaces an Instance.
+- Persistent disks aren't available. The workload API includes a `disk` volume type, but no runtime class serves it, so Datum rejects a workload that declares one. Files written at runtime are lost when Datum replaces an Instance. For details, see [Disk volumes](/compute/configuration#disk-volumes).
+- Raw devices, GPUs, and custom virtual machine images aren't available.
 - Instances with more than one container aren't supported. Run one container per workload.
 - Health probes, such as readiness and liveness checks, aren't available. An Instance is ready when its containers are running.
 - You can't suspend, resume, or snapshot Instances. You can open a shell or run a command in a running `general-purpose` Instance; see [Instance shell sessions](/compute/instance-shell).

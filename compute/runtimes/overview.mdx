@@ -24,6 +24,7 @@ The following table compares the two classes:
 | Root filesystem | The image filesystem. | Held in memory, so the unpacked image size counts against the Instance's 2 GiB of memory. |
 | Environment variables from a whole ConfigMap or Secret (`envFrom`) | Supported | Not supported. Use `env[].valueFrom` for each key instead. |
 | ConfigMap and Secret volumes | Supported | Supported |
+| Disk volumes | Not supported | Not supported |
 | Private registry credentials (`imagePullSecrets`) | Supported | Supported |
 | Added Linux capabilities | Supported | Not supported |
 | Instance size | 1 vCPU, 2 GiB | 1 vCPU, 2 GiB |
@@ -103,6 +104,14 @@ datumctl get runtimeclasses
 ```
 
 The output includes each class's display name, isolation boundary, whether it's the default, and whether it's available.
+
+To see the features that a class serves, run the following command:
+
+```bash
+datumctl get runtimeclass RUNTIME_CLASS -o yaml
+```
+
+Replace `RUNTIME_CLASS` with `general-purpose` or `unikernel`. The `spec.capabilities.features` list names every optional feature that the class serves. Datum rejects a workload that uses a feature missing from this list.
 
 ## Change a workload's runtime class
 
