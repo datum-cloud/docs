@@ -106,7 +106,7 @@ networking.datumapis.com/gateway-sync: "true"
 ### Why this matters
 
 - Without this label, the gateway receives the policy but **not the Secret**
-- Envoy fails to load the Basic Auth credentials
+- Envoy fails to load the basic auth credentials
 - All requests return **HTTP 500** instead of a login prompt
 
 This requirement exists to prevent accidental replication of unrelated secrets.
@@ -148,7 +148,7 @@ This requirement exists to prevent accidental replication of unrelated secrets.
 
 Envoy Gateway currently supports **SHA-based htpasswd entries only**.
 
-Other formats (bcrypt, APR1) are **not supported** and will cause failures.
+Other formats, such as bcrypt and APR1, are **not supported** and cause failures.
 
 <Tabs>
   <Tab title="macOS / Linux">
@@ -225,7 +225,7 @@ The Secret must:
 
 ---
 
-### Step 4: Attach Basic Auth using a SecurityPolicy
+### Step 4: Attach basic auth with a SecurityPolicy
 
 Attach the policy to the **HTTPRoute**. This is the most reliable attachment point.
 
@@ -291,7 +291,7 @@ HTTP/1.1 401 Unauthorized
 WWW-Authenticate: Basic
 ```
 
-Browsers will display a login prompt.
+Browsers display a login prompt.
 
 ---
 
@@ -309,7 +309,7 @@ HTTP/1.1 200 OK
 
 ---
 
-## Cleanup / disable Basic Auth
+## Clean up or disable basic auth
 
 <Tabs>
   <Tab title="macOS / Linux">
@@ -361,7 +361,7 @@ datumctl get httproute --project $project --namespace $namespace
 
 ## Best practices
 
-- Use Basic Auth for development, demos, and staging environments
+- Use basic auth for development, demos, and staging environments
 - Rotate credentials regularly
 - Store credentials securely using CI secrets or a secret manager
 - Use JWT, OIDC, or SSO for production authentication
@@ -370,7 +370,7 @@ datumctl get httproute --project $project --namespace $namespace
 
 ## Summary
 
-- HTTP Basic Auth is configured using **Envoy Gateway `SecurityPolicy`**
+- You configure HTTP basic auth with an **Envoy Gateway `SecurityPolicy`**
 - Secrets **must be explicitly synced** to edge clusters using the `gateway-sync` label
-- `{SHA}` htpasswd format is required — bcrypt and APR1 are not supported
+- `{SHA}` htpasswd format is required. Other formats, such as bcrypt and APR1, are not supported
 - Attaching policies to `HTTPRoute` is the most reliable approach
