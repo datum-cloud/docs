@@ -1,10 +1,10 @@
 ---
 title: "gVPC observability"
 sidebarTitle: "Observability"
-description: "See the state of your gVPC networks, the private addresses of your Instances, and the metrics Datum publishes for them."
+description: "See the state of your gVPC networks, the private addresses and traffic of your Instances, and the metrics Datum publishes for them."
 ---
 
-This page covers how to see what your [gVPC](/galactic-vpc/overview) networks are doing: whether each network is ready, which private addresses your Instances have, and the metrics Datum publishes for them.
+This page covers how to see what your [gVPC](/galactic-vpc/overview) networks are doing: whether each network is ready, which private addresses your Instances have, how much traffic they send and receive, and the metrics Datum publishes for them.
 
 ## Is a network ready?
 
@@ -33,6 +33,14 @@ api-us-west-us-west-1-0         api        us-west-1      fd20:0:37:1:0:1::/96  
 
 Each Instance owns the `/96` block shown in `INTERNAL IP`, taken from the network's prefix. The first address in the block is the Instance's private IPv6 address. Instances in different locations get addresses from different parts of the prefix, but they're all on the same network. See [Addressing](/galactic-vpc/networks/addressing).
 
+## How much traffic does each Instance carry?
+
+In the [Cloud Portal](https://cloud.datum.net), open a network under **VPC** > **Networks**. On the **Overview** tab, the **Traffic · 30m** column shows a small chart of each Instance's traffic on the network over the last 30 minutes. Select the chart to open that Instance on the **Metrics** tab.
+
+The **Metrics** tab charts **Traffic in** and **Traffic out** for every Instance attached to the network, in bits per second, with the current and peak rates above the charts. Use the toolbar to pick a time range, step, and auto refresh, and to filter by region or Instance. Drag across a chart to zoom in, and double-click to zoom out. Click an Instance in the legend to show only that Instance, or Shift-click it to hide it.
+
+On a network with many Instances, the charts draw the busiest Instances and group the rest as **Other**. To chart specific Instances, pick them in the Instance filter.
+
 ## Metrics
 
 Datum publishes the state of your networks and your Instances' addresses to your project's metrics store. To query them in your own tools, [export them](/operations/metrics-export).
@@ -49,7 +57,7 @@ To find networks that aren't ready, replace `PROJECT_ID`:
 datum_cloud_network_status_condition{resourcemanager_datumapis_com_project_name="PROJECT_ID", condition="Ready"} == 0
 ```
 
-Datum doesn't publish traffic metrics for networks yet, such as bytes or packets between Instances. For CPU, memory, and logs of the Instances on a network, see [Compute observability](/compute/observability). For traffic that reaches your network through a load balancer, see [ALB metrics](/alb/observability#metrics).
+The metrics above don't include network traffic. To see how much traffic your Instances send and receive, use the [network's **Metrics** tab](#how-much-traffic-does-each-instance-carry) in the Cloud Portal. For CPU, memory, and logs of the Instances on a network, see [Compute observability](/compute/observability). For traffic that reaches your network through a load balancer, see [ALB metrics](/alb/observability#metrics).
 
 ## Follow the roadmap
 
