@@ -11,7 +11,7 @@ description: "Run your apps as isolated Instances in Datum Cloud locations, from
 Datum Cloud Compute runs your app close to your users. You describe what to run and where, and Datum starts isolated Instances in the locations you choose, connects them to a private network, and can serve them publicly through Datum's Application Load Balancer (ALB).
 
 <Note>
-  Compute is in preview, and the `v1alpha` API can change. Your project needs approved access to Compute before you can deploy, and Datum reviews access requests manually. For details, see [Limits and quotas](/compute/limits-and-quotas).
+  Compute is in preview, and the `v1alpha` API can change. You don't need to request access: Compute turns on for a project the first time you run a `datumctl compute` command in it. For details, see [Limits and quotas](/compute/limits-and-quotas#enable-compute).
 </Note>
 
 Every Instance runs in its own virtual machine with its own kernel. No kernel is shared between tenants.
@@ -103,7 +103,7 @@ If you don't name a runtime class, Datum uses `unikernel`. For a detailed compar
     Open an interactive shell from the Cloud Portal or run a command with `datumctl`.
   </Card>
   <Card title="Limits and quotas" icon="gauge" href="/compute/limits-and-quotas">
-    Request access, check quota, and review fixed limits.
+    See how Compute is enabled, check quota, and review fixed limits.
   </Card>
   <Card title="Limitations and roadmap" icon="map" href="/compute/limitations-and-roadmap">
     Review what the preview doesn't support yet.

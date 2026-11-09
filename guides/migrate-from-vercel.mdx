@@ -1,0 +1,255 @@
+---
+title: "Migrate from Vercel to Compute"
+sidebarTitle: "Migrate from Vercel"
+description: "Move a Node server-rendered app from Vercel to a Datum Compute workload: containerize it, move environment variables into a Secret, deploy, switch your domain, and replace Vercel-only features."
+---
+
+{/* Draft. Source: the migrate-from-vercel-to-datum-compute recipe (agents.datum.net/recipes), rewritten against the current Compute, ALB and datumctl pages.
+    Claims carried over from the recipe that still need a check against the live product are listed in the PR description. */}
+
+<Note>
+  Compute is in preview, and the `v1alpha` API can change.
+</Note>
+
+This guide moves a Node server-rendered app from Vercel to a Compute workload on the `general-purpose` runtime. When you finish, your app runs as a container with its secrets, a public URL, a rollback path, and deploys from CI.
+
+## How Vercel concepts map to Compute
+
+| Vercel | Datum |
+| --- | --- |
+| Project | A Datum project, plus one workload for each app and environment |
+| Build on push | You build and push a container image, for example in GitHub Actions |
+| Deployment | A rollout to a new image tag |
+| Environment variables | A Secret, imported with `--env-from-secret` |
+| `vercel.app` URL | A `*.datumproxy.net` URL that `deploy` prints |
+| Custom domain | A custom hostname on the workload's load balancer |
+| Instant rollback | Deploy an older image tag |
+| Preview deployments for each branch | Not available yet |
+| Password protection | [Basic authentication](/alb/authentication/basic-auth) on the load balancer |
+| Serverless and Edge Functions, ISR, Cron, Image Optimization, BotID, Runtime Cache, `vercel.json` headers | No platform equivalent. See [Replace Vercel-only features](#replace-vercel-only-features) |
+
+## Before you begin
+
+- Install `datumctl` and the `compute` plugin, and log in. For more information, see [Compute commands](/datumctl/compute/overview).
+- Enable Compute for your project. Compute turns on the first time you run a `datumctl compute` command in the project. For more information, see [Limits and quotas](/compute/limits-and-quotas#enable-compute).
+- Use an app that runs as a long-lived Node server. Your framework needs a server build, not a Vercel-only build output.
+- Choose a place to push images. For a private registry, see [Use images from a private registry](/compute/configuration#use-images-from-a-private-registry).
+
+## Migrate the app
+
+<Steps>
+  <Step title="Containerize the app">
+    Vercel builds your app for you. On Compute, you provide the image. The following Dockerfile builds an Astro app with the Node adapter. Adjust the build output paths and the `CMD` for your framework:
+
+    ```dockerfile
+    FROM node:22-slim AS builder
+    WORKDIR /app
+    COPY package*.json ./
+    RUN npm ci
+    COPY . .
+    RUN npm run build && npm prune --omit=dev
+
+    FROM node:22-slim
+    WORKDIR /app
+    ENV NODE_ENV=production
+    ENV PORT=4321
+    ENV HOST="::"
+    COPY --from=builder --chown=node:node /app/dist ./dist
+    COPY --from=builder --chown=node:node /app/node_modules ./node_modules
+    COPY --from=builder --chown=node:node /app/package.json ./
+    USER node
+    EXPOSE 4321
+    CMD ["node", "./dist/server/entry.mjs"]
+    ```
+
+    Follow these rules:
+
+    - **Listen on `::`, not `0.0.0.0`.** Instances have IPv6 addresses only. An app bound to IPv4 starts but never answers. Make your server read the host from an environment variable, as `HOST` does here.
+    - **Serve plain HTTP on one port.** The load balancer terminates TLS. You pass the port as `--http-port` when you deploy.
+    - **Keep secrets out of the image.** Add `.env*` to `.dockerignore`. Secrets arrive at runtime from a Secret.
+    - **Tag every build with a new, unique tag.** Datum doesn't replace an Instance when the image tag is unchanged, so a moved tag does nothing.
+
+    Build and push the image. On Apple Silicon, build for `linux/amd64`:
+
+    ```bash
+    docker buildx build --platform linux/amd64 \
+      -t ghcr.io/ORG/APP:v1.0.0 --push .
+    ```
+
+    A new GitHub Container Registry package is private, and Datum pulls without credentials unless you configure a pull Secret. Either make the package public in the GitHub package settings, or follow the private registry steps in [Configuration](/compute/configuration#use-images-from-a-private-registry).
+  </Step>
+
+  <Step title="Move your environment variables into a Secret">
+    Export the variables from Vercel. Save the file outside your repository, and never paste its contents into a chat:
+
+    ```bash
+    vercel env pull .env.production --environment=production
+    ```
+
+    <Warning>
+      Vercel never exports sensitive variables. For a variable of type Sensitive, `vercel env pull` writes the literal text `[SENSITIVE]`. It looks like a real value, so it ends up in your Secret. Get these values from the original provider, or generate a new value where only your app has to match it. Run `vercel env ls` to see which variables are Sensitive.
+    </Warning>
+
+    Drop the Vercel-only variables, such as `VERCEL`, `VERCEL_URL`, and `VERCEL_ENV`. If your code reads them, replace them with your own variables.
+
+    Create a Secret named `APP-secrets` in the `default` namespace, with one key for each variable. For the steps, see [Secrets](/operations/secrets#create-a-secret-with-datumctl). Create it with `datumctl apply`, then check for leftover Vercel placeholders. The following command prints key names only, never values:
+
+    ```bash
+    datumctl get secret APP-secrets -n default -o json \
+      | python3 -I -c '
+    import sys, json, base64
+    bad = [k for k, v in json.load(sys.stdin)["data"].items()
+           if "SENSITIVE" in base64.b64decode(v).decode().upper()]
+    print("placeholder keys:", bad or "none")'
+    ```
+  </Step>
+
+  <Step title="Deploy the workload">
+    Run the command from a folder outside your repository. It writes a `workload.yaml` file into the current folder, which you shouldn't commit:
+
+    ```bash
+    datumctl compute deploy APP \
+      --image=ghcr.io/ORG/APP:v1.0.0 \
+      --location=us-central-1 \
+      --http-port=4321 \
+      --runtime-class=general-purpose \
+      --env="HOST=::" \
+      --env-from-secret=APP-secrets \
+      --yes
+    ```
+
+    The last line of the output is the public URL. For the locations that your project can use, see [Placement and scaling](/compute/placement-and-scaling#locations).
+
+    Use `general-purpose` for a standard container image. The `unikernel` runtime needs `datumctl compute build` instead of `docker build`. A workload keeps its runtime class. To change it, deploy under a new name and destroy the old workload.
+  </Step>
+
+  <Step title="Verify before you switch traffic">
+    Watch the rollout and read the app's output:
+
+    ```bash
+    datumctl compute rollout APP
+    datumctl compute logs APP
+    ```
+
+    While a rollout runs, the edge can return an HTML error page instead of your app. Poll a health route until it returns `200` before you judge the result.
+
+    A new `*.datumproxy.net` hostname might not resolve on your machine right away. Look it up through a public resolver and pin the address:
+
+    ```bash
+    H=HOSTNAME.datumproxy.net
+    IP=$(dig +short AAAA $H @1.1.1.1 | head -1)
+    curl -s -o /dev/null -w "%{http_code}\n" --resolve "$H:443:[$IP]" https://$H/
+    ```
+
+    Compare the app with Vercel page by page: key routes, data from your CMS or API, forms, sign-in, and anything that calls a third party. Test login-protected pages and email forms yourself.
+  </Step>
+
+  <Step title="Switch your domain">
+    Attach your hostname to the load balancer. For the full flow, including domain verification, see [Custom domains](/alb/operations/custom-domains):
+
+    ```bash
+    datumctl alb hostname add APP www.example.com
+    datumctl alb describe APP
+    ```
+
+    If Datum runs your domain's DNS, attaching a hostname writes the record and takes over that name. Check what the name points to today before you attach it. For apex domains and other records, see [Point a domain at a load balancer](/domain-dns/point-to-alb).
+
+    Before and after you switch, keep these points in mind:
+
+    - **Keep the Vercel project until you're sure.** Pointing DNS back at Vercel is your fallback.
+    - **Build with the final domain.** If your app builds absolute URLs, sitemaps, or canonical links at build time, build the image with the production domain.
+    - **Keep search indexing off on the `*.datumproxy.net` URL.** Otherwise the staging copy is indexed as a duplicate of your site. If your app has an "allow indexing" setting, turn it off in the Secret and turn it on at cutover.
+    - **Don't change the framework adapter on a branch that Vercel deploys.** Merging an adapter change, such as `@astrojs/vercel` to `@astrojs/node`, to the branch that Vercel watches breaks Vercel and your rollback path. Keep the change on a separate branch until DNS has moved.
+  </Step>
+
+  <Step title="Deploy from CI">
+    Vercel deploys on every push. On Compute, build and push the image in your pipeline, then run `datumctl compute deploy` with the new tag. Log in as a service account. For the workflow, see [GitHub Actions](/datumctl/cicd/github-actions), and for service accounts, see [Service accounts](/projects/service-accounts).
+
+    A common pattern is a push to `main` that deploys staging, and a published release that deploys production with the release tag. Don't run `destroy` in the pipeline, because it removes the URL and the load balancer settings.
+  </Step>
+</Steps>
+
+## Roll back and update
+
+To roll back, redeploy the last good tag. The image is already in the registry, so nothing is rebuilt:
+
+```bash
+datumctl compute deploy APP \
+  --image=ghcr.io/ORG/APP:v0.9.0 \
+  --location=us-central-1 \
+  --yes
+```
+
+Don't re-tag an image to roll back. Treat tags as immutable. To fix the bug for good, revert the change and publish a new, higher version.
+
+<Warning>
+  A flag-based `datumctl compute deploy` replaces the workload's whole template and placements with what the flags describe. Pass `--http-port` and your other flags again on every deploy. For what the command keeps and removes, see [Configuration](/compute/configuration).
+</Warning>
+
+Instances read a Secret only when they start. After you change a Secret, restart the workload:
+
+```bash
+datumctl compute restart APP
+```
+
+## Protect the app with basic authentication
+
+Vercel password protection maps to basic authentication on the load balancer. Run the following command and type the password when prompted:
+
+```bash
+read -s -p "Password: " password && echo
+printf '%s' "$password" | datumctl alb auth set APP --user admin --password-stdin
+```
+
+Basic authentication protects every route on the load balancer, including health routes, and webhooks that call the URL get `401`. To protect a single route, use a `SecurityPolicy`. For both methods, see [Basic authentication](/alb/authentication/basic-auth).
+
+## Replace Vercel-only features
+
+Check each feature that your app uses. The examples use Astro and Node, and the same pattern applies to other frameworks.
+
+| Feature on Vercel | What to do on Compute |
+| --- | --- |
+| Framework adapter or build output | Switch to a Node server build. For Astro, replace the Vercel adapter with `@astrojs/node` in `standalone` mode, which also serves the built static files. |
+| `vercel.json` headers and CSP | They stop applying. Move them into your app's middleware. Static files don't pass through middleware, so only HTML and API responses get the headers. |
+| `vercel.json` rewrites | They stop applying. Move them into your app's routing. |
+| Header values | Keep them ASCII. A header value with a non-Latin-1 character, such as an em dash in a `Link` header, makes `Headers.set()` throw and turns pages into 404 errors. |
+| Vercel Cron | Replace it with a GitHub Actions `schedule` workflow that calls a protected endpoint with a bearer secret. Compute has no scheduler. |
+| BotID | It works only behind Vercel's edge. Replace it, for example with a honeypot field, a minimum form-fill time, and a rate limit for each IP address. |
+| Runtime Cache (`@vercel/functions`) | Use another cache driver. An in-memory driver is fine for one replica. Invalidation reaches only the Instance that receives it, so use a shared store before you scale out. |
+| Image Optimization | The `sharp` image service of Astro works in the container. |
+| `VERCEL_*` variables | Remove them. Read your own variables or the request hostname instead. |
+
+<Tip>
+  For rate limiting, use the rightmost `X-Forwarded-For` entry as the client address. The Datum edge appends the real client IP there, and the leftmost entries are client-controlled. The framework's own client address is an internal address, so don't use it.
+</Tip>
+
+## Plan for these gaps
+
+- Preview URLs for each branch aren't available.
+- Vercel-managed features such as Edge and Serverless Functions, ISR and its cache, Analytics, and Web Vitals have no direct equivalent. Check each one that your app uses.
+- With more than one replica, the cache and any in-memory state are no longer shared. Add a shared store before you scale out.
+- Use scoped tokens in the Secret, not personal ones, before you move real traffic.
+
+## Troubleshooting
+
+| Symptom | Cause and fix |
+| --- | --- |
+| The app starts but never answers | The server is bound to `0.0.0.0`. Redeploy with the app listening on `::`, for example with `--env="HOST=::"`. |
+| `Unsupported value` for a location | Datum rejects locations that your project can't use, and the error lists the ones that it accepts. Use one of those. |
+| The image won't pull | The registry package is private. Make it public, or configure a pull Secret. |
+| The Secret has `[SENSITIVE]` values | `vercel env pull` can't export Sensitive variables. Get the real values, then run the placeholder check again. |
+| An HTML error page right after a deploy | The rollout is still in progress. Poll a health route until it returns `200`. |
+| `401` on every URL | Basic authentication is on. Send credentials, or remove it with `datumctl alb auth`. |
+| A Secret change has no effect | Instances read a Secret only at start. Run `datumctl compute restart APP`. |
+| A redeploy of the same tag does nothing | Datum doesn't replace an Instance for an unchanged tag. Use a new tag. |
+
+For other problems, see [Compute troubleshooting](/compute/troubleshooting).
+
+## Clean up
+
+To remove the workload and its URL, run the following command. The Secret stays:
+
+```bash
+datumctl compute destroy APP --yes
+rm workload.yaml
+```
