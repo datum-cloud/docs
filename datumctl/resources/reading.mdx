@@ -79,8 +79,8 @@ A few flags make lists easier to work with:
 # Filter by label selector
 datumctl get dnszones --project your-project-id -l app=my-app
 
-# List across every namespace in scope
-datumctl get dnszones --organization your-org-id --all-namespaces
+# List across every namespace in a project
+datumctl get dnszones --project your-project-id --all-namespaces
 
 # Watch for changes and stream updates as they happen
 datumctl get projects --organization your-org-id --watch

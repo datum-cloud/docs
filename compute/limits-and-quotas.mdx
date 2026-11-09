@@ -1,7 +1,7 @@
 ---
 title: "Compute limits and quotas"
 sidebarTitle: "Limits and quotas"
-description: "Request access to Compute, check your project's compute quota, and review the fixed limits of the Compute preview."
+description: "Learn how Compute is enabled for a project, check your project's compute quota, and review the fixed limits of the Compute preview."
 ---
 
 For features that Compute doesn't support yet, see [Limitations and roadmap](/compute/limitations-and-roadmap).
@@ -10,31 +10,26 @@ For features that Compute doesn't support yet, see [Limitations and roadmap](/co
   Compute is in preview, and the `v1alpha` API can change.
 </Note>
 
-## Request access
+## Enable Compute
 
-Compute is enabled for each project separately, and Datum approves each request manually. Until a project has access, every `datumctl compute` command except `access` and `help` stops and asks you to request access. This includes `build`.
+Compute is enabled for each project separately, and you don't need to request access. The first time you run a `datumctl compute` command in a project, the command enables Compute for that project and then continues. Every command except `access` and `help` does this, including `build`. It doesn't ask for confirmation, so it works the same way in CI and scripts. Enabling Compute also gives the project its default compute quota.
 
-To request access for the active project, follow these steps:
+To check whether Compute is enabled for the active project, run the following command:
 
-1. To check the current state, run the following command:
+```bash
+datumctl compute access
+```
 
-   ```bash
-   datumctl compute access
-   ```
+The `Access` line shows one of the following states:
 
-   The `Status` line shows a state such as `Not requested`, `Pending approval`, `Active`, `Denied`, or `Revoked`.
+| State | Meaning |
+| --- | --- |
+| `Not requested` | No `datumctl compute` command has run in the project yet. The next one enables Compute. |
+| `Processing` | Datum is enabling Compute. This normally takes a few seconds. |
+| `Active` | Compute is enabled, and you can deploy workloads. |
+| `Unavailable` | Compute isn't available to your project. |
 
-2. To submit a request and wait for a decision, run the following command:
-
-   ```bash
-   datumctl compute access request --message="MESSAGE" --wait
-   ```
-
-   Replace `MESSAGE` with a short description of what you plan to run. The message helps Datum review your request.
-
-3. Wait until the `Status` line shows `Active`. You can then deploy workloads.
-
-If a request is denied or access is revoked, submit a new request with `datumctl compute access request --renew`. For all access options, see [Compute commands](/datumctl/compute/overview#requesting-access).
+To enable Compute without running another command, run `datumctl compute access request`. For all access options, see [Compute commands](/datumctl/compute/overview#enabling-compute).
 
 ## Quotas
 
