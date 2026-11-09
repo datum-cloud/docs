@@ -80,10 +80,11 @@ WebSockets are the exception. See [WebSockets](#websockets).
 
 ### Raise the limit
 
-`HTTPProxy` has no timeout field. Set the limit with a `BackendTrafficPolicy`, up to `1h`. Attach it to one of these, which Datum creates for your proxy with the same name as the `HTTPProxy`:
+`HTTPProxy` has no timeout field. Set the limit with a `BackendTrafficPolicy`, up to `1h`, attached to the `Gateway` that Datum creates for your proxy. The `Gateway` has the same name as the `HTTPProxy`.
 
-- The `HTTPRoute`, as in the following example, for this proxy's routes.
-- The `Gateway`, for every route on the proxy. [Run your app on ALB without a proxy container](/guides/alb-as-httpd#response-timeout) uses this form.
+<Warning>
+Don't attach the policy to the proxy's `HTTPRoute`. Datum attaches its own `BackendTrafficPolicy` to that route when the proxy has a network service origin, a load balancing algorithm, or health checks, and a route accepts only one. The older policy wins, and the other reports `Accepted: False` with reason `Conflicted`. Either your timeout has no effect, or the proxy loses its algorithm and health checks while it still reports `Programmed`. A policy on the `Gateway` merges with Datum's, so both apply.
+</Warning>
 
 <Tabs>
   <Tab title="macOS / Linux">
@@ -100,7 +101,7 @@ WebSockets are the exception. See [WebSockets](#websockets).
   spec:
     targetRefs:
     - group: gateway.networking.k8s.io
-      kind: HTTPRoute
+      kind: Gateway
       name: ${PROXY_NAME}
     timeout:
       http:
@@ -123,7 +124,7 @@ WebSockets are the exception. See [WebSockets](#websockets).
   spec:
     targetRefs:
     - group: gateway.networking.k8s.io
-      kind: HTTPRoute
+      kind: Gateway
       name: $PROXY_NAME
     timeout:
       http:
@@ -136,7 +137,7 @@ WebSockets are the exception. See [WebSockets](#websockets).
 
 `requestTimeout` limits the whole response, from the request arriving to the last byte, so set it longer than your longest stream or download. A larger value is rejected with `duration must be less than or equal to 1h0m0s`.
 
-If you've already attached a `BackendTrafficPolicy` to the same route or Gateway, add the `timeout` block to that policy instead of creating a second one.
+A `Gateway` accepts only one `BackendTrafficPolicy`. If you've already attached one to it, such as for rate limiting, add the `timeout` block to that policy instead of creating a second one.
 
 If you added the timeout to an existing policy, remove its `timeout` block and apply the policy again. If you created a dedicated policy with the example above, delete it to restore the default:
 

@@ -1,0 +1,86 @@
+---
+title: "Billing"
+description: "Manage billing accounts, payment methods, payment terms, invoices, discounts, and contracts for your Datum organization in the Cloud Portal."
+---
+
+Billing in the [Cloud Portal](https://cloud.datum.net) is organized around billing accounts. A billing account holds the payment methods, invoices, and billing details for the usage of the projects linked to it. Every organization keeps at least one billing account.
+
+## Who can see billing
+
+Only organization [Owners](/organizations/team-management#roles) see billing. For an organization you own, the Cloud Portal shows:
+
+- **Billing** in the organization's navigation.
+- A **Billing** tab in each project's settings.
+- A **Review billing** link on a project suspended for a billing reason. See [Project suspension](/operations/project-suspension).
+- **Billing Accounts** in the user menu in the header, when you own at least one organization.
+
+Editors and Viewers don't see these items. If they open a billing page directly, the Cloud Portal sends them back to the organization overview or the project's general settings.
+
+## Choose which account pays for each project
+
+To see which billing account funds each project, select your organization, then select **Billing**. The page lists every project in the organization with its billing account and when it was linked.
+
+- To move a project to a different billing account, pick one in the **Change** column. The change applies to upcoming invoices.
+- To open a billing account, select its name in the **Billing account** column.
+
+You can also set the account from a project: open the project's settings, select **Billing**, and choose an account in **Charge invoices to**. Usage from the project appears on that account's monthly invoice.
+
+To add a billing account, select **Add billing account**. If your organization can't have more than one account, the page shows **Request additional billing accounts** instead, which asks Datum support to enable more.
+
+## Manage a billing account
+
+To see every billing account across the organizations you own, open the user menu in the header and select **Billing Accounts**. Select an account to open its page, which has these sections:
+
+- **Name**: the account's display name.
+- **Assignments**: every project the account funds, grouped by organization.
+- **Contract**: shown only for accounts on a contract. See [Contracts](#contracts).
+- **Payment methods**: cards and payment terms. See [Payment methods and payment terms](#payment-methods-and-payment-terms).
+- **Invoices**: past invoices. See [Invoices](#invoices).
+- **Discounts**: shown only when a discount applies. See [Discounts](#discounts).
+- **Invoice email**: where Datum emails invoices and receipts, whether you pay by card or by invoice. Leave it empty to use your billing contact's email.
+- **Billing address & Tax IDs**: the address and tax IDs printed on upcoming invoices. Past invoices don't change. Tax IDs are only required for registered businesses.
+- **Danger zone**: delete the account. This section appears only when the organization has another billing account. Deleting an account is permanent, cancels future invoicing, and detaches every project linked to it. Past invoices stay on file.
+
+## Payment methods and payment terms
+
+By default, Datum charges your account's default card. In **Payment methods**:
+
+- Select **Add a payment method** to add a card.
+- Select **Set as default** on a card to make it the default.
+- Select the trash icon on a card to remove it. The default card can't be removed.
+
+To pay by invoice instead of by card, select **Apply for payment terms** under the card list. While Datum reviews your application, the section shows it as **Under review**. If the application is declined, select **See why** for the reason.
+
+When payment terms are active, **Payment methods** shows them above your cards, with:
+
+- **Billing cycle**: when invoices are issued.
+- **Payment due**: the number of days after the invoice date that payment is due.
+- **Purchase order** and **Invoices sent to**, when set.
+- **Pay by**: bank transfer, ACH, or wire.
+
+Cards on file aren't charged while payment terms are active. If your terms have an end date and it's close, the Cloud Portal asks you to add a card or apply to renew. To change active payment terms, contact support.
+
+## Invoices
+
+**Invoices** lists the account's past invoices with their date, amount, invoice number, and status: **Paid**, **Open**, **Past due**, or **Void**. You can search the list, sort it by any column, and download an invoice from its row.
+
+## Discounts
+
+When a discount applies to the account, **Discounts** shows it. A discount that's the same for every service appears as one line, such as "20% discount on all usage". Otherwise, the section lists the discount for each service. Datum applies discounts to your invoices automatically.
+
+## Contracts
+
+If your account is billed under a contract set up with Datum, the **Contract** section shows it. The section is read-only and includes:
+
+- The contract's start date, in UTC, with an **Active** or **Upcoming** badge.
+- **Billing cycle**: the day of the month the contract bills on.
+- **Usage**: whether usage is billed on top of your fees.
+- The contract's fixed fees, each one-time or recurring, shown before discounts.
+
+One-time fees are charged when the contract starts. Once the contract starts, your billing cycles follow its billing day, both in payment terms and on the [Usage](/organizations/usage) page. To change your contract, contact support.
+
+## Related
+
+- [Usage](/organizations/usage)
+- [Team management](/organizations/team-management)
+- [Project suspension](/operations/project-suspension)
