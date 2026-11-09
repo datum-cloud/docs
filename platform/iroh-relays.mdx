@@ -54,10 +54,10 @@ A healthy relay returns `{"status":"ok", ...}` with its version.
 
 When you start a tunnel, the tunnel agent picks its relays for you. It starts from Datum's list of relays, measures the latency to each one, and keeps the closest. You don't configure a relay to use a tunnel.
 
-Tunnels are managed with the `connect` plugin, which is in preview. It isn't in the official catalog yet, so install it from GitHub. Every release so far is a preview, so `datumctl` can't pick a version on its own. Pin the latest version from the [releases page](https://github.com/datum-cloud/connect/releases), for example:
+Tunnels are managed with the `connect` plugin, which is in preview. It isn't in the official catalog yet, so install it from GitHub. This needs `datumctl` v0.24.0 or later:
 
 ```bash
-datumctl plugin install datum-cloud/connect@v1.0.0-preview.28
+datumctl plugin install datum-cloud/connect
 ```
 
 Because the plugin comes from GitHub and not from a catalog, `datumctl plugin list` shows it as `third-party`.
