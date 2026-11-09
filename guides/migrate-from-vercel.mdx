@@ -31,7 +31,7 @@ This guide moves a Node server-rendered app from Vercel to a Compute workload on
 ## Before you begin
 
 - Install `datumctl` and the `compute` plugin, and log in. For more information, see [Compute commands](/datumctl/compute/overview).
-- Get Compute access for your project. For more information, see [Limits and quotas](/compute/limits-and-quotas#request-access).
+- Enable Compute for your project. Compute turns on the first time you run a `datumctl compute` command in the project. For more information, see [Limits and quotas](/compute/limits-and-quotas#enable-compute).
 - Use an app that runs as a long-lived Node server. Your framework needs a server build, not a Vercel-only build output.
 - Choose a place to push images. For a private registry, see [Use images from a private registry](/compute/configuration#use-images-from-a-private-registry).
 
