@@ -73,9 +73,9 @@ NAMESPACE="default"
 Rules:
 
 - Write the token exactly, in lowercase. Variants such as `my-project`, `my-project-id`, `<project-id>`, `<org-id>` or `ORG_ID` are not replaced.
-- `PROJECT_ID` and `$PROJECT_ID` are aliases of `your-project-id` and get the same value (the MetricsQL queries in the observability pages use `PROJECT_ID`). `${PROJECT_ID}`, `MY_PROJECT_ID` and `PROJECT_ID_2` are not replaced.
+- `PROJECT_ID`, `$PROJECT_ID` and `$PROJECT` are aliases of `your-project-id` and get the same value (the MetricsQL queries in the observability pages use `PROJECT_ID`). `${PROJECT_ID}`, `${PROJECT}`, `MY_PROJECT_ID`, `PROJECT_ID_2` and a bare `PROJECT` are not replaced, nor is `$PROJECT` on the left of an assignment (`$PROJECT = "your-project-id"`).
 - Don't wrap a token in `<…>`. Shiki reads `<` as a shell redirect and splits the token across several spans, so it can't be replaced.
-- Replace values only, never variable references: `PROJECT="your-project-id"` uses the token, `--project $PROJECT` stays.
+- Put the token in values, not in variable references: write `PROJECT="your-project-id"` and `--project $PROJECT`, never `--project your-project-id`. The reader's value still shows in `--project $PROJECT`, because `$PROJECT` is an alias.
 - Use `your-email` only for the reader's own account. Someone else's identity (an audit filter, an allowed-users list) keeps an example address like `alice@example.com`.
 - `ALB_NAME` is for a load balancer that already exists. For a name the reader makes up (`datumctl alb create`), write `NEW_ALB_NAME`, which is never replaced. With one load balancer, `ALB_NAME` is filled in. With several, nothing is filled until the reader picks one, and the pick applies to every `ALB_NAME` on the page.
 - Other placeholders (`INSTANCE_NAME`, `my-zone`, `example.com`) are fine. They are never replaced, so readers still swap them by hand.

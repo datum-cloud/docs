@@ -16,13 +16,17 @@
   var VAR_CLASS = "datum-var";
   // A whole token only: `your-project-id-2` is someone's own name, not a token.
   // `$` and `{` before it are excluded so `${PROJECT_ID}` stays as written.
-  // `NEW_ALB_NAME` (a name the reader makes up) doesn't match.
+  // `$PROJECT` being assigned (PowerShell `$PROJECT = "your-project-id"`) stays
+  // too, or the copied code would read `my-project = "my-project"`.
   var TOKEN_PATTERN =
-    /(?<![\w${-])(your-org-id|your-project-id|your-email|\$PROJECT_ID|PROJECT_ID|ALB_NAME)(?![\w-])/g;
+    /(?<![\w${-])(your-org-id|your-project-id|your-email|\$PROJECT_ID|\$PROJECT(?!\s*=)|PROJECT_ID)(?![\w-])/g;
+  // Text past a node that the end-of-token checks may need (`$PROJECT    =`).
+  var LOOKAHEAD_CHARS = 32;
   // Other spellings that mean the same value as a token.
   var TOKEN_ALIASES = {
-    PROJECT_ID: "your-project-id",
-    $PROJECT_ID: "your-project-id",
+    PROJECT_ID: 'your-project-id',
+    $PROJECT_ID: 'your-project-id',
+    $PROJECT: 'your-project-id',
   };
   var canonicalToken = function (token) {
     return TOKEN_ALIASES[token] || token;
@@ -179,14 +183,17 @@
 
   // Keeps the original text node in place (trimmed to the text before the
   // first token) and adds the rest after it, so React still finds the node it
-  // rendered when it updates or removes the code block.
-  var fillTextNode = function (node, ctx) {
+  // rendered when it updates or removes the code block. `following` is the
+  // code's text after this node: Shiki splits `$PROJECT` and ` = ...` into
+  // separate spans, so the end-of-token checks need to see past the node.
+  var fillTextNode = function (node, values, following) {
     var text = node.nodeValue;
     var matches = [];
     var match;
     TOKEN_PATTERN.lastIndex = 0;
-    while ((match = TOKEN_PATTERN.exec(text))) {
-      if (isMarked(ctx, match[1])) matches.push(match);
+    while ((match = TOKEN_PATTERN.exec(text + following))) {
+      if (match.index + match[1].length > text.length) break;
+      if (values[match[1]]) matches.push(match);
     }
     if (!matches.length) return;
 
@@ -211,19 +218,21 @@
       // The hover card names the token in a <code> too; that one stays plain.
       var text = code.textContent;
       if (
-        (text.indexOf("your-") === -1 &&
-          text.indexOf("PROJECT_ID") === -1 &&
-          text.indexOf(ALB_TOKEN) === -1) ||
-        code.closest("#" + TIP_ID)
+        (text.indexOf('your-') === -1 && text.indexOf('PROJECT') === -1) ||
+        code.closest('#' + TIP_ID)
       ) {
         return;
       }
       var walker = document.createTreeWalker(code, NodeFilter.SHOW_TEXT);
       var nodes = [];
       while (walker.nextNode()) nodes.push(walker.currentNode);
-      nodes.forEach(function (node) {
-        if (!node.parentElement.closest("." + VAR_CLASS))
-          fillTextNode(node, ctx);
+      nodes.forEach(function (node, i) {
+        if (node.parentElement.closest('.' + VAR_CLASS)) return;
+        var following = '';
+        for (var j = i + 1; j < nodes.length && following.length < LOOKAHEAD_CHARS; j++) {
+          following += nodes[j].nodeValue;
+        }
+        fillTextNode(node, values, following);
       });
     });
   };
