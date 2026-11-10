@@ -42,14 +42,14 @@ This guide covers:
 - [Verifying the migration](#verify-the-migration)
 
 <Note>
-  Compute is in preview. The `v1alpha` APIs can change, and Datum reviews Compute access requests manually.
+  Compute is in preview, and its `v1alpha` APIs can change. Compute turns on for a project the first time you run a `datumctl compute` command there.
 </Note>
 
 ## Before you begin
 
 - Create a Datum Cloud account, an organization, and a project. For more information, see [Account setup](/getting-started/account-setup).
 - Install `datumctl` and run `datumctl login`. For more information, see [Install](/datumctl/install).
-- Run `datumctl plugin install compute`, and make sure that Compute access is active for the project: run `datumctl compute access` and check that the `Status` line shows `Active`. For more information, see [Deploy an app](/getting-started/first-workload#before-you-begin).
+- Run `datumctl plugin install compute`. For more information, see [Deploy an app](/getting-started/first-workload#before-you-begin).
 - Run `datumctl plugin install alb`. This guide uses the `alb` plugin for most ALB changes.
 - Have a container image for your app, without the proxy container.
 
@@ -484,9 +484,9 @@ An app that worked behind its old proxy can still fail behind the ALB, because s
 
 - **Response timeout**: about 15 seconds by default, streaming included. Raise it for slow APIs, server-sent events, and LLM streams. See [Response timeout](#response-timeout).
 - **Uploads**: the WAF rejects large request bodies, even in Observe mode. See [WAF](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#waf) in the reference and [WAF configuration](/alb/configuration/waf).
-- **WebSockets**: supported to Compute workloads. See [Timeouts, streaming, WebSockets, and gRPC](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#timeouts-streaming-websockets-and-grpc).
+- **WebSockets**: supported to Compute workloads, and not ended by the response timeout. See [WebSockets](/alb/request-handling#websockets).
 - **Rate limits**: counted per edge node, not across the whole ALB. See [Rate limits](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#rate-limits).
-- **Client IP**: your app reads it from forwarded headers. See [Pass the client IP to your app](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#pass-the-client-ip-to-your-app).
+- **Client IP**: your app reads it from forwarded headers. See [Find the client's IP address](/alb/request-handling#find-the-clients-ip-address).
 
 ### Response timeout
 
@@ -531,7 +531,7 @@ After the change reaches the edge, usually within a minute, the same 20-second r
 200 20.157289s
 ```
 
-Unlike NGINX `proxy_read_timeout`, which limits the gap between reads, this limits the whole response. For streaming and WebSocket behavior, see [Timeouts, streaming, WebSockets, and gRPC](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#timeouts-streaming-websockets-and-grpc) in the reference.
+Unlike NGINX `proxy_read_timeout`, which limits the gap between reads, this limits the whole response. For streaming, WebSocket, and gRPC behavior, see [How long a response can stay open](/alb/request-handling#how-long-a-response-can-stay-open).
 
 ### TLS and custom domains
 
