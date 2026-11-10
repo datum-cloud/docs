@@ -7,6 +7,8 @@ Iroh is a modular, Rust-based networking stack that establishes fast, direct, an
 
 Our first use case for Iroh Tunnels is with our [desktop apps](/desktop-apps), which help you securely expose localhost to the internet. Future iterations will include "anywhere to anywhere" Tunnels.
 
+You can also manage tunnels from the command line with the `connect` plugin for `datumctl`, which is in preview. It shares a service on your machine with your project or publicly, forwards a local port to a service on another Connector, and joins a device to a [gVPC](/galactic-vpc/overview) network. To install it and see its commands, see [How tunnels use the relays](/platform/iroh-relays#how-tunnels-use-the-relays).
+
 ## How a tunnel connects
 
 - Each tunnel endpoint keeps one outbound connection to its nearest Datum relay, its *home relay*, over HTTPS on port 443. The endpoint needs no public address and no open inbound port.
