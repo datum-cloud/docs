@@ -11,12 +11,12 @@ To install the `datumctl alb` plugin, run `datumctl plugin install alb`.
 To create a load balancer in front of an origin, run the following command:
 
 ```bash
-datumctl alb create ALB_NAME --endpoint ORIGIN_URL
+datumctl alb create NEW_ALB_NAME --endpoint ORIGIN_URL
 ```
 
 Replace the following:
 
-- `ALB_NAME`: a name for the load balancer, such as `my-app`.
+- `NEW_ALB_NAME`: a name for the load balancer, such as `my-app`.
 - `ORIGIN_URL`: the `http` or `https` URL of your origin, such as `https://origin.example.com`.
 
 The command waits up to 2 minutes for Datum to assign a generated hostname, then prints it:
@@ -45,7 +45,7 @@ The following flags change what you create:
 | `--hostname HOSTNAME` | Attaches a custom hostname at create time. See [Serve traffic on your own domain](/alb/operations/custom-domains). |
 | `--host-header HOST` | Sets the Host header that Datum sends to the origin. |
 | `--tls-hostname HOSTNAME` | Sets the hostname that Datum uses to verify TLS when an `--endpoint` origin is an IP address. |
-| `--display-name NAME` | Sets the name shown in the Cloud Portal. If you omit `ALB_NAME`, Datum derives one from the display name. |
+| `--display-name NAME` | Sets the name shown in the Cloud Portal. If you omit `NEW_ALB_NAME`, Datum derives one from the display name. |
 | `--dry-run` | Validates the load balancer with the API server without creating it. |
 
 For example, to put a load balancer in front of a workload's network service and attach a custom hostname, run the following command:
