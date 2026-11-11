@@ -6,6 +6,108 @@ rss: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
+<Update label="November 10, 2026" description="Application Load Balancer" tags={["Fix"]}>
+  ## New load balancers serve traffic sooner
+
+  - **Fixed:** a new ALB no longer returns `503` for several minutes when its compute workload runs in a different location than the edge serving the request. Datum now rebuilds the load balancer's routing as soon as it learns which network the workload is on.
+
+  See [ALB troubleshooting](/alb/troubleshooting).
+</Update>
+
+<Update label="November 10, 2026" description="Application Load Balancer" tags={["AX/DX/UX"]}>
+  ## Shareable log views with filter counts
+
+  The **Logs** tab of a load balancer in the [Cloud Portal](https://cloud.datum.net) keeps your view when you refresh or share it.
+
+  - **Links keep the view:** the time range, filters, search, live mode, and the open row are saved in the page URL. Refreshing a preset window such as the last 30 minutes moves it up to now.
+  - **Filters cover the whole window:** filter options come from every log line in the time range, not just the rows loaded on screen. Selecting one option no longer hides the others.
+  - **Counts per option:** each filter option shows how many lines match your other selected filters. Counts are hidden while you search, and method and status code counts are hidden while a host is selected.
+  - **Host filter matches the table:** the **Host** filter lists the same host each row shows in the **Host** column.
+  - **No flash on filter clicks:** earlier rows stay on screen while new results load.
+
+  See [Access logs](/alb/observability#access-logs).
+</Update>
+
+<Update label="November 9, 2026" description="Network Load Balancer" tags={["AX/DX/UX", "Early access"]}>
+  ## NLB page shows the traffic path
+
+  The NLB page in the [Cloud Portal](https://cloud.datum.net) now reads in the order traffic flows: public addresses, then listeners, then the backends they forward to.
+
+  - Each backend shows its health and which listeners use it. Hover for a breakdown by location.
+  - **Fixed:** deleting a listener works on the first try.
+  - **Fixed:** the **Add listener** dialog no longer flashes a warning as it closes.
+
+  NLBs are early access. See [Network services](/galactic-vpc/networks/network-services).
+</Update>
+
+<Update label="November 6, 2026" description="datumctl" tags={["AX/DX/UX"]}>
+  ## Set up datumctl from a coding agent
+
+  Coding agents and scripts can now sign in and install plugins without an interactive terminal.
+
+  - **Pick a context at login:** `datumctl login` reads `--project`, `--organization`, `DATUM_PROJECT`, and `DATUM_ORGANIZATION` to choose the context without the picker. `--project` also accepts `<org>/<project>`.
+  - **Login without a terminal:** when no context is named, `datumctl login` saves your session, leaves the context unset, and tells you to run `datumctl ctx use <org>/<project>`.
+  - **Switching accounts:** signing in with a different account clears a context that belongs to the other account, so the new account becomes active.
+  - **Install every plugin:** `datumctl plugin install --all-available` installs or upgrades every plugin in the official `datum` catalog, or the catalog named by `--index`. Third-party catalogs ask for confirmation first. Pass `--yes` to skip it.
+  - **Scriptable search:** `datumctl plugin search -o json` prints an array of plugins, and `-o name` prints one plugin name per line.
+  - **Fixed:** installing a plugin from a GitHub repository that publishes only pre-releases now installs the newest pre-release.
+  - **Fixed:** listing a resource across all namespaces at organization scope now explains why it's refused and how to list across a project instead. Passing `<org>/<project>` as a project name fails right away with a hint naming the bare project.
+
+  See [Logging in](/datumctl/auth/logging-in) and [Using plugins](/datumctl/plugins/using-plugins).
+</Update>
+
+<Update label="November 6, 2026" description="gVPC" tags={["AX/DX/UX"]}>
+  ## Traffic charts for each network
+
+  Networks in the [Cloud Portal](https://cloud.datum.net) now have a **Metrics** tab that charts traffic in and out for every Instance attached to the network.
+
+  - Pick a time range, step, and auto refresh, and filter by region or Instance.
+  - Drag across a chart to zoom in, and double-click to zoom out. Click an Instance in the legend to show only that Instance.
+  - On large networks, the charts draw the busiest Instances and group the rest as **Other**.
+  - The **Overview** tab shows a 30-minute traffic chart for each Instance that opens it on the **Metrics** tab.
+  - Networks with more than 100 interfaces now list all of them.
+
+  See [gVPC observability](/galactic-vpc/observability).
+</Update>
+
+<Update label="November 6, 2026" description="Application Load Balancer" tags={["AX/DX/UX"]}>
+  ## Create a load balancer from a workload
+
+  **Add to a load balancer** on a compute workload's **Overview** now opens the new load balancer dialog with that workload already chosen.
+
+  - The dialog opens on **Datum compute** with the workload's network service selected, and selects its port when it has only one.
+  - The display name defaults to the workload's name.
+  - If the workload has no network service, the dialog says so instead of showing an empty picker.
+  - **Fixed:** links that open the create dialog now open it reliably.
+
+  See [Load balancing](/alb/configuration/load-balancing).
+</Update>
+
+<Update label="November 5, 2026" description="Billing" tags={["AX/DX/UX"]}>
+  ## See your contract in billing settings
+
+  If your billing account is on a contract, the [Cloud Portal](https://cloud.datum.net) now shows it in a **Contract** section on the billing account page.
+
+  - **Contract details:** the start date in UTC, an **Active** or **Upcoming** badge, the billing day, whether usage is billed on top, and the fixed fees before discounts.
+  - **Fee amounts:** each fee shows its total, and fees with a quantity or unit show how they add up, for example "4 × $300 / port".
+  - **Billing cycles follow the contract:** once a contract starts, payment terms and the [Usage](/organizations/usage) page use its billing day. Before it starts, the billing cycle says when the contract's day takes over.
+  - **End-of-month days:** a billing cycle on the 29th to 31st returns to that day after a shorter month.
+  - **Billing accounts list:** long project names are shortened with the full name on hover, and accounts on payment terms show **Invoice** as their payment method.
+
+  See [Contracts](/organizations/billing#contracts).
+</Update>
+
+<Update label="November 5, 2026" description="Private DNS" tags={["Fix", "Early access"]}>
+  ## Clearer limits and labels for private zones
+
+  - **Zone limit enforced:** a network can have up to 256 private zones, including its managed `datum.internal` zone. An association past the limit now reports `Accepted=False` with reason `ZoneLimitExceeded`, instead of being accepted and stopping the network from picking up zone changes.
+  - Zones already attached keep their place, and the managed zone always fits. Associating the same zone twice uses one slot.
+  - **Portal:** the DNS list shows **Private** in the **Host** column for private zones instead of a lookup that never finishes, and the zone page hides the **Nameservers** tab for them.
+  - Each network's managed zone is described as "Private DNS for the `<network>` VPC", so you can tell which network a zone serves.
+
+  Private DNS is in preview. See [Private DNS](/domain-dns/private-dns).
+</Update>
+
 <Update label="November 4, 2026" description="gVPC" tags={["Fix"]}>
   ## Read-only users can open VPC pages
 
