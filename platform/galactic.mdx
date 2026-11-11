@@ -63,7 +63,7 @@ What Datum runs for you:
 
 - **The backbone.** Datum runs the underlay routers in every location, the routes between locations, and the configuration of each router. Configuration changes roll out through the API in stages, so a bad change can be stopped before it reaches the whole fleet.
 - **The routing control plane.** Every node runs a Galactic router. Datum runs the route reflectors that connect them, so a new attachment becomes reachable from every location without anyone touching a router.
-- **The edges.** Datum runs the edge nodes that bring public traffic into a network, through the [Application Load Balancer](/alb/overview) and anycast ingress addresses. They also take traffic out to the internet.
+- **The edges.** Datum runs the edge nodes that bring public traffic into a network, through the [Application Load Balancer](/alb/overview) and anycast ingress addresses, and through the public IPv6 addresses of [Network Load Balancers](/nlb/overview). They also take traffic out to the internet.
 - **Identity and addressing.** Datum allocates network identities and address space centrally, so two networks never collide. This is why you don't plan subnets.
 - **Visibility.** Datum monitors every BGP session, route and datapath counter. Its operators can ask any router for its view of the network, and can run ping and traceroute from inside the backbone.
 
@@ -88,6 +88,7 @@ So adding a new kind of connection doesn't need a new network. It needs a new wa
 | ------------------------------------------------ | ------------------------------------------------------------------ | ----------- |
 | Datum Compute Instances                          | Each Instance gets a private address on the network                | Available   |
 | Public HTTP and HTTPS traffic                    | Through the [Application Load Balancer](/alb/overview)             | Available   |
+| Public TCP and UDP traffic                       | Through a [Network Load Balancer](/nlb/overview), over IPv6        | Early access |
 | The internet, outbound                           | Through egress points on Datum's edge, IPv6 and IPv4               | Available   |
 | Laptops, desktop apps and containers anywhere    | Through a [Connector](/connectors/overview) tunnel                 | Planned     |
 | Your own servers and VPNs                        | Through a WireGuard peer or a VPN                                  | Exploring   |

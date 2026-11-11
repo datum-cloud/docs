@@ -4,7 +4,7 @@ sidebarTitle: "Network services"
 description: "Give a workload's Instances a stable name and named ports on a gVPC network, and send load balancer traffic to them."
 ---
 
-A network service gives a workload's Instances on one network a stable name and named ports. Datum keeps the service's membership current as Instances start, stop, and move between locations, and sends each request to the nearest location that has a ready Instance. Datum's [Application Load Balancer](/alb/overview) reaches a workload through a network service.
+A network service gives a workload's Instances on one network a stable name and named ports. Datum keeps the service's membership current as Instances start, stop, and move between locations, and sends each request to the nearest location that has a ready Instance. Datum's [Application Load Balancer](/alb/overview) and [Network Load Balancer](/nlb/overview) reach a workload through a network service.
 
 <Note>
   gVPC is in preview, and the `networking.datumapis.com/v1alpha` API can change.
@@ -15,7 +15,7 @@ A network service gives a workload's Instances on one network a stable name and 
 A network service is a `NetworkService` resource with two parts:
 
 - **A selector:** labels that an Instance's network interface must carry to belong to the service. Every Instance of a workload carries the workload's name as a label, so a service usually selects one workload.
-- **Ports:** the ports the Instances listen on, each with a name, such as `http` on port `8080`. A load balancer refers to a port by its name, not its number.
+- **Ports:** the ports the Instances listen on, each with a name, a number, and a protocol, `TCP` or `UDP`, such as `http` on TCP port `8080`. A load balancer refers to a port by its name, not its number.
 
 Keep the following points in mind:
 
@@ -51,6 +51,8 @@ Replace the following:
 
 To add more ports, repeat `--port`. A service takes up to 16 ports, and each name and number must be unique.
 
+`datumctl network service create` creates TCP ports only. To add a UDP port, use the Cloud Portal or a manifest. See [Add UDP ports](#add-udp-ports).
+
 By default, a load balancer connects to a port over HTTP/1.1. For a port that serves gRPC or another HTTP/2 app without TLS (h2c), use the long form of `--port` with `app-protocol=h2c`, such as `--port=name=grpc,port=9090,app-protocol=h2c`. The load balancer then sends every request on that port as HTTP/2. Most servers accept WebSockets only over HTTP/1.1, so serve WebSockets on a different port.
 
 To select Instances by label instead of by workload, use `--selector`, such as `--selector app=web`. The labels must be on the Instances' network interfaces, not only on the workload.
@@ -66,6 +68,37 @@ datumctl alb create LOAD_BALANCER_NAME \
 ```
 
 For more information, see [Create a load balancer](/alb/operations/overview#create-a-load-balancer).
+
+To publish a port on a public TCP or UDP port, send a [Network Load Balancer](/nlb/overview)'s traffic to it with a route instead. A route names the service and one of its port names, and the port's protocol must match the NLB listener's. See [Listeners and routes](/nlb/listeners-and-routes).
+
+## Add UDP ports
+
+To give a service a UDP port, such as for an NLB, describe the service in a manifest and set `protocol` on each port. The following service has a UDP port for a game server, and a TCP port for the NLB's health check:
+
+```yaml game-service.yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: NetworkService
+metadata:
+  name: game
+spec:
+  networkInterfaces:
+    selector:
+      matchLabels:
+        compute.datumapis.com/workload-name: game
+  ports:
+    - name: game
+      port: 7777
+      protocol: UDP
+    - name: health
+      port: 8080
+      protocol: TCP
+```
+
+The `compute.datumapis.com/workload-name` label selects every Instance of the named workload. To create the service, run `datumctl apply -f game-service.yaml`.
+
+In the [Cloud Portal](https://cloud.datum.net), the create-service dialog has a **TCP** or **UDP** choice for each port.
+
+An ALB can't send traffic to a UDP port.
 
 ## Check a network service
 
@@ -109,8 +142,11 @@ datumctl network service delete SERVICE_NAME
 
 Before it asks you to confirm, the command lists the load balancers that send traffic to the service. Those load balancers stop reaching anything on that route.
 
+Deleting a network service with `datumctl delete networkservice` doesn't check for NLB routes. An NLB whose route uses the service stops serving, and the route reports `BackendNotFound`. See [Delete an NLB](/nlb/operations#delete-an-nlb).
+
 ## What's next
 
 - To manage networks and Instances' network interfaces from the command line, see [Operations](/galactic-vpc/operations).
 - To publish a workload with a load balancer in one step, see [Compute and ALB](/compute/compute-and-alb).
+- To publish a TCP or UDP port, see [NLB operations](/nlb/operations).
 - To learn how Instances connect privately, see [Traffic and connecting](/galactic-vpc/networks/traffic).

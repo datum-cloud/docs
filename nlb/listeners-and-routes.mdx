@@ -1,0 +1,103 @@
+---
+title: "Listeners and routes"
+sidebarTitle: "Listeners and routes"
+description: "How an NLB's listeners accept TCP and UDP traffic on public ports, and how routes send each listener's traffic to a port on a network service."
+---
+
+An NLB accepts traffic on its **listeners** and sends it to backends through **routes**. A listener says which protocol and public port to accept traffic on. A route says where that traffic goes: one named port on a [network service](/galactic-vpc/networks/network-services), with a health check.
+
+<Note>
+  NLBs are in early access, and the `networking.datumapis.com/v1alpha` API can change.
+</Note>
+
+## Listeners
+
+A listener is an entry in the NLB's `spec.listeners`:
+
+```yaml
+spec:
+  exposure:
+    addresses:
+      - name: tcp-5432
+        families: ["IPv6"]
+  listeners:
+    - name: tcp-5432
+      protocol: TCP
+      port: 5432
+      addressRefs: ["tcp-5432"]
+```
+
+| Field | Description |
+| --- | --- |
+| `name` | Required. The name that routes use to attach to this listener. Unique within the NLB. |
+| `protocol` | Required. `TCP` or `UDP`. |
+| `port` | The public port, from `1` to `65535`. |
+| `addressRefs` | Required. The address request whose addresses this listener serves on. In early access, list exactly one, and give every listener its own address request. See [Addresses and hostnames](/nlb/addresses-and-hostnames). |
+
+An NLB takes up to 16 listeners. The [Cloud Portal](https://cloud.datum.net) names each listener and its address request after its protocol and port, such as `tcp-5432` or `udp-7777`, and the manifests in these docs follow the same pattern.
+
+The API also has `portRange`, `hostname`, and `tls` fields, and a `TLS` protocol. Early access refuses them. See [Limitations and roadmap](/nlb/limitations-and-roadmap).
+
+### TLS traffic
+
+A `TCP` listener forwards TLS traffic unchanged. Your workload keeps its own certificate and completes the TLS handshake with the client, and Datum never sees the decrypted traffic. Datum doesn't issue certificates for NLB hostnames, so get a certificate for a domain that you own and point that domain at the NLB. See [Use your own domain](/nlb/addresses-and-hostnames#use-your-own-domain).
+
+## Routes
+
+A route is a separate `NetworkLoadBalancerRoute` resource. It attaches to a listener and names the backend:
+
+```yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: NetworkLoadBalancerRoute
+metadata:
+  name: db-nlb-tcp-5432
+spec:
+  parentRefs:
+    - name: db-nlb
+      listener: tcp-5432
+  backends:
+    - networkService:
+        name: db
+        port: postgres
+      healthCheck:
+        protocol: TCP
+```
+
+| Field | Description |
+| --- | --- |
+| `parentRefs[].name` | Required. The NLB's name. The NLB must be in the same project. |
+| `parentRefs[].listener` | The listener's name. Set either `listener` or `port`. |
+| `parentRefs[].port` | The listener's port, instead of its name. |
+| `backends[].networkService.name` | Required. The network service that selects your Instances. |
+| `backends[].networkService.port` | Required. The **name** of a port on the network service, such as `postgres`, not its number. |
+| `backends[].healthCheck` | How Datum checks each Instance. Required for a UDP listener. See [Health checks](/nlb/health-checks). |
+
+Keep the following points in mind:
+
+- **One backend for each route.** In early access, `backends` takes exactly one entry. To spread traffic across Instances, scale the workload behind the network service instead.
+- **The protocols must match.** The network service port's protocol must match the listener's protocol: a `TCP` port for a `TCP` listener, and a `UDP` port for a `UDP` listener. A mismatch reports `ProtocolMismatch`.
+- **The network must match.** The network service must select Instances on the NLB's network. Otherwise, the route reports `NetworkMismatch`.
+- **Create in any order.** You can create the route before its NLB or network service exists. It reports what it's waiting for, and starts serving when everything it refers to exists. An NLB doesn't get an address until a route with running Instances attaches to its listener.
+- **Deleting doesn't check routes.** You can delete an NLB or a network service that a route still uses. The route then reports `ParentNotFound` or `BackendNotFound`, and still counts toward your route quota. See [Delete an NLB](/nlb/operations#delete-an-nlb).
+
+The Cloud Portal names the route `<nlb>-<listener>`, such as `db-nlb-tcp-5432`.
+
+### Port mapping
+
+The listener's `port` is the port clients connect to. The network service port is the port your app listens on. They don't have to be the same. For example, a listener on port `5432` can send traffic to a network service port named `postgres` with the number `15432`. Clients connect to `5432`, and your app sees connections arrive on `15432`.
+
+### One route for each listener
+
+A listener serves one route at a time. If two routes attach to the same listener, the older route keeps the listener, even if it's broken, and the newer route reports `Superseded` until the older one is deleted. Each route's `status.parents[].effective` field shows whether it owns the listener.
+
+A network service port can be the backend of only one route. A second route, on this NLB or another one, that sends traffic to the same network service port reports `BackendClaimConflict`, and its listener doesn't serve. To put the same app behind two listeners or two NLBs, make it listen on a second port, and add that port to the network service under its own name. A port can still be the health check port of other routes.
+
+## The network
+
+An NLB serves one [gVPC network](/galactic-vpc/networks/overview), set in `spec.networkRef.name`, usually `default`. You can't change the network after you create the NLB. The network must carry IPv6. Instances' IPv6 addresses are how Datum reaches them.
+
+## What's next
+
+- To learn which addresses and hostnames a listener gets, see [Addresses and hostnames](/nlb/addresses-and-hostnames).
+- To configure the health check, see [Health checks](/nlb/health-checks).
+- To add, change, or remove listeners on a running NLB, see [Operations](/nlb/operations).

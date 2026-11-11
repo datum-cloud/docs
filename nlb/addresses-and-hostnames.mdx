@@ -1,0 +1,130 @@
+---
+title: "Addresses and hostnames"
+sidebarTitle: "Addresses and hostnames"
+description: "Which public IPv6 addresses and generated hostnames an NLB gets in each location, how to choose its locations, and how to point your own domain at it."
+---
+
+An NLB requests public addresses in `spec.exposure.addresses`. Datum allocates each address request an IPv6 address and a generated hostname in every location where it serves, and reports them in the NLB's status.
+
+<Note>
+  NLBs are in early access. They serve public IPv6 addresses only, in `us-central-1` (Dallas), `us-east-1` (Ashburn), and `us-west-1` (San Jose). IPv4 isn't available yet.
+</Note>
+
+## Address requests
+
+An address request is an entry in `spec.exposure.addresses`, and listeners refer to it by name in `addressRefs`:
+
+```yaml
+spec:
+  exposure:
+    addresses:
+      - name: tcp-5432
+        families: ["IPv6"]
+  listeners:
+    - name: tcp-5432
+      protocol: TCP
+      port: 5432
+      addressRefs: ["tcp-5432"]
+```
+
+| Field | Description |
+| --- | --- |
+| `name` | Required. A name for the address request, up to 63 lowercase letters, numbers, and hyphens. |
+| `families` | Required. `["IPv6"]`. Early access refuses `IPv4`. |
+| `locations` | Optional. Which locations get an address. See [Choose locations](#choose-locations). |
+
+In early access, each listener needs its own address request, and two listeners can't share one. So an NLB with a TCP listener and a UDP listener has two IPv6 addresses and two hostnames in each location, one for each listener. An NLB takes up to 16 address requests.
+
+## Choose locations
+
+By default, an address request gets an address in each location where the backend's Instances run. If you add the workload to another supported location, the NLB gets an address there too, and the addresses in the other locations don't change.
+
+To choose locations yourself, set `locations`:
+
+```yaml
+addresses:
+  - name: tcp-5432
+    families: ["IPv6"]
+    locations:
+      from: Names
+      names: ["us-east-1", "us-west-1"]
+```
+
+| `from` | Locations |
+| --- | --- |
+| `Backends` | Each location where the backend's Instances run. This is the default. |
+| `All` | Every location where NLBs are available. |
+| `Names` | The locations in `names`. |
+
+An address only serves traffic in a location where the backend has a healthy Instance, because traffic to a location's address goes only to Instances in that location. A location with an address and no Instances has nothing to send traffic to.
+
+With the default, an address request gets an address only once a route attaches to its listener and the route's network service has Instances. Until then, the NLB reports `AllocationPending`.
+
+NLB addresses are available in `us-central-1`, `us-east-1`, and `us-west-1`, the locations where Compute runs. `datumctl apply` accepts other location names in `names`, and the NLB then reports `AllocationPending` with the message `no pool offers this class`.
+
+## Find the addresses and hostnames
+
+Each entry in the NLB's `status.endpoints` describes one address request in one location:
+
+```bash
+datumctl get networkloadbalancer NLB_NAME -o yaml
+```
+
+```yaml
+status:
+  endpoints:
+    - requestName: tcp-5432
+      location: us-central-1
+      canonicalHostname: us-central-1.lively-otter-x7k2p.datumproxy.net
+      addresses:
+        - family: IPv6
+          value: 2001:db8:10c:1000::5
+          announced: true
+          dnsPublished: true
+```
+
+| Field | Description |
+| --- | --- |
+| `requestName` | The address request. |
+| `location` | The location. |
+| `canonicalHostname` | The generated hostname for this address request in this location. |
+| `addresses[].value` | The public IPv6 address. |
+| `addresses[].announced` | `true` while Datum announces the address to the internet. While the location has no healthy Instance, Datum stops announcing the address, and the field is missing. |
+| `addresses[].dnsPublished` | `true` once Datum has published the hostname's DNS record. |
+
+To list only the hostnames, run the following command:
+
+```bash
+datumctl get networkloadbalancer NLB_NAME \
+  -o jsonpath='{range .status.endpoints[*]}{.location}{"\t"}{.requestName}{"\t"}{.canonicalHostname}{"\n"}{end}'
+```
+
+In the [Cloud Portal](https://cloud.datum.net), the NLB's page lists the same addresses and hostnames, with a copy button for each.
+
+## Generated hostnames
+
+A generated hostname has the form `<location>.<label>.datumproxy.net`, such as `us-central-1.lively-otter-x7k2p.datumproxy.net`. The label is unique to the address request. Datum publishes an `AAAA` record for it with a 60-second time to live (TTL).
+
+Keep the following points in mind:
+
+- **One hostname for each location.** There's no single hostname that sends clients to the nearest location. Clients connect to a specific location's hostname. To spread clients across locations, publish several of them, or use DNS that you control.
+- **A hostname doesn't carry a port.** Clients still connect to the listener's port, such as `us-central-1.lively-otter-x7k2p.datumproxy.net:5432`.
+- **A hostname can resolve when it doesn't serve.** Datum publishes the DNS record as soon as it allocates the address, which can be before any Instance passes its health check. The record also stays while a location has no healthy Instance. A client that resolves the name then gets no answer. Check the NLB's `Ready` condition before you send traffic. See [Check that an NLB is serving](/nlb/operations#check-that-an-nlb-is-serving).
+- **Hostnames and addresses last as long as the address request.** They stay the same when you change the NLB's routes or redeploy the workload. If you delete the address request or the NLB, Datum releases them and removes the DNS record within about 30 seconds. A new NLB gets a different hostname and address.
+
+## Use your own domain
+
+To serve an NLB on a domain that you own, such as `db.example.com`, create a `CNAME` record that points at the generated hostname of a location:
+
+```text
+db.example.com.  CNAME  us-central-1.lively-otter-x7k2p.datumproxy.net.
+```
+
+A `CNAME` can't be at the apex of a zone, such as `example.com`. If Datum hosts the domain's DNS, use an `ALIAS` record at the apex. See [Point a domain at an NLB](/domain-dns/point-to-nlb). With another DNS provider, use its `ALIAS` or flattening record if it has one. Otherwise, create an `AAAA` record with the location's address. An `AAAA` record doesn't follow the address if it changes, so update it if you recreate the NLB.
+
+The NLB doesn't check the domain or issue a certificate for it. Clients that use TLS, such as `psql` with `sslmode=verify-full`, check the certificate that your workload presents, so the certificate must cover your domain.
+
+## What's next
+
+- To see how traffic reaches Instances once it arrives at an address, see [How the NLB handles traffic](/nlb/traffic-handling).
+- To check whether each address is serving, see [Observability](/nlb/observability).

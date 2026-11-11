@@ -1,0 +1,94 @@
+---
+title: "NLB observability"
+sidebarTitle: "Observability"
+description: "Read an NLB's status conditions, each location's addresses and hostnames, each route's state, and activity logs, to tell whether a Network Load Balancer is serving."
+---
+
+A Network Load Balancer reports what it's doing in the status of its `NetworkLoadBalancer` and `NetworkLoadBalancerRoute` resources, and in the [Cloud Portal](https://cloud.datum.net). NLBs don't report traffic metrics or connection logs yet.
+
+## Status in the Cloud Portal
+
+The **NLB** page of your project lists your load balancers and their status. Open one to see its public addresses and hostnames, its listeners, and the backends they forward to, with the health of each backend. Hover over a backend's health for a breakdown by location.
+
+| Status | Meaning |
+| --- | --- |
+| **Ready** | Every address has a listener with a route that's serving. |
+| **Programming** | Datum is setting up the NLB in its locations. |
+| **Address pending** | Datum hasn't allocated a public address yet. |
+| **Not serving** | No route serves an address, or no Instance passes its health check. The status shows the reason. See [Troubleshooting](/nlb/troubleshooting). |
+
+## Status from the command line
+
+To list your NLBs and whether each is ready, run the following command:
+
+```bash
+datumctl get networkloadbalancers
+```
+
+To see the full status of one NLB, run the following command:
+
+```bash
+datumctl get networkloadbalancer NLB_NAME -o yaml
+```
+
+To see a route's status, run the following command:
+
+```bash
+datumctl get networkloadbalancerroute ROUTE_NAME -o yaml
+```
+
+### NLB conditions
+
+| Condition | `True` means | Common reasons when it isn't `True` |
+| --- | --- | --- |
+| `Allocated` | Datum holds every public address that the NLB requested. | `AllocationPending`: Datum hasn't allocated an address yet. An address that follows its backends waits for a route whose network service has Instances. `IPv6Required`: the network doesn't carry IPv6. `NetworkNotFound`: the network in `networkRef` doesn't exist. |
+| `Programmed` | Every location has its configuration. | `PendingDataPlane`: Datum is waiting for locations to report. `NoHealthyBackends`: a location has no Instance that passes its health check. |
+| `Ready` | Every address has a serving listener. | `NotServed`: no route serves an address, or no Instance is healthy. The message names one route and its reason, such as `Route "db-nlb-tcp-5432": ...`, even when several routes fail. |
+| `Degraded` | Not used yet. | A healthy NLB reports `False` with reason `ListenerReadiness`. It doesn't reflect backend health. |
+
+### Addresses in each location
+
+Each entry in `status.endpoints` describes one address request in one location: its `canonicalHostname`, and its `addresses`. For each address:
+
+| Field | Meaning |
+| --- | --- |
+| `value` | The public IPv6 address. |
+| `announced` | `true` while Datum announces the address to the internet, so clients can reach it. While the location has no healthy Instance, the field is missing. |
+| `dnsPublished` | `true` once the generated hostname's DNS record is published. |
+| `conditions` | `Allocated`, `Programmed`, and `Announced` for this address. When the address isn't served, `Announced` is `False` with a reason such as `NotServed`. |
+
+Other fields, such as `withdrawalPending` and `coordinated`, are for Datum's own use. `withdrawalPending` can be `true` on an address that's serving normally.
+
+`status.addressRequests` shows the locations that each address request resolved to, in `resolvedLocations`.
+
+### Route conditions
+
+Each entry in a route's `status.parents` describes the route on one listener. `effective` is `true` when the route is the one that serves the listener.
+
+| Condition | `True` means | Common reasons when it isn't `True` |
+| --- | --- | --- |
+| `Accepted` | The NLB and listener in `parentRefs` exist, and the route is attached. | `ParentNotFound`, `ListenerNotFound` |
+| `ResolvedRefs` | The network service and its port exist and match the listener. | `BackendNotFound`, `PortNotFound`, `ProtocolMismatch`, `NetworkMismatch`, `HealthCheckInvalid`, `NoEligibleEndpoints` |
+| `Programmed` | Datum serves the route in its locations. | `AwaitingDataPlane`, `Superseded`, `BackendClaimConflict` |
+
+For what each reason means and how to fix it, see [Troubleshooting](/nlb/troubleshooting).
+
+## Backend health
+
+An NLB only sends traffic to Instances that are ready in the network service and pass the NLB's health check. Its status doesn't report the health check result of each Instance. A single Instance that fails while others pass doesn't change the NLB's status. The Cloud Portal shows the health of each backend.
+
+To see which Instances the network service selects, and which of them are ready, run the following command:
+
+```bash
+datumctl network service describe SERVICE_NAME
+```
+
+For more information, see [Check a network service](/galactic-vpc/networks/network-services#check-a-network-service) and [Health checks](/nlb/health-checks).
+
+## Activity logs
+
+Creating, changing, and deleting NLBs and routes appear in your project's [activity logs](/operations/activity-logs).
+
+## Metrics and logs
+
+NLBs don't report traffic metrics, such as connections or bytes, and don't log connections yet. To see traffic, measure it in your workload. The **Metrics** tab of a network in the Cloud Portal charts traffic in and out of each Instance, which includes NLB traffic. See [gVPC observability](/galactic-vpc/observability).

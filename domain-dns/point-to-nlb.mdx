@@ -1,0 +1,65 @@
+---
+title: "Point a domain at an NLB"
+description: "Use Datum DNS to give a Network Load Balancer a name on your own domain, with a CNAME to the generated hostname of one of its locations."
+sidebarTitle: "Point to an NLB"
+---
+
+When Datum hosts your domain's DNS, you can give a [Network Load Balancer](/nlb/overview) (NLB) a name on your domain, such as `db.example.com`, with a `CNAME` record. Clients then connect to `db.example.com` on the listener's port.
+
+An NLB has a generated hostname for each location and each listener, such as `us-central-1.lively-otter-x7k2p.datumproxy.net`. A record on your domain points at one of them, so it sends clients to one location. See [Addresses and hostnames](/nlb/addresses-and-hostnames).
+
+<Note>
+  If your DNS is hosted somewhere else, you don't need anything on this page. Create a `CNAME` to the NLB's generated hostname at your own DNS provider.
+</Note>
+
+Unlike an [Application Load Balancer](/alb/overview), an NLB doesn't need your domain added to it, and it doesn't issue a certificate for it. If clients use TLS, your workload must present a certificate for your domain.
+
+## Point a domain with datumctl dns
+
+To install the `dns` plugin, run `datumctl plugin install dns`.
+
+<Steps>
+  <Step title="Find the NLB's hostname">
+    ```bash
+    datumctl get networkloadbalancer NLB_NAME \
+      -o jsonpath='{range .status.endpoints[*]}{.location}{"\t"}{.requestName}{"\t"}{.canonicalHostname}{"\n"}{end}'
+    ```
+
+    Each line shows a location, an address request, and its hostname. Pick the hostname for the location and listener that you want.
+  </Step>
+  <Step title="Create the zone, if you haven't already">
+    ```bash
+    datumctl dns zone create example.com
+    ```
+
+    Then point your domain at Datum's nameservers. See [Point your domain at Datum](/domain-dns/operations#point-your-domain-at-datum).
+  </Step>
+  <Step title="Add the record">
+    ```bash
+    datumctl dns record set example.com db CNAME GENERATED_HOSTNAME.
+    ```
+
+    Replace `GENERATED_HOSTNAME` with the NLB's hostname, and keep the trailing dot.
+
+    To use the apex, `example.com`, create an `ALIAS` record instead, because a `CNAME` isn't allowed at the apex. See [ALIAS](/domain-dns/dns#alias-/-cname-flattening).
+
+    ```bash
+    datumctl dns record set example.com @ ALIAS GENERATED_HOSTNAME.
+    ```
+  </Step>
+  <Step title="Check that it works">
+    ```bash
+    datumctl dns record list example.com --type CNAME,ALIAS
+    dig +short AAAA db.example.com
+    ```
+
+    The record is live when its status is `Programmed`. `dig` returns the NLB's IPv6 address for that location.
+  </Step>
+</Steps>
+
+To create the same records with `DNSZone` and `DNSRecordSet` manifests, follow [Point a domain with manifests](/domain-dns/point-to-alb#point-a-domain-with-manifests), and use the NLB's hostname as `TARGET`.
+
+## What's next
+
+- To learn when a hostname starts serving, see [Generated hostnames](/nlb/addresses-and-hostnames#generated-hostnames).
+- To check that the NLB is serving, see [Check that an NLB is serving](/nlb/operations#check-that-an-nlb-is-serving).

@@ -1,0 +1,133 @@
+---
+title: "When an NLB is not serving"
+sidebarTitle: "Troubleshooting"
+description: "Work out why a Datum Network Load Balancer isn't serving, from its status conditions, route reasons, admission errors, and what clients see."
+---
+
+Work down this page in order. Each step rules something out.
+
+## Start with the NLB's status
+
+```bash
+datumctl get networkloadbalancers
+datumctl get networkloadbalancer NLB_NAME -o yaml
+```
+
+Read the `Ready` condition first. When it isn't `True`, its reason tells you where to look:
+
+| `Ready` reason | Where to look |
+| --- | --- |
+| `NotServed`, with a message that starts `Route "NAME": ...` | The route named in the message. See [Route problems](#route-problems). |
+| `NotServed`, with the message `No route serves this address` | No route attaches to a listener. Create a route, or fix its `parentRefs`. |
+| `NotServed`, and `Programmed` is `False` with reason `NoHealthyBackends` | No Instance passes its health check. See [No healthy backends](#no-healthy-backends). |
+| `AllocationPending` | Datum hasn't allocated an address. See [The NLB has no address](#the-nlb-has-no-address). |
+
+The `Ready` message names only one failing route, even when several are failing. After you fix it, check again.
+
+`Degraded` is `False` with reason `ListenerReadiness` on a healthy NLB. That's normal, and it doesn't tell you anything about backend health.
+
+## The NLB has no address
+
+`Allocated` is `False` with reason `AllocationPending`, and `status.endpoints` has no `value` for the address.
+
+- **No route or no Instances.** An address request that follows its backends, the default, gets an address only in locations where a route's network service has Instances. An NLB without a route, or whose network service selects no Instances, never gets an address. Create the route, and start the workload.
+- **A location without NLBs.** If `locations.names` lists a location other than `us-central-1`, `us-east-1`, or `us-west-1`, the address's message says `no pool offers this class`. Use one of those locations.
+- **The network doesn't carry IPv6.** The reason is `IPv6Required`. Create the NLB on a network with IPv6, such as the `default` network.
+
+## Route problems
+
+```bash
+datumctl get networkloadbalancerroute ROUTE_NAME -o yaml
+```
+
+Each entry in `status.parents` has conditions. Find the first one that isn't `True`:
+
+| Condition | Reason | Message, for example | What to do |
+| --- | --- | --- | --- |
+| `Accepted` | `ParentNotFound` | `NetworkLoadBalancer "db-nlb" does not exist` | Create the NLB, or fix `parentRefs[].name`. The route attaches when the NLB exists. |
+| `Accepted` | `ListenerNotFound` | `Listener "tcp-5433" does not exist on NetworkLoadBalancer "db-nlb"` | Fix `parentRefs[].listener` or `port`. |
+| `ResolvedRefs` | `BackendNotFound` | `NetworkService "db" does not exist` | Create the network service, or fix the name. |
+| `ResolvedRefs` | `PortNotFound` | `NetworkService "db" has no port named "pg"` | Use the port's **name**, not its number. To list them, run `datumctl get networkservice db -o yaml`. |
+| `ResolvedRefs` | `ProtocolMismatch` | `NetworkService "db" port "postgres" uses TCP; listener "udp-53" requires UDP` | Point the route at a port with the listener's protocol. |
+| `ResolvedRefs` | `NetworkMismatch` | `NetworkService "db" selects an interface outside network "default"` | Create the NLB on the network that the workload uses. |
+| `ResolvedRefs` | `HealthCheckInvalid` | `UDP backend "game" requires a TCP, HTTP, or HTTPS health check` | Add a `healthCheck` with `protocol: TCP` and a TCP `port`. Only TCP works in early access. See [Health check a UDP service](/nlb/health-checks#health-check-a-udp-service). |
+| `Programmed` | `NoEligibleEndpoints` | `No enabled backend has a holder-available IPv6 endpoint ...` | The network service has no ready Instances. See [No healthy backends](#no-healthy-backends). |
+| `Programmed` | `Superseded` | `Older route "db-nlb-tcp-5432" owns this listener` | Another, older route serves this listener, even if that route is broken. Delete or fix the older route. |
+| `Programmed` | `BackendClaimConflict` | `Backend socket is already selected by older route "db-nlb-tcp-5432"; ...` | Another route already sends traffic to this network service port. Add a second port name to the network service for this route, or delete the other route. |
+| `Programmed` | `AwaitingDataPlane` | `Data plane programming has not been confirmed` | Datum is still setting up the route. If another condition isn't `True`, fix that first. |
+
+## No healthy backends
+
+The NLB reports `Programmed` `False` with reason `NoHealthyBackends`, or the route reports `NoEligibleEndpoints`.
+
+1. Check that the workload's Instances are running:
+
+   ```bash
+   datumctl compute instances
+   ```
+
+2. Check that the network service selects them:
+
+   ```bash
+   datumctl network service describe SERVICE_NAME
+   ```
+
+   See [Check a network service](/galactic-vpc/networks/network-services#check-a-network-service).
+
+3. Check that your app accepts TCP connections on the probe port, over IPv6. From a shell in the Instance, run a command such as `nc -z ::1 PORT`. See [Instance shell](/compute/instance-shell).
+4. Check that your app survives health checks. Datum's health check opens a TCP connection and then resets it without sending data. An app that crashes or logs an error on a reset connection fails its health checks. See [Health checks](/nlb/health-checks).
+
+The network service's `HEALTHY` count shows which Instances are ready, not which pass the NLB's health check. A single Instance that fails the NLB's check doesn't show in any status. The NLB stays `Ready` while other Instances pass.
+
+## Clients can't connect
+
+If the NLB is `Ready` and clients still can't connect, test from a client that has IPv6:
+
+```bash
+dig +short AAAA GENERATED_HOSTNAME
+nc -vz GENERATED_HOSTNAME PORT
+```
+
+| What the client sees | Likely cause |
+| --- | --- |
+| No `AAAA` answer | The address isn't allocated. See [The NLB has no address](#the-nlb-has-no-address). |
+| `Network is unreachable`, or no route to the address | The client has no IPv6 connection. NLBs don't serve IPv4. Test from a network with IPv6, or from a Datum Instance in another location. |
+| The connection times out from a Datum Instance only | The Instance runs in the same location as the NLB address, which doesn't work. Test from an Instance in another location. See [Clients on Datum](/nlb/traffic-handling#clients-on-datum). |
+| `Connection refused` | The NLB reached an Instance, and nothing accepted the connection, or an Instance just failed and hasn't left rotation yet. Check that your app listens on the network service port. |
+| The connection times out | No location serves the address. Datum withdraws an address when its location has no healthy Instance, but the hostname keeps resolving. Check `Programmed` for `NoHealthyBackends`. |
+| The connection works, but the protocol fails | The listener's protocol, or the port that clients use, is wrong. Clients connect to the listener's `port`, not the network service port. |
+| UDP replies don't arrive, for large messages only | UDP datagrams over 1392 bytes of payload are fragmented and dropped. See [Packet size](/nlb/traffic-handling#packet-size). |
+
+## UnsupportedCapability errors
+
+`datumctl apply` refuses features that early access doesn't support, with errors such as:
+
+```text
+The NetworkLoadBalancer "db-nlb" is invalid: spec.exposure.addresses[0].families: Forbidden: UnsupportedCapability: public IPv4 NLB ingress is unavailable
+```
+
+| Message | Cause | What to do |
+| --- | --- | --- |
+| `public IPv4 NLB ingress is unavailable` | `IPv4` in `families` | Use `families: ["IPv6"]`. |
+| `TLS listeners require a proxy-capable edge path` | A `TLS` listener, or a `hostname` on a listener | Use a `TCP` listener, and end TLS in your workload. Remove `hostname`. |
+| `shared address listeners are not enabled` | Two listeners with the same address request | Give each listener its own address request. |
+| `a listener can use only one address request until multi-VIP serving is supported` | More than one entry in a listener's `addressRefs` | List one address request. |
+| `UDP port ranges are not enabled` | `portRange` on a listener | Use `port`, with one listener for each port. |
+| `multiple backends require complete endpoint selection in serving cells` | More than one entry in a route's `backends` | Use one backend, and scale the workload behind it. |
+| `serving cells run TCP health checks only` | An `HTTP` or `HTTPS` health check | Use `protocol: TCP`. |
+| `custom health timing and thresholds are not supported by serving cells` | `intervalSeconds`, `timeoutSeconds`, `healthyThreshold`, or `unhealthyThreshold`, even at their default values | Remove the fields. |
+| `backend TLS transport requires a proxy-capable edge path` | A `transport` block on a backend | Remove `transport`. |
+| `SNI routing requires a proxy-capable edge path` | `sniHostnames` on a route | Remove `sniHostnames`. |
+| `cross-namespace backends require grants`, `cross-namespace parent references require grants` | A `namespace` in `networkService` or `parentRefs` | Remove `namespace`. |
+
+For what's planned, see [Limitations and roadmap](/nlb/limitations-and-roadmap).
+
+## Other errors from datumctl apply
+
+| Error | What to do |
+| --- | --- |
+| `You've reached your quota for this resource type` | Your project has 5 NLBs or 25 routes. Delete ones that you don't use, or ask for more. See [Limits and quotas](/nlb/limits-and-quotas). A dry run with `--dry-run=server` doesn't check quota. |
+| `spec.listeners: Too many: 17: must have at most 16 items` | An NLB takes up to 16 listeners and 16 address requests. |
+| `strict decoding error: unknown field ...` | A field is in the wrong place or misspelled. For example, `listeners` belongs under `spec`, next to `exposure`, not inside it. |
+| `each listener address reference must name an address request` | A listener's `addressRefs` names an address request that isn't in `spec.exposure.addresses`. |
+| `exactly one of listener or port is required` | Set either `listener` or `port` in each of a route's `parentRefs`. |

@@ -1,0 +1,35 @@
+---
+title: "NLB limitations and roadmap"
+sidebarTitle: "Limitations and roadmap"
+description: "What the Datum Network Load Balancer doesn't support yet in early access, and where to follow what comes next."
+---
+
+Network Load Balancers are in early access. This page lists what they don't support yet. The API has fields for several of these features, and Datum refuses them with an `UnsupportedCapability` error until they're available. For the exact messages, see [Troubleshooting](/nlb/troubleshooting#unsupportedcapability-errors).
+
+## Limitations
+
+- **IPv6 only.** NLBs serve public IPv6 addresses. Clients on IPv4-only networks can't reach them. IPv4 addresses aren't available yet.
+- **Three locations.** NLB addresses are available only in `us-central-1` (Dallas), `us-east-1` (Ashburn), and `us-west-1` (San Jose), the locations where Compute runs.
+- **No large UDP datagrams.** A UDP datagram with more than 1392 bytes of payload is fragmented, and fragments are dropped. See [Packet size](/nlb/traffic-handling#packet-size).
+- **No per-Instance health in status.** The NLB's status shows when a location has no healthy Instance, but not which Instances fail their health check. See [Observability](/nlb/observability).
+- **No connections from the same location.** A Datum Instance can't reach an NLB address in its own location. See [Clients on Datum](/nlb/traffic-handling#clients-on-datum).
+- **No failover between locations.** Each location has its own address, and traffic to it goes only to Instances in that location. See [Addresses and hostnames](/nlb/addresses-and-hostnames).
+- **One address for each listener.** Two listeners can't share an address, so a TCP and a UDP listener on one NLB get different addresses and hostnames.
+- **One port for each listener.** Port ranges, such as a UDP range for a media server, aren't available.
+- **One backend for each route.** To spread traffic, scale the workload behind the network service.
+- **No TLS termination.** A `TCP` listener passes TLS through unchanged to your workload. `TLS` listeners, routing by server name (SNI), and TLS from Datum to your workload aren't available.
+- **TCP health checks only, with fixed timing.** HTTP and HTTPS health checks, and custom intervals, timeouts, and thresholds, aren't available. See [Health checks](/nlb/health-checks).
+- **No session affinity.** Each new connection or UDP flow is placed by a hash of its addresses and ports. A client that opens a new connection can reach a different Instance. See [How the NLB handles traffic](/nlb/traffic-handling).
+- **No `datumctl nlb` command.** Create and manage NLBs in the [Cloud Portal](https://cloud.datum.net), or apply manifests with `datumctl apply`. `datumctl network service create` can't add UDP ports to a network service, so use a manifest or the Cloud Portal for those.
+- **No metrics or access logs.** NLBs don't report traffic metrics or connection logs yet. See [Observability](/nlb/observability).
+- **Compute backends only.** An NLB sends traffic to network services, which select [Compute](/compute/overview) Instances. Public origins and [Connector tunnels](/connectors/tunnels) can't be NLB backends.
+- **No PROXY protocol.** Datum doesn't add a PROXY protocol header to connections.
+- **No firewall or rate limiting.** NLB traffic doesn't pass through the ALB's web application firewall. Your workload is responsible for authenticating clients and limiting abuse.
+
+## Roadmap
+
+For what Datum is building next across the platform, see the [Platform roadmap](/platform/roadmap).
+
+<Note>
+  Plans can change. This list isn't a commitment to deliver any feature or to meet any timeline.
+</Note>
