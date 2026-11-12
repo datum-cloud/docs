@@ -20,6 +20,33 @@ Each entry links to the original announcement in our [changelog discussions](htt
   See [Private DNS](/domain-dns/private-dns).
 </Update>
 
+<Update label="November 11, 2026" description="Private DNS" tags={["Fix", "Early access"]}>
+  ## Private DNS is faster and more reliable
+
+  Instances can look up names in their own VPC through a private zone, and answers stay current as instances come and go.
+
+  - **Answers follow your instances:** when an instance is deleted, its old answers disappear within 1 to 2 seconds. A replacement's new address answers about 4 seconds after the instance is ready. Answers are cached for 30 seconds.
+  - **First lookup answers right away:** new instances get an answer to their first lookup immediately. Before, DNS gave no answer for 0 to 11 seconds after a deploy or restart, and apps that looked up a name at startup failed with `Temporary failure in name resolution`.
+  - **No failed lookups during rollouts:** DNS stays up through platform restarts, software updates and edge reboots, because servers drain traffic before they stop. Before, a single rollout caused about 75 seconds of failed lookups. Staging rollouts with steady lookups now lose none.
+  - **Several servers per resolver address:** several healthy DNS servers share one resolver address, with health checks, in all three regions. A lost host or edge affects only the instances on that host. Requests to a server on another host now get replies instead of timing out.
+  - **Status you can trust:** zone status shows within seconds whether your records are being served.
+  - **Isolation between VPCs:** each VPC's answers are isolated from every other VPC. Removing a zone from a VPC returns `NXDOMAIN`, and deleting a VPC withdraws its access from every DNS server. Only the platform can change which DNS a VPC uses.
+
+  Private DNS is in preview. See [Private DNS](/domain-dns/private-dns).
+</Update>
+
+<Update label="November 11, 2026" description="Application Load Balancer" tags={["Fix"]}>
+  ## New proxies answer within seconds
+
+  A new proxy now answers its first request within seconds in every region, including when its workload runs in a different region than the edge.
+
+  - **Before:** a cross-region proxy returned `503` for about 2 minutes 48 seconds, and sometimes until an unrelated change rebuilt the edge.
+  - **Now:** in production, a new cross-region proxy answered in 17.5 seconds with no `503` responses, and 30 follow-up requests all succeeded.
+  - **Network settings reach every instance:** every instance reliably sees changes to VPC network settings, including after a platform restart.
+
+  See [ALB troubleshooting](/alb/troubleshooting).
+</Update>
+
 <Update label="November 11, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
   ## Keyboard access and plain permission messages
 
