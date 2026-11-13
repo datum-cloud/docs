@@ -90,7 +90,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   - **Fixed:** deleting a listener works on the first try.
   - **Fixed:** the **Add listener** dialog no longer flashes a warning as it closes.
 
-  NLBs are early access. See [Network services](/galactic-vpc/networks/network-services).
+  NLBs are early access. See [NLB operations](/nlb/operations).
 </Update>
 
 <Update label="November 6, 2026" description="datumctl" tags={["AX/DX/UX"]}>
@@ -217,14 +217,14 @@ Each entry links to the original announcement in our [changelog discussions](htt
 
   Publish a network service on a public TCP or UDP port with a network load balancer (NLB).
 
-  - **Addresses and hostnames:** each location gets a public IPv6 address and a generated hostname you can point a CNAME at. IPv4 is available for single-port listeners where Datum has enabled it.
+  - **Addresses and hostnames:** each location gets a public IPv6 address and a generated hostname you can point a CNAME at. IPv4 isn't available yet.
   - **Health checks:** NLBs actively check backends and send new connections only to healthy ones.
   - **UDP ports:** network services now accept UDP ports, and the create-service dialog has a TCP/UDP selector per port. A UDP listener also needs a TCP port on the backend for its health check.
   - **Portal:** create an NLB, copy its hostname and address, and add, edit, or delete listeners in the [Cloud Portal](https://cloud.datum.net).
 
   NLBs are early access. TLS listeners aren't supported yet, but a TCP listener forwards TLS traffic unchanged to your backend. Each route serves one backend. An ALB that points at a UDP port now reports a clear unsupported-protocol error.
 
-  See [Network services](/galactic-vpc/networks/network-services).
+  See [NLB](/nlb/overview).
 </Update>
 
 <Update label="October 29, 2026" description="datumctl" tags={["Fix"]}>

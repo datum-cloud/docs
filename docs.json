@@ -196,6 +196,27 @@
                 "expanded": false
               },
               {
+                "group": "NLB",
+                "pages": [
+                  "nlb/overview",
+                  {
+                    "group": "Concepts",
+                    "root": "nlb/listeners-and-routes",
+                    "pages": [
+                      "nlb/addresses-and-hostnames",
+                      "nlb/health-checks",
+                      "nlb/traffic-handling"
+                    ]
+                  },
+                  "nlb/operations",
+                  "nlb/observability",
+                  "nlb/troubleshooting",
+                  "nlb/limits-and-quotas",
+                  "nlb/limitations-and-roadmap"
+                ],
+                "expanded": false
+              },
+              {
                 "group": "Connectors",
                 "pages": [
                   "connectors/overview",
@@ -217,6 +238,7 @@
                   "domain-dns/private-dns",
                   "domain-dns/operations",
                   "domain-dns/point-to-alb",
+                  "domain-dns/point-to-nlb",
                   "domain-dns/observability",
                   "domain-dns/troubleshooting",
                   "domain-dns/limits-and-quotas",

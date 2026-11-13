@@ -1,0 +1,351 @@
+---
+title: "NLB operations"
+sidebarTitle: "Operations"
+description: "Prepare a backend, then create, connect to, inspect, change, and delete Network Load Balancers and their routes, in the Cloud Portal or with manifests and datumctl."
+---
+
+This page covers the everyday tasks for a [Network Load Balancer](/nlb/overview) (NLB), from preparing a backend to deleting the NLB. The examples publish a small TCP echo server on public port `7000`. The same steps work for any TCP service, such as a database.
+
+There's no `datumctl nlb` command yet. Use the [Cloud Portal](https://cloud.datum.net), or describe NLBs and routes in manifests and apply them with `datumctl apply`.
+
+## Before you begin
+
+- Install `datumctl`, log in, and select a project. For more information, see [Install datumctl](/datumctl/install).
+- Install the `compute` plugin. For more information, see [Compute commands](/datumctl/compute/overview).
+- To create, change, or delete NLBs and routes, you need the **Network Admin** role in the project. The **Network Viewer** role can view them. To deploy a backend, you also need permission to create Compute workloads.
+- The workload that you publish needs a [network service](/galactic-vpc/networks/network-services) with a named port for the traffic, on the same network as the NLB. For a UDP listener, the network service also needs a TCP port for health checks. See [Prepare a backend](#prepare-a-backend).
+- The workload must run in `us-central-1`, `us-east-1`, or `us-west-1`.
+
+## Prepare a backend
+
+An NLB sends traffic to a network service, which selects a workload's Instances and names their ports. If you already have both, skip to [Create an NLB](#create-an-nlb).
+
+1. Save the following workload as `echo.yaml`. It runs a Python echo server on port `7000`, in `us-central-1`:
+
+   ```yaml echo.yaml
+   apiVersion: compute.datumapis.com/v1alpha
+   kind: Workload
+   metadata:
+     name: echo
+   spec:
+     template:
+       spec:
+         runtime:
+           class: general-purpose
+           resources:
+             instanceType: datumcloud/d1-standard-2
+           sandbox:
+             containers:
+               - name: echo
+                 image: docker.io/library/python:3.12-alpine
+                 command: ["python3", "-u", "-c"]
+                 args:
+                   - |
+                     import socket, socketserver
+
+                     class Echo(socketserver.StreamRequestHandler):
+                         def handle(self):
+                             try:
+                                 for line in self.rfile:
+                                     self.wfile.write(line)
+                             except ConnectionResetError:
+                                 pass  # health checks reset the connection
+
+                     class Server(socketserver.ThreadingTCPServer):
+                         address_family = socket.AF_INET6
+                         allow_reuse_address = True
+                         daemon_threads = True
+
+                     Server(("::", 7000), Echo).serve_forever()
+                 ports:
+                   - name: echo
+                     port: 7000
+                     protocol: TCP
+         networkInterfaces:
+           - network:
+               name: default
+     placements:
+       - name: dfw
+         cityCodes: ["DFW"]
+         scaleSettings:
+           minReplicas: 1
+   ```
+
+   Keep the following points in mind for your own workloads:
+
+   - **`runtime.class: general-purpose`:** runs an ordinary container image. Without it, the workload uses the `unikernel` class, and the image doesn't start.
+   - **Listening on `::`:** Instances have IPv6 addresses only, so the server must listen on IPv6.
+   - **Handling `ConnectionResetError`:** the NLB's health check opens a connection and resets it every 5 seconds. Your server must survive that. See [Health checks](/nlb/health-checks).
+
+2. Deploy it:
+
+   ```bash
+   datumctl compute deploy -f echo.yaml
+   ```
+
+   If your project has no network named `default`, the command asks whether to create it. Enter `y`. In a script, pass `--yes` to create it without a prompt.
+
+3. Save the following network service as `echo-service.yaml`. It selects the workload's Instances and names their port `echo`:
+
+   ```yaml echo-service.yaml
+   apiVersion: networking.datumapis.com/v1alpha
+   kind: NetworkService
+   metadata:
+     name: echo
+   spec:
+     networkInterfaces:
+       selector:
+         matchLabels:
+           compute.datumapis.com/workload-name: echo
+     ports:
+       - name: echo
+         port: 7000
+         protocol: TCP
+   ```
+
+4. Apply it:
+
+   ```bash
+   datumctl apply -f echo-service.yaml
+   ```
+
+   If you have the `network` plugin, `datumctl network service create echo --workload=echo --port=echo:7000` creates the same service. It can't create UDP ports. See [Network services](/galactic-vpc/networks/network-services).
+
+## Create an NLB
+
+### In the Cloud Portal
+
+1. In your project, select **NLB**, and then click **Create load balancer**.
+2. Enter a **Name**, and select the **Network** of your backend. You can't change the network later.
+3. Under **Listen**, select the **Protocol**, **TCP** or **UDP**, and enter the public **Port**, such as `7000`.
+4. Under **Send to**, select the **Backend** network service and the **Backend port**, such as `echo` and `echo`.
+5. Under **Health check**, select the **TCP probe port**. For a TCP listener, you can keep the serving port. For a UDP listener, select one of the service's TCP ports.
+6. Click **Create**.
+
+The portal names the listener and its address after the protocol and port, such as `tcp-7000`, and the route after the NLB and the listener, such as `echo-nlb-tcp-7000`. It always requests IPv6 addresses in the locations where the backend runs. The NLB's page shows its public address and hostname, its listeners, and the health of each backend.
+
+### With a manifest
+
+Describe the NLB and its route in one file, such as `echo-nlb.yaml`. The NLB requests an IPv6 address and listens on TCP port `7000`. The route sends that listener's traffic to the `echo` port of the network service, with a TCP health check:
+
+```yaml echo-nlb.yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: NetworkLoadBalancer
+metadata:
+  name: echo-nlb
+spec:
+  networkRef:
+    name: default
+  exposure:
+    addresses:
+      - name: tcp-7000
+        families: ["IPv6"]
+  listeners:
+    - name: tcp-7000
+      protocol: TCP
+      port: 7000
+      addressRefs: ["tcp-7000"]
+---
+apiVersion: networking.datumapis.com/v1alpha
+kind: NetworkLoadBalancerRoute
+metadata:
+  name: echo-nlb-tcp-7000
+spec:
+  parentRefs:
+    - name: echo-nlb
+      listener: tcp-7000
+  backends:
+    - networkService:
+        name: echo
+        port: echo
+      healthCheck:
+        protocol: TCP
+```
+
+Then apply it:
+
+```bash
+datumctl apply -f echo-nlb.yaml
+```
+
+```text
+networkloadbalancer.networking.datumapis.com/echo-nlb created
+networkloadbalancerroute.networking.datumapis.com/echo-nlb-tcp-7000 created
+```
+
+For a UDP listener, set `protocol: UDP` on the listener, and set `healthCheck.port` to the name of a TCP port on the network service. See [Health check a UDP service](/nlb/health-checks#health-check-a-udp-service). For every field, see [Listeners and routes](/nlb/listeners-and-routes) and [Addresses and hostnames](/nlb/addresses-and-hostnames).
+
+To check a manifest without creating anything, run `datumctl apply --dry-run=server -f echo-nlb.yaml`. A dry run catches unsupported features, but not quota.
+
+## Check that an NLB is serving
+
+```bash
+datumctl get networkloadbalancers
+```
+
+```text
+NAME       READY   AGE
+echo-nlb   True    2m
+```
+
+`READY` is `True` when every address has a listener with a route that serves it. It turns `True` about 30 seconds after the backend's Instance is running and passes its health checks. Starting the Instance can take a few minutes. Until then, the NLB reports `AllocationPending`, because it gets an address only once it has an Instance to send traffic to. If it isn't ready after 10 minutes, see [Troubleshooting](/nlb/troubleshooting).
+
+To see why an NLB isn't ready, and its addresses and hostnames, run the following command:
+
+```bash
+datumctl get networkloadbalancer echo-nlb -o yaml
+```
+
+For what each condition means, see [Observability](/nlb/observability).
+
+## Connect to an NLB
+
+1. Find the hostname of each location:
+
+   ```bash
+   datumctl get networkloadbalancer echo-nlb \
+     -o jsonpath='{range .status.endpoints[*]}{.location}{"\t"}{.canonicalHostname}{"\n"}{end}'
+   ```
+
+   ```text
+   us-central-1	us-central-1.knock-feather-2m7gk.datumproxy.net
+   ```
+
+   Your hostname is different. It resolves to the NLB's IPv6 address in that location.
+
+2. From a computer with IPv6, connect to the hostname on the listener's port. With the echo server, type a line and press Enter, and the server sends the line back:
+
+   ```bash
+   nc -6 us-central-1.knock-feather-2m7gk.datumproxy.net 7000
+   ```
+
+   ```text
+   hello
+   hello
+   ```
+
+   To quit, press Control+C.
+
+### Connect without IPv6
+
+If `nc` fails with `Network is unreachable`, your computer doesn't have IPv6. Connect from a Datum Instance instead, which always has IPv6. The Instance must run in a different location from the NLB address that you test, because an Instance can't reach an NLB address in its own location. The echo server runs in `us-central-1`, so this client runs in `us-east-1`:
+
+1. Save the following client workload as `nlb-client.yaml`. It runs an image with network tools in `us-east-1`, and keeps it running:
+
+   ```yaml nlb-client.yaml
+   apiVersion: compute.datumapis.com/v1alpha
+   kind: Workload
+   metadata:
+     name: nlb-client
+   spec:
+     template:
+       spec:
+         runtime:
+           class: general-purpose
+           resources:
+             instanceType: datumcloud/d1-standard-2
+           sandbox:
+             containers:
+               - name: client
+                 image: docker.io/nicolaka/netshoot:latest
+                 command: ["sleep", "infinity"]
+         networkInterfaces:
+           - network:
+               name: default
+     placements:
+       - name: iad
+         cityCodes: ["IAD"]
+         scaleSettings:
+           minReplicas: 1
+   ```
+
+2. Deploy it:
+
+   ```bash
+   datumctl compute deploy -f nlb-client.yaml
+   ```
+
+   The command warns that no HTTP port is declared. The client doesn't need one, so you can ignore the warning.
+
+3. Find the client's Instance name, and connect from it:
+
+   ```bash
+   datumctl compute instances
+   datumctl compute exec INSTANCE_NAME -- sh -c "echo hello | nc -6 -w 3 HOSTNAME 7000"
+   ```
+
+   Replace `INSTANCE_NAME` with the client's Instance, and `HOSTNAME` with the NLB's hostname.
+
+4. When you're done, delete the client with `datumctl compute destroy nlb-client`.
+
+## Add a listener
+
+In the Cloud Portal, open the NLB, and click **Add listener** in the listeners table.
+
+With a manifest, add an address request, a listener, and a route. In early access, each listener needs its own address request, so the new listener gets its own IPv6 address and hostname:
+
+```yaml
+spec:
+  exposure:
+    addresses:
+      - name: tcp-7000
+        families: ["IPv6"]
+      - name: udp-5353
+        families: ["IPv6"]
+  listeners:
+    - name: tcp-7000
+      protocol: TCP
+      port: 7000
+      addressRefs: ["tcp-7000"]
+    - name: udp-5353
+      protocol: UDP
+      port: 5353
+      addressRefs: ["udp-5353"]
+```
+
+Apply the changed file, along with a new `NetworkLoadBalancerRoute` for the new listener. The new route must send traffic to a network service port that no other route uses. If it uses the same port as an existing route, the NLB reports `BackendClaimConflict` and stops being `Ready`, although the existing listener keeps serving. The existing listener's address and hostname don't change.
+
+## Change where a listener sends traffic
+
+Edit the route's `backends`, and apply it again. You can change the network service, its port, or the health check port. To edit the route in place, run the following command:
+
+```bash
+datumctl edit networkloadbalancerroute echo-nlb-tcp-7000
+```
+
+The change reaches each location within seconds. New connections go to the new backend. To move traffic to a new version of your app without a new route, deploy the new version to the same workload instead.
+
+## Remove a listener
+
+In the Cloud Portal, delete the listener from the listeners table. An NLB needs at least one listener, so to remove the last one, delete the NLB.
+
+With a manifest, delete the listener's route, and then remove the listener and its address request from the NLB, and apply it. Datum releases the listener's address and removes its DNS record within about 15 seconds. Resolvers that cached the record keep it for up to 60 seconds. `READY` can show `False` for a few seconds after the change.
+
+## Delete an NLB
+
+Delete its routes first, and then the NLB:
+
+```bash
+datumctl delete networkloadbalancerroute echo-nlb-tcp-7000
+datumctl delete networkloadbalancer echo-nlb
+```
+
+Datum releases the NLB's addresses and removes their DNS records within about 30 seconds. If you create the NLB again, it gets new addresses and hostnames.
+
+Datum doesn't stop you from deleting an NLB that routes still use, or a network service that a route still uses:
+
+- **If you delete the NLB first,** its routes stay, report `ParentNotFound`, and still count toward your route quota. If you create an NLB with the same name, they attach to it again.
+- **If you delete the network service,** the NLB stops serving, and its routes report `BackendNotFound`. The NLB keeps its addresses, so if you create the network service again, it serves again on the same address.
+
+To remove everything for a workload, delete in this order: routes, NLBs, network services, and then the workload. For the echo example:
+
+```bash
+datumctl delete networkloadbalancerroute echo-nlb-tcp-7000
+datumctl delete networkloadbalancer echo-nlb
+datumctl delete networkservice echo
+datumctl compute destroy echo
+```
+
+## Use your own domain
+
+To give an NLB a name on your own domain, point a `CNAME` at one of its generated hostnames. See [Use your own domain](/nlb/addresses-and-hostnames#use-your-own-domain) and [Point a domain at an NLB](/domain-dns/point-to-nlb).

@@ -1,0 +1,92 @@
+---
+title: "Health checks"
+sidebarTitle: "Health checks"
+description: "How an NLB checks each Instance over TCP, when an Instance enters and leaves rotation, and how to health check a UDP service."
+---
+
+An NLB sends new connections only to Instances that pass its health check. Datum checks each Instance from the location that serves it, over TCP, on a fixed schedule.
+
+<Note>
+  NLBs are in early access. Health checks are TCP only, and their timing can't be changed.
+</Note>
+
+## How the check works
+
+A health check opens a TCP connection to the Instance on the probe port, and passes if the connection opens. It then resets the connection without sending or reading any data. So a passing check shows that the app accepts connections, not that it answers correctly.
+
+<Warning>
+  Your app sees a connection that opens and is reset every 5 seconds from an IPv6 link-local address (`fe80::...`). Make sure that it handles a reset connection without crashing. For example, an app that writes a greeting as soon as a client connects gets a "connection reset" error on every check. If that error stops the app, the Instance fails its checks.
+</Warning>
+
+| Setting | Value |
+| --- | --- |
+| Protocol | TCP |
+| Interval | Every 5 seconds |
+| Timeout | 2 seconds |
+| To enter rotation | 2 passing checks in a row |
+| To leave rotation | 1 failing check |
+
+A new Instance starts out of rotation, so the earliest it gets traffic is about 10 seconds after its app starts accepting connections. An Instance that fails a check leaves rotation within about 5 seconds. Until then, new connections that reach it fail, for example with `Connection refused`.
+
+Leaving rotation stops new connections and UDP flows from reaching the Instance.
+
+The NLB's health check is separate from the network service's view of which Instances are ready. An Instance must be ready in the network service **and** pass the NLB's health check to get traffic. The network service's `HEALTHY` count doesn't include the NLB's check.
+
+## Configure the health check
+
+The health check is part of the route's backend:
+
+```yaml
+backends:
+  - networkService:
+      name: db
+      port: postgres
+    healthCheck:
+      protocol: TCP
+```
+
+| Field | Description |
+| --- | --- |
+| `protocol` | Required. `TCP`. |
+| `port` | Optional. The **name** of a TCP port on the network service to probe. If you leave it out, Datum probes the port that the route sends traffic to. |
+
+For a TCP listener, you can leave out `healthCheck`. Datum then probes the serving port.
+
+The API also has `path`, `intervalSeconds`, `timeoutSeconds`, `healthyThreshold`, and `unhealthyThreshold` fields, and `HTTP` and `HTTPS` protocols. Early access refuses them, even when the timing fields are set to the values in the table above, so leave them out. See [Limitations and roadmap](/nlb/limitations-and-roadmap).
+
+## Health check a UDP service
+
+Datum can't health check a UDP port, because a UDP service doesn't have to answer anything. A route for a UDP listener therefore needs a health check on a separate **TCP** port of the same network service:
+
+1. Make your app also accept TCP connections on a port, such as `8080`, while it's able to serve UDP traffic. A small HTTP status endpoint works. The NLB only checks that the connection opens.
+2. Add the TCP port to the network service, alongside the UDP port.
+3. Set `healthCheck.port` to the TCP port's name:
+
+   ```yaml
+   backends:
+     - networkService:
+         name: game
+         port: game        # UDP 7777
+       healthCheck:
+         protocol: TCP
+         port: health      # TCP 8080
+   ```
+
+`datumctl apply` accepts a UDP route without a health check, or with a probe port that isn't a TCP port on the service. The route then reports `HealthCheckInvalid` in its status, and doesn't serve.
+
+In the [Cloud Portal](https://cloud.datum.net), the **Health check** step of the create dialog asks for the TCP probe port. For a UDP listener, choose one of the network service's TCP ports.
+
+## When no Instance is healthy
+
+When a location has no healthy Instance, Datum stops announcing that location's address within a few seconds. Clients that connect during those seconds get `Connection refused`. After that, their connections time out.
+
+- **The address and hostname stay.** The address stays allocated to the NLB, and the hostname keeps resolving to it, so clients still find the address and then time out. When an Instance passes its checks again, Datum announces the address again within about 10 seconds.
+- **Traffic doesn't move to another location.** Clients that use the location's hostname or address get no answer until an Instance there is healthy again.
+- **The status shows it.** The NLB reports `Programmed` `False` with reason `NoHealthyBackends`, and `Ready` `False` with reason `NotServed`. The address's `Announced` condition is `False`.
+
+The status doesn't show a single unhealthy Instance while others pass. The NLB stays `Ready`. See [Observability](/nlb/observability).
+
+## What's next
+
+- To see what each Instance receives once it's in rotation, see [How the NLB handles traffic](/nlb/traffic-handling).
+- To find out why Instances aren't passing, see [Troubleshooting](/nlb/troubleshooting).

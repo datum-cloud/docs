@@ -1,0 +1,51 @@
+---
+title: "How the NLB handles traffic"
+sidebarTitle: "Traffic handling"
+description: "How a Network Load Balancer spreads TCP connections and UDP flows across Instances, which source address your app sees, how long idle connections stay open, and the largest UDP datagram it carries."
+---
+
+A Network Load Balancer forwards packets. It doesn't end connections, read the traffic, or change it. The client's TCP connection or UDP flow reaches your app as the client sent it, except for the destination address and port.
+
+<Note>
+  NLBs are in early access, and the behavior on this page can change.
+</Note>
+
+## How connections are spread
+
+Each new TCP connection or UDP flow goes to one healthy Instance in the location that the client connected to. Datum picks the Instance with a hash of the connection's source and destination addresses, ports, and protocol. Then:
+
+- **Every packet of a connection or flow goes to the same Instance.** For UDP, a flow is the datagrams between one client address and port and the listener. Datagrams from the same client port keep reaching the same Instance.
+- **New connections spread out.** Different connections, even from the same client, can go to different Instances. Over many connections, each Instance gets about the same share.
+- **There's no session affinity.** A client that reconnects, or sends UDP from a new source port, can reach a different Instance. If your app keeps state for a client across connections, such as a game session, store that state where every Instance can reach it, or run one Instance in each location.
+- **Traffic stays in its location.** Connections to a location's address go only to Instances in that location. To serve clients from several locations, run Instances in each, and send clients to each location's hostname. See [Addresses and hostnames](/nlb/addresses-and-hostnames).
+
+## Clients on Datum
+
+A Datum Instance can reach an NLB address in another location, but not in its own location. For example, an Instance in `us-east-1` can connect to an NLB's `us-central-1` hostname, but not to its `us-east-1` hostname. For traffic between your own workloads, connect over the private network instead, with a [network service](/galactic-vpc/networks/network-services) or [Private DNS](/compute/private-dns), which doesn't leave Datum.
+
+## What your app sees
+
+| | What your app sees |
+| --- | --- |
+| Source address | The client's public IPv6 address. Datum doesn't replace it, so your app can log clients and limit them by address. |
+| Destination port | The network service port, such as `15432`, not the listener's port. See [Port mapping](/nlb/listeners-and-routes#port-mapping). |
+| Data | Exactly what the client sent. TLS stays encrypted end to end. Datum doesn't add a PROXY protocol header. |
+| Health checks | A TCP connection every 5 seconds from an IPv6 link-local address (`fe80::...`), which is reset without data. See [Health checks](/nlb/health-checks). |
+
+Your app's replies go back to the client through the NLB, from the NLB's public address. Your app doesn't need a public address or a route to the internet for this.
+
+Your app must accept connections over IPv6. A server that listens only on `0.0.0.0` doesn't receive NLB traffic. Listen on `::` instead.
+
+## Idle connections
+
+Datum doesn't document an idle timeout for NLB connections. TCP connections that are idle for 14 minutes stay open. If your protocol can leave a connection idle for longer, turn on TCP keepalives or send application-level keepalives, as you would behind any load balancer.
+
+## Packet size
+
+Instances have an MTU of 1440 bytes. Through a UDP listener, the largest datagram payload that reaches your app is **1392 bytes**, in either direction. A larger datagram is fragmented, and fragments are dropped, so the datagram never arrives.
+
+Keep UDP payloads at or below 1392 bytes. Many game, voice, and DNS protocols already use smaller packets. For DNS over UDP, set the EDNS buffer size to 1232 bytes, the common default.
+
+## What's next
+
+- To see when Instances enter and leave rotation, see [Health checks](/nlb/health-checks).
