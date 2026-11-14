@@ -75,3 +75,47 @@ If you use [ExternalDNS](/domain-dns/operations#automate-records-with-externaldn
 - The webhook needs permission to read `dnszones` and to manage `dnsrecordsets` in your project.
 
 For the webhook's metrics, see [Observability](/domain-dns/observability#externaldns-webhook-metrics).
+
+## Private DNS
+
+These checks apply to [Private DNS](/domain-dns/private-dns) names, which resolve only inside a gVPC network.
+
+### A private name doesn't resolve
+
+Work through these checks in order, from an Instance on the network:
+
+1. **Use the full name.** Look up `web-default-us-central-1-0.instances.datum.internal`, not `web-default-us-central-1-0`. Short names depend on search domains.
+2. **Check the network.** A private name resolves only from networks its zone is associated with. An Instance name resolves only from the Instance's own network.
+3. **Check the resolver.** Run `cat /etc/resolv.conf` in a `general-purpose` Instance. The app must use these resolvers. An app that uses its own resolver, such as DNS over HTTPS or a hard-coded public resolver, can't resolve private names.
+4. **Check the Instance.** An Instance name exists only while the Instance is ready. Run `datumctl get instance INSTANCE_NAME -o yaml` and check `status.dns`. If its condition isn't `Ready`, the reason says why.
+5. **Check the zone.** Run `datumctl get dnszone ZONE_NAME`. If `PROGRAMMED` isn't `True`, wait a minute and check again. A zone that isn't associated with any network shows no status.
+6. **Check the record or association.** See the next section.
+7. **Check `CNAME` targets.** A `CNAME` that points into another zone may return only the `CNAME`. Point it at a name in the same zone, or use `AAAA` records.
+
+### A record set or association isn't accepted
+
+Read the reason:
+
+```bash
+datumctl get dnsrecordset RECORDSET_NAME \
+  -o jsonpath='{.status.conditions[?(@.type=="Accepted")].reason}'
+datumctl get dnszoneassociation ASSOCIATION_NAME \
+  -o jsonpath='{.status.conditions[?(@.type=="Accepted")].reason}'
+```
+
+| Reason | What it means | What to do |
+| --- | --- | --- |
+| `UnsupportedPrivateRecord` | The record set uses a type or name that private zones don't support, such as `ALIAS`, `SOA`, or a `CNAME` at the zone's own domain. | Use a supported record. See [Record rules](/domain-dns/private-dns-reference#record-rules). |
+| `ReservedScope` | The name is at or below a name that a Datum service owns, such as `instances.datum.internal`. | Use a different name. |
+| `NameConflict` | An older record set already has this name and type, or a `CNAME` shares the name with another type. | Change the record in the record set that has it, or delete that record set first. |
+| `MissingSRVTargetAddress` | An `SRV` target has no `A` or `AAAA` record in the same zone. | Add an address record for the target in the zone. |
+| `ConflictingTTL` | One name in the record set has two different TTLs. | Use one TTL for each name. |
+| `InvalidRecord`, `InvalidTTL` | A value doesn't match its record type, or the TTL is out of range. | Fix the value. |
+| `ApexConflict` | Another zone with the same domain is associated with this network. The association whose name sorts first keeps the domain. | Delete the association you don't want. |
+| `InvalidReference` | The association's zone or DNS context doesn't exist, was deleted, or was replaced by a new one with the same name. | Check both names. If they exist, delete the association and create it again. |
+
+A request can also be refused when you apply it. A message that starts with `ReservedScope:` means the same as the reason above. A `not found` error, or one that mentions `private zone lookup` or `resolver context lookup`, means the zone or DNS context you named doesn't exist in the project.
+
+### A name returns an old answer
+
+Clients and resolvers keep an answer until its TTL expires. Instance names have a 30 second TTL. Records you create default to 300 seconds. To make changes show up sooner, lower the record's TTL before you change it.
