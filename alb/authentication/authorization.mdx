@@ -1,0 +1,178 @@
+---
+title: "Authorization rules"
+sidebarTitle: "Authorization rules"
+description: "Decide who is allowed through a Datum load balancer by token claims, such as email, domain, or role, or by request headers, HTTP methods, and client IP ranges."
+---
+
+Authentication proves who is calling. Authorization decides whether they're allowed in. An `authorization` block in a `SecurityPolicy` checks each request against a list of rules at the edge, and returns `403 Forbidden` to callers who aren't allowed, so your origin never sees them.
+
+Use it to:
+
+- Let in only some of the people who can sign in with [OIDC](/alb/authentication/oidc), such as one Google Workspace domain or a list of email addresses.
+- Allow only tokens with a given role or scope on a [JWT](/alb/authentication/jwt) API.
+- Allow or block client IP ranges, with or without any other authentication.
+- Leave reads open and protect writes.
+
+## How rules work
+
+```yaml
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: admins
+        action: Allow
+        principal:
+          jwt:
+            provider: corp
+            claims:
+              - name: roles
+                valueType: StringArray
+                values: ["admin"]
+```
+
+- **Rules run in order, and the first match wins.** Put specific `Deny` rules before broader `Allow` rules.
+- **`defaultAction`** applies when no rule matches. It defaults to `Deny`.
+- **A rule matches** when all of its conditions match: every part of `principal`, and `operation` if set. Within one condition, any of the listed values matches.
+- **Denied requests get `403`.**
+
+The `authorization` block goes in the same `SecurityPolicy` as the authentication it relies on. A rule on JWT claims needs a `jwt` block in that policy, and names its provider.
+
+## What a rule can match
+
+| Condition | Matches | Example |
+| --- | --- | --- |
+| `principal.jwt.claims` | A claim in a token checked by the policy's `jwt` block | `email` is `alice@example.com` |
+| `principal.jwt.scopes` | Scopes in the token's `scope` claim | `orders:write` |
+| `principal.headers` | A request header's exact value | `x-team: payments` |
+| `principal.clientCIDRs` | The client's IP address range | `203.0.113.0/24` |
+| `operation.methods` | The HTTP method | `POST`, `DELETE` |
+
+### Claims
+
+```yaml
+          jwt:
+            provider: corp
+            claims:
+              - name: email
+                values: ["alice@example.com", "bob@example.com"]
+              - name: realm_access.roles
+                valueType: StringArray
+                values: ["admin"]
+```
+
+- Values match **exactly**. There are no wildcards: `*@example.com` matches nothing.
+- For a claim that holds a list, such as roles or groups, set `valueType: StringArray`. The rule matches if the list contains any of the values.
+- For a nested claim, join the path with dots, as in `realm_access.roles`.
+- Only text claims can be matched. A true or false claim, such as `email_verified`, can't.
+- Several claims in one rule must all match.
+
+### Headers
+
+Header rules match the header's exact value. Clients can set most headers themselves, so only trust a header that Envoy sets, such as `X-Client-Id` from [API keys](/alb/authentication/api-keys), or one that a trusted client adds.
+
+### Client IP ranges
+
+```yaml
+    rules:
+      - name: office
+        action: Allow
+        principal:
+          clientCIDRs:
+            - 203.0.113.0/24
+            - 2001:db8:1234::/48
+```
+
+A policy can have only an `authorization` block, with no authentication, to make a simple IP allow list. Many clients, such as mobile users, cloud browsers, and CI runners, change address often, so IP rules work best combined with another method.
+
+## Examples
+
+### Allow one Google Workspace domain
+
+Google signs in anyone with a Google account. Google's ID token carries an `hd` claim with the Workspace domain, and only Workspace accounts have it. With [OIDC set up for Google](/alb/authentication/oidc-google) and a `jwt` block that reads the ID token, allow only your domain:
+
+```yaml
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: workspace-domain
+        action: Allow
+        principal:
+          jwt:
+            provider: google
+            claims:
+              - name: hd
+                values: ["example.com"]
+```
+
+See [Restrict who can sign in](/alb/authentication/oidc-google#restrict-who-can-sign-in) for the full policy.
+
+### Allow listed people
+
+```yaml
+      - name: listed-people
+        action: Allow
+        principal:
+          jwt:
+            provider: idp
+            claims:
+              - name: email
+                values: ["alice@example.com", "bob@example.com"]
+```
+
+Email addresses can change. Where the provider offers a stable ID, such as `sub`, prefer it.
+
+### Read for everyone, write for editors
+
+With `jwt.optional: true`, requests without a token still reach the rules:
+
+```yaml
+  jwt:
+    optional: true
+    providers:
+      - name: corp
+        # ...
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: reads
+        action: Allow
+        operation:
+          methods: ["GET", "HEAD", "OPTIONS"]
+        principal:
+          clientCIDRs: ["0.0.0.0/0", "::/0"]
+      - name: editors-write
+        action: Allow
+        principal:
+          jwt:
+            provider: corp
+            claims:
+              - name: groups
+                valueType: StringArray
+                values: ["editors"]
+```
+
+### Block one caller at once
+
+Tokens stay valid until they expire. To cut off one caller now, put a `Deny` rule first:
+
+```yaml
+    rules:
+      - name: revoked
+        action: Deny
+        principal:
+          jwt:
+            provider: corp
+            claims:
+              - name: sub
+                values: ["7d1c0e2a-revoked-user"]
+      # ...your Allow rules
+```
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| `403` for everyone | The claim isn't in the token, a list claim lacks `valueType: StringArray`, or the claim name is wrong. | Decode a token and check the claim's exact name and type. Ask your provider to include it, such as by requesting the right scope. |
+| `403` for some people who should get in | Values match exactly, including case. | Use the exact value from the token. |
+| A rule seems ignored | An earlier rule matched first. | Reorder the rules. |
+| The rule is never checked | The policy wasn't accepted. | Run `datumctl describe securitypolicy` and look for `Conflicted`. |

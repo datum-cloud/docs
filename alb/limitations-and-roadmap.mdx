@@ -17,6 +17,12 @@ The Application Load Balancer is still being built. This page lists known limita
 - Status shows when a change is published, not when every location serves it, and there is no per-location status. See [When a load balancer is not serving](/alb/troubleshooting).
 - A response must finish within 15 seconds by default, including a streaming response such as Server-Sent Events (SSE) or a long MCP response. `HTTPProxy` has no timeout field. A `BackendTrafficPolicy` raises the limit to at most 1 hour. See [How long a response can stay open](/alb/request-handling#how-long-a-response-can-stay-open).
 - `ClientTrafficPolicy` isn't available in projects, so client-side TLS versions, HTTP versions, and connection limits can't be changed.
+- `datumctl alb auth` and the portal set up Basic Auth only. API keys, JWT, OIDC, authorization rules, and CORS need a `SecurityPolicy` manifest, and `datumctl alb describe` doesn't show them. See [Authentication](/alb/authentication/overview).
+- A load balancer can't require client certificates (mutual TLS), and a `SecurityPolicy` can't call your own authorization service (`extAuth`) or retry requests to an identity provider.
+- There are no metrics or log fields for authentication. Access logs show only the response code, such as `401` or `403`.
+- An OIDC identity provider served through a Datum load balancer can fail some sign-ins with `401 OAuth flow failed`. Host the identity provider outside Datum for now. See [Running your own identity provider](/alb/authentication/oidc#running-your-own-identity-provider).
+- `datumctl alb auth unset` and `datumctl alb delete` leave the Basic Auth Secret behind, and deleting it can leave it in `Terminating` indefinitely.
+- `datumctl alb auth set` attaches Basic Auth to the Gateway. Any `SecurityPolicy` on one of the load balancer's routes replaces it for that route, and `datumctl alb describe` doesn't show that.
 - For limits on load balancers attached to Compute workloads, see [Compute and ALB](/compute/compute-and-alb#limitations).
 
 ## Roadmap

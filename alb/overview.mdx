@@ -63,7 +63,7 @@ Application Load Balancer (product)
 │         DNSRecordSet(s), and TLS certificates (ACME)
 ├── TrafficProtectionPolicy (created with the proxy, same name) — Coraza/OWASP WAF
 │     └── targetRefs → Gateway
-└── [optional] SecurityPolicy + Secret *-basic-auth — basic authentication
+└── [optional] SecurityPolicy (+ Secret) — Basic Auth, API keys, JWT, OIDC, CORS
 ```
 
 | Piece | Role |
@@ -72,7 +72,7 @@ Application Load Balancer (product)
 | **`TrafficProtectionPolicy`** | WAF policy (Observe / Enforce / Disabled) attached 1:1 to the proxy's Gateway |
 | **Gateway** (operator) | Provisioned from the HTTPProxy; WAF and auth policies target it |
 | **DNS + TLS** (operator) | Canonical hostname, DNSRecordSets, and ACME certificates from proxy status |
-| **SecurityPolicy** (optional) | Basic Auth via [Envoy Gateway](https://gateway.envoyproxy.io/), backed by a Secret |
+| **SecurityPolicy** (optional) | Authentication and authorization via [Envoy Gateway](https://gateway.envoyproxy.io/): Basic Auth, API keys, JWT, OIDC sign-in, authorization rules, and CORS. Credentials live in a Secret. |
 
 Portal create always POSTs an `HTTPProxy`, then attempts a matching `TrafficProtectionPolicy` (best-effort today if WAF attach fails). There's no composite ALB API yet. With `datumctl`, `datumctl alb create` creates the `HTTPProxy` and its `TrafficProtectionPolicy` for you (see [Create a load balancer](/alb/operations/overview#create-a-load-balancer)), or you can apply the resources yourself.
 
@@ -84,7 +84,7 @@ Each Application Load Balancer deploys with a default hostname and enforces HTTP
 
 - **Protection** - The [**OWASP Coraza Web Application Firewall (WAF)**](https://www.coraza.io/) provides built-in protection with the [OWASP Core Rule Set](https://coreruleset.org/), running inside Envoy before requests reach your origin. A load balancer created with `datumctl alb create` starts in `Enforce` mode at sensitivity 1. A `TrafficProtectionPolicy` that doesn't set a mode runs in `Observe` mode. See [Roll out traffic protection safely](/alb/operations/traffic-protection).
 - **Custom Hostnames** – Verify domains (or use already verified domain resources) to use custom hostnames with an Application Load Balancer.
-- **Basic Authentication** - Add a username and password to restrict access to an Application Load Balancer.
+- **Authentication** - Check who is calling before requests reach your origin, with Basic Auth, API keys, JWT, or sign-in with any OIDC provider, and allow only the people or clients you choose. See [Authentication](/alb/authentication/overview).
 - **Load Balancing** - Split traffic across several origins by weight, choose the load balancing algorithm, and turn on passive health checks. See [Load balancing and health checks](/alb/configuration/load-balancing).
 
 To monitor the health of your Application Load Balancers, you can use:

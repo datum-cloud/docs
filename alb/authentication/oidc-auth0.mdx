@@ -1,10 +1,14 @@
 ---
 title: "Per-user access with Auth0"
 sidebarTitle: "Auth0 (per-user)"
-description: "Configure per-user authentication and email-based authorization using Auth0 and Google social login for applications behind a Datum gateway."
+description: "Let only the people on an Auth0 allow-list reach your app, with Auth0 handling Google sign-in and an Envoy Gateway SecurityPolicy at the edge."
 ---
 
 This page shows how to let only the people on your allow-list reach your app. Auth0 handles Google sign-in and checks each person's email against the list before it issues a token, so people who aren't allowed never reach Envoy. The configuration uses an [Envoy Gateway](https://gateway.envoyproxy.io/) `SecurityPolicy` and `datumctl`.
+
+<Tip>
+  You don't need Auth0 to limit who gets in. With any OIDC provider, including Google directly, an [authorization rule](/alb/authentication/authorization) at the load balancer can allow only certain email addresses, domains, or roles. See [Restrict who can sign in](/alb/authentication/oidc#restrict-who-can-sign-in). Use Auth0 when you want it to manage users, or to combine several sign-in sources.
+</Tip>
 
 ---
 
@@ -42,11 +46,11 @@ sequenceDiagram
 
 - `datumctl` installed and authenticated
 - A valid Datum **Project**
-- An existing **HTTPProxy** in the Datum UI (this provides the Gateway and HTTPRoute automatically)
+- An existing load balancer, created in the portal or with `datumctl alb create`. It provides the Gateway and HTTPRoute automatically.
 - An **Auth0 account** (free tier is sufficient)
 - A **Google Cloud** project for the social connection
 
-> **Note:** The HTTPProxy name is the name of the auto-generated HTTPRoute that the SecurityPolicy will target. Find it with:
+> **Note:** The load balancer's name is the name of the auto-generated HTTPRoute that the SecurityPolicy will target. Find it with:
 > ```bash
 > datumctl get httproute --project your-project-id --namespace default
 > ```
@@ -219,7 +223,7 @@ The Secret must include the `gateway-sync` label or the edge proxy will not rece
 
 This attaches OIDC authentication to the existing HTTPProxy route.
 
-> **Warning:** Use only the `oidc` block — do not add a `jwt` block, as it conflicts with the OIDC filter and causes HTTP 500.
+> **Note:** To check claims on top of Auth0's allow-list, a `jwt` block in the same policy can read the ID token from its cookie. See [Restrict who can sign in](/alb/authentication/oidc#restrict-who-can-sign-in). Point it at the ID token, not the access token: unless you request an API audience, Auth0's access token isn't a JWT.
 
 <Tabs>
   <Tab title="macOS / Linux">
@@ -328,6 +332,8 @@ All access control is managed in the Auth0 dashboard — no gateway config chang
 2. Select **Deploy**
 3. Optionally revoke any active sessions: **User Management** → find user → **Invalidate Sessions**
 
+A person who is already signed in keeps their session at the load balancer until the access token expires and Envoy can't renew it. Keep Auth0's access-token lifetime short if removals must take effect quickly.
+
 ---
 
 ## Cleanup
@@ -364,8 +370,9 @@ All access control is managed in the Auth0 dashboard — no gateway config chang
 | Symptom | Root cause | Resolution |
 |---------|------------|------------|
 | HTTP 200 instead of redirect | SecurityPolicy not yet propagated | Wait 60 seconds; verify with `datumctl get securitypolicy` |
-| HTTP 500 on all requests (immediate) | `jwt` block present in SecurityPolicy | Remove `jwt` block — use `oidc` block only |
-| HTTP 500 on all requests (immediate) | WAF (`TrafficProtectionPolicy`) blocking OIDC | Remove the `TrafficProtectionPolicy` targeting the Gateway |
+| HTTP 500 on all requests (immediate) | Auth0 was unreachable, or the issuer URL was wrong, when the policy arrived | Check `https://<auth0Domain>/.well-known/openid-configuration`, then delete and reapply the policy |
+| HTTP 403 on the callback | The web application firewall blocked the callback request | Check firewall events in the [access logs](/alb/observability), and add a rule exclusion. See [Web application firewall](/alb/configuration/waf). Don't remove the firewall. |
+| HTTP 403 for everyone after sign-in | A `jwt` block reads the access token, or `audiences` isn't the client ID | Read the ID token cookie, and set `audiences` to the Auth0 client ID |
 | HTTP 500 on all requests | Secret missing `gateway-sync` label | Verify label is present; re-apply Secret if needed |
 | Auth0 error: `callback URL mismatch` | App hostname not in Auth0 Allowed Callback URLs | Add `https://<hostname>/oauth2/callback` in Auth0 Application Settings |
 | Google error 400: `redirect_uri_mismatch` | Auth0 callback not in Google OAuth client | Add `https://<auth0Domain>/login/callback` to Google Cloud Console Authorized redirect URIs |

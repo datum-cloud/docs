@@ -1,0 +1,135 @@
+---
+title: "API keys"
+sidebarTitle: "API keys"
+description: "Give each script, CI job, or partner its own API key, checked at the edge, and pass the client's name to your origin."
+---
+
+API key authentication accepts a request only if it carries one of the keys you issued. [Envoy](/platform/envoy) checks the key at the edge, so requests without a valid key never reach your origin.
+
+Each key has a name, such as `ci-pipeline` or `partner-acme`, and Envoy can pass that name to your origin. That gives each machine client its own identity, which you can revoke on its own, without the shared password of [Basic Auth](/alb/authentication/basic-auth) or the identity provider that [JWT](/alb/authentication/jwt) needs.
+
+## Set up API keys
+
+Keys live in a Secret. Each entry's **name** is the client's name, and its **value** is the key. Generate long random keys, such as with `openssl rand -hex 32`.
+
+Save this as `api-keys.yaml`, with your own keys:
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ALB_NAME-api-keys
+  labels:
+    networking.datumapis.com/gateway-sync: "true"
+type: Opaque
+stringData:
+  ci-pipeline: "REPLACE_WITH_A_RANDOM_KEY"
+  partner-acme: "REPLACE_WITH_ANOTHER_RANDOM_KEY"
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ALB_NAME-api-keys
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: ALB_NAME
+  apiKeyAuth:
+    credentialRefs:
+      - name: ALB_NAME-api-keys
+    extractFrom:
+      - headers:
+          - x-api-key
+    forwardClientIDHeader: X-Client-Id
+    sanitize: true
+```
+
+```bash
+datumctl apply -f api-keys.yaml
+```
+
+Then call the load balancer with a key:
+
+```bash
+curl -H "x-api-key: $KEY" https://HOSTNAME/
+```
+
+A request with no key or a wrong key gets `401`. A request with a valid key reaches your origin with `X-Client-Id: ci-pipeline`, or whichever name the key has.
+
+| Field | What it does |
+| --- | --- |
+| `credentialRefs` | One or more Secrets holding keys. Split keys across Secrets by team or partner if you like. |
+| `extractFrom` | Where to look for the key: `headers`, `params` (query parameters), or `cookies` |
+| `forwardClientIDHeader` | Sends the key's name to your origin in this header. Envoy overwrites any value the client sent, so it can't be faked. |
+| `sanitize` | Removes the key from the request before it reaches your origin. Without it, your origin receives the key too. |
+
+## Add, rotate, and revoke keys
+
+Envoy picks up changes to the Secret within seconds, with no change to the policy.
+
+- **Add a key:** add an entry to the Secret, or a new Secret to `credentialRefs`.
+- **Rotate a key:** add the new key under a new name, such as `ci-pipeline-2`, move the client over, then revoke the old one.
+- **Revoke a key:** remove its entry from the Secret's `data`:
+
+  ```bash
+  datumctl patch secret ALB_NAME-api-keys --type=json \
+    -p '[{"op":"remove","path":"/data/partner-acme"}]'
+  ```
+
+<Warning>
+  Re-applying a manifest that leaves a key out of `stringData` does **not** remove the key. The stored value stays in the Secret's `data`, and the key keeps working. Remove it from `data` with `datumctl patch`, or delete and recreate the Secret.
+</Warning>
+
+## Limit each client's request rate
+
+Because Envoy sets `X-Client-Id` from the key, you can give each client its own rate limit with a `BackendTrafficPolicy` on the same route:
+
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: ALB_NAME-api-limits
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: ALB_NAME
+  rateLimit:
+    type: Local
+    local:
+      rules:
+        - clientSelectors:
+            - headers:
+                - name: X-Client-Id
+                  type: Distinct
+          limit:
+            requests: 600
+            unit: Minute
+```
+
+Each client gets its own count, and requests over the limit get `429`. Limits are counted separately by each Envoy instance, so treat them as approximate: a client can sometimes get slightly more than the limit.
+
+## Give clients different access
+
+A key identifies a client but grants nothing by itself: every valid key reaches every path the policy protects. To give clients different access:
+
+- Put each group of paths on its own route, with its own policy and keys. See [Different authentication per path](/alb/authentication/per-path).
+- Or check `X-Client-Id` in your origin.
+
+## Things to know
+
+- **Keys are stored as plain text** in the Secret. Anyone who can read Secrets in your project can read the keys. Limit who has that access.
+- **Keys don't expire.** Rotate them yourself.
+- **A key in a query parameter** ends up in browser history and server logs. Prefer a header.
+- **Combining with JWT:** a policy with both `apiKeyAuth` and `jwt` requires both a key and a token.
+- **No per-key metrics.** Access logs show response codes, but not which key was used.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| `500` on every request | A Secret in `credentialRefs` is missing the `gateway-sync` label or doesn't exist. | Add the label, and check the names. |
+| `401` with a valid key | The key is sent in a different header, parameter, or cookie than `extractFrom` lists. | Match `extractFrom` to how clients send the key. |
+| A revoked key still works | The key was removed from `stringData` in a manifest but is still in `data`. | Remove it with `datumctl patch`, as above. |
+| The origin receives the key | `sanitize` isn't set. | Set `sanitize: true`. |

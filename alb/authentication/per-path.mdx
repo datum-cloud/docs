@@ -1,0 +1,110 @@
+---
+title: "Different authentication per path"
+sidebarTitle: "Per-path authentication"
+description: "Protect different paths of one Datum load balancer with different methods, such as OIDC for people and API keys or JWT for machines."
+---
+
+A `SecurityPolicy` protects a whole route. A load balancer starts with one route, named after the load balancer, that serves every path. To protect a path differently, add a second route for that path and give it its own policy. The most specific path wins, so requests to that path use the new route and its policy, and everything else stays on the original route.
+
+A common setup:
+
+| Path | Route | Policy |
+| --- | --- | --- |
+| `/` | `ALB_NAME`, created with the load balancer | [OIDC](/alb/authentication/oidc) for people using the web app |
+| `/api` | `ALB_NAME-api`, added by you | [API keys](/alb/authentication/api-keys) or [JWT](/alb/authentication/jwt) for machines |
+| `/healthz` | `ALB_NAME-health`, added by you | No policy, so it's open to uptime monitors |
+
+## Step 1: Copy the backend from the load balancer's route
+
+The new route sends traffic to the same origin, so copy its `backendRefs` and `filters` from the load balancer's route:
+
+```bash
+datumctl get httproute ALB_NAME -o yaml
+```
+
+Look for the rule with `backendRefs`. It looks like this:
+
+```yaml
+  - backendRefs:
+    - group: discovery.k8s.io
+      kind: EndpointSlice
+      name: ALB_NAME-1-0
+      port: 443
+      weight: 1
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        hostname: origin.example.com
+    matches:
+    - path:
+        type: PathPrefix
+        value: /
+```
+
+## Step 2: Add a route for the path
+
+Save this as `api-route.yaml`, with the `backendRefs` and `filters` you copied:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ALB_NAME-api
+spec:
+  parentRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: ALB_NAME
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            hostname: origin.example.com
+      backendRefs:
+        - group: discovery.k8s.io
+          kind: EndpointSlice
+          name: ALB_NAME-1-0
+          port: 443
+```
+
+```bash
+datumctl apply -f api-route.yaml
+```
+
+The route attaches to the load balancer's Gateway, which has the same name as the load balancer, and serves all of its hostnames.
+
+## Step 3: Attach a policy to the new route
+
+Point a policy's `targetRefs` at the new route, for example the API key policy from [API keys](/alb/authentication/api-keys):
+
+```yaml
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: ALB_NAME-api
+  apiKeyAuth:
+    # ...
+```
+
+To leave a path open, add a route for it and attach no policy. A route without its own policy is still covered by a policy on the Gateway, such as the one `datumctl alb auth set` creates. To keep a path open in that case, attach a policy to its route that has only a `cors` block.
+
+## Check it
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' https://HOSTNAME/              # 302: OIDC sign-in
+curl -s -o /dev/null -w '%{http_code}\n' https://HOSTNAME/api           # 401: no API key
+curl -s -o /dev/null -w '%{http_code}\n' -H "x-api-key: $KEY" https://HOSTNAME/api   # 200
+```
+
+## Things to know
+
+- **`datumctl alb` and the portal don't show routes you add yourself.** `datumctl alb describe` lists only the load balancer's own routes. List all routes with `datumctl get httproutes`.
+- **Origin changes don't reach your route.** If you change the load balancer's origin with `datumctl alb` or the portal, the backend name in your route may change. Copy it again.
+- **The path isn't removed.** A request to `/api/orders` reaches your origin as `/api/orders`.
+- **Each OIDC policy needs its own callback path** when two routes on one hostname both use OIDC. See [Several sign-in policies on one hostname](/alb/authentication/oidc#several-sign-in-policies-on-one-hostname).
+- **Delete your routes, policies, and Secrets before the load balancer.** `datumctl alb delete` doesn't remove resources you created. Routes you add are left behind with no Gateway.

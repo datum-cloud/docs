@@ -1,0 +1,160 @@
+---
+title: "JWT authentication"
+sidebarTitle: "JWT"
+description: "Accept only requests that carry a valid JSON Web Token from your own issuer, and pass the caller's claims to your origin."
+---
+
+JWT authentication accepts a request only if it carries a valid [JSON Web Token](https://datatracker.ietf.org/doc/html/rfc7519) from an issuer you trust. [Envoy](/platform/envoy) checks the token's signature, issuer, audience, and expiry at the edge, so your origin never sees a request with a missing, expired, or forged token.
+
+It suits APIs and machine clients that already get tokens from an identity provider, for example with the OAuth 2.0 client credentials grant. Datum stores no users or keys: the issuer signs tokens, and Envoy checks them against the issuer's public keys.
+
+For people signing in with a browser, use [OIDC](/alb/authentication/oidc) instead. OIDC runs the sign-in flow and can then check the resulting token with the same `jwt` block.
+
+## Set up JWT authentication
+
+Save this as `jwt.yaml`, with your own issuer, audience, and key URL:
+
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ALB_NAME-jwt
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: ALB_NAME
+  jwt:
+    providers:
+      - name: corp
+        issuer: https://idp.example.com/realms/corp
+        audiences:
+          - orders-api
+        remoteJWKS:
+          uri: https://idp.example.com/realms/corp/protocol/openid-connect/certs
+        claimToHeaders:
+          - claim: sub
+            header: X-User
+          - claim: email
+            header: X-Email
+```
+
+```bash
+datumctl apply -f jwt.yaml
+```
+
+No Secret is needed. Then call the load balancer with a token:
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" https://HOSTNAME/
+```
+
+| Request | Response |
+| --- | --- |
+| No token | `401` |
+| A forged, altered, or `alg: none` token | `401` |
+| An expired token | `401`, once it is more than 60 seconds past `exp` |
+| A token for an audience not in `audiences` | `403` |
+| A valid token | Forwarded to your origin |
+
+## Provider fields
+
+| Field | What it does |
+| --- | --- |
+| `name` | A name for the provider. Authorization rules refer to it. |
+| `issuer` | Must equal the token's `iss` claim exactly, including any trailing slash. Leave it out to accept any issuer whose keys verify the token. |
+| `audiences` | Accept only tokens whose `aud` claim contains one of these values. Leave it out to skip the audience check. |
+| `remoteJWKS.uri` | Your issuer's public keys (its `jwks_uri`). Envoy fetches and caches them, so key rotation at the issuer needs no change here. |
+| `localJWKS` | The public keys written into the policy instead of fetched. See [Keys in the policy](#keys-in-the-policy). |
+| `claimToHeaders` | Copies claims into request headers for your origin |
+| `extractFrom` | Where to find the token, if not in `Authorization: Bearer`. See [Token location](#token-location). |
+| `recomputeRoute` | Re-matches the route after `claimToHeaders` sets headers, so routes can match on a claim. Needs `claimToHeaders`. |
+
+Field names follow [Envoy Gateway's JWT reference](https://gateway.envoyproxy.io/docs/api/extension_types/#jwtprovider).
+
+### Keys in the policy
+
+If your issuer has no public JWKS URL, or you sign tokens yourself, put the public keys in the policy:
+
+```yaml
+      - name: internal
+        issuer: https://issuer.example.com
+        localJWKS:
+          type: Inline
+          inline: |
+            {"keys":[{"kty":"RSA","kid":"key-1","use":"sig","alg":"RS256","n":"uTfRz4Tc...","e":"AQAB"}]}
+```
+
+To rotate a key, add the new public key to `keys`, switch the signer, then remove the old key.
+
+### Token location
+
+By default, Envoy reads the token from `Authorization: Bearer`. To read it from somewhere else, set `extractFrom`. Once it is set, Envoy reads only the locations you list:
+
+```yaml
+        extractFrom:
+          headers:
+            - name: X-Api-Token
+              valuePrefix: "Bearer "
+          cookies:
+            - session-token
+          params:
+            - access_token
+```
+
+### Several issuers
+
+List several providers to accept tokens from any of them, such as a staging and a production issuer. A request passes if its token is valid for one provider.
+
+### Optional tokens
+
+`optional: true` under `jwt` lets requests without a token through. Requests with an invalid token are still rejected, and requests with a valid one still get their claim headers. Use it with [authorization rules](/alb/authentication/authorization) to protect some methods and leave others open.
+
+```yaml
+  jwt:
+    optional: true
+    providers:
+      - name: corp
+        # ...
+```
+
+## Decide who is allowed
+
+A valid token proves who the caller is, not what they may do. To allow only some callers, such as tokens with an `admin` role or a given client ID, add an `authorization` block to the same policy:
+
+```yaml
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: admins
+        action: Allow
+        principal:
+          jwt:
+            provider: corp
+            claims:
+              - name: roles
+                valueType: StringArray
+                values: ["admin"]
+```
+
+A valid token that doesn't match gets `403`. See [Authorization rules](/alb/authentication/authorization).
+
+## Revoking access
+
+Envoy doesn't call the issuer on each request, so a token stays valid until it expires, even after you disable the account or client at the issuer. Envoy also allows 60 seconds of clock skew past `exp`, which you can't change.
+
+Keep token lifetimes short, such as 5 to 15 minutes, so that disabling an account at the issuer takes effect quickly. To cut off a caller at once, block it with an [authorization rule](/alb/authentication/authorization), such as a `Deny` rule on its `sub` or client ID.
+
+## Combine with other methods
+
+- **API keys:** a policy with both `apiKeyAuth` and `jwt` requires both, such as a key for the calling app and a token for the user.
+- **OIDC:** a policy with both `oidc` and `jwt` can check claims on people who signed in. See [Restrict who can sign in](/alb/authentication/oidc#restrict-who-can-sign-in).
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| `401` with a token that looks valid | `issuer` doesn't match `iss` exactly, the token is signed with a key not in the JWKS, or the token isn't where `extractFrom` looks. | Decode the token and compare `iss` and `kid` with the policy. |
+| `403` with a valid token | `aud` isn't in `audiences`, or an authorization rule doesn't match. | Compare `aud` and the rule's claims with the token. |
+| `403` for everyone | The claim the rule checks isn't in the tokens, or a list claim is matched without `valueType: StringArray`. | Configure the issuer to add the claim, and set `valueType`. |
+| Claim headers are missing at the origin | The claim isn't in the token, or `claimToHeaders` names it differently. | Claim names are case-sensitive. Use the exact name from the token. |

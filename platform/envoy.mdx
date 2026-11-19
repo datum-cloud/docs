@@ -95,7 +95,7 @@ Some advanced features use Envoy Gateway resources (`gateway.envoyproxy.io/v1alp
 
 | Resource | Used for | Guide |
 | --- | --- | --- |
-| `SecurityPolicy` | Basic authentication and OIDC sign-in | [Basic Auth](/alb/authentication/basic-auth), [OIDC with Google](/alb/authentication/oidc-google), [Auth0](/alb/authentication/oidc-auth0) |
+| `SecurityPolicy` | Basic Auth, API keys, JWT, OIDC sign-in, authorization rules, and CORS | [Authentication](/alb/authentication/overview) |
 | `Backend` and `BackendTrafficPolicy` | Failover between a primary and a fallback origin | [Load balancer failover](/alb/configuration/failover) |
 
 Because these are standard Envoy Gateway and Gateway API resources, the upstream [Envoy Gateway documentation](https://gateway.envoyproxy.io/docs/) is a useful reference. Not every upstream feature is available on Datum, so start from the Datum guides.
