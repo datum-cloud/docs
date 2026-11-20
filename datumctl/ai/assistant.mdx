@@ -6,10 +6,11 @@ description: "Chat with Patch, the Datum Cloud assistant, from the terminal: ask
 
 Patch is the Datum Cloud assistant. Ask it about your resources in plain language, such as "why is my workload not available?" or "is my load balancer serving?", and it answers using the same permissions your account already has. There's no API key to bring and nothing to configure.
 
-`datumctl assistant` is a [plugin](/datumctl/plugins/using-plugins), so it updates on its own schedule. To install it, run the following command:
+`datumctl assistant` is a [plugin](/datumctl/plugins/using-plugins) from the Milo catalog, so it updates on its own schedule. To install it, add the catalog and install the plugin:
 
 ```bash
-datumctl plugin install assistant
+datumctl plugin index add milo-os milo-os/cli-plugins
+datumctl plugin install milo-os/assistant
 ```
 
 ## Start a conversation
