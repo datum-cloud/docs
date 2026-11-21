@@ -10,7 +10,7 @@ Zero trust means nothing is trusted because of where it sits on a network. Every
 The safest endpoint is one that isn't on the public internet. On Datum, your resources start private:
 
 - **[Compute](/platform/isolation) Instances have no public address.** They have a private IPv6 address on your [gVPC](/galactic-vpc/overview) network, isolated from every other customer's network by the routing itself. See [Segment routing](/platform/segment-routing).
-- **The only public way in is one you choose.** You publish an app through an [Application Load Balancer](/alb/overview), with a web application firewall in front of it.
+- **The only public way in is one you choose.** You publish an app through an [Application Load Balancer](/alb/overview), with a web application firewall in front of it, or publish a single TCP or UDP port through a [Network Load Balancer](/nlb/overview). An NLB has no firewall, so the service behind it must authenticate its own clients.
 - **Tunnels expose nothing.** A [Datum tunnel](/connectors/tunnels) connects a service on your machine to Datum without opening an inbound port. See [Iroh relays](/platform/iroh-relays).
 
 To read more about the thinking behind this, see [Private by default](https://www.datum.net/blog/private-by-default/) on the Datum blog.

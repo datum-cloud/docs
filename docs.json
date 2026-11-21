@@ -195,6 +195,21 @@
                 "expanded": false
               },
               {
+                "group": "NLB",
+                "pages": [
+                  "nlb/overview",
+                  "nlb/configuration",
+                  "nlb/health-checks",
+                  "nlb/traffic-handling",
+                  "nlb/operations",
+                  "nlb/observability",
+                  "nlb/troubleshooting",
+                  "nlb/limits-and-quotas",
+                  "nlb/limitations-and-roadmap"
+                ],
+                "expanded": false
+              },
+              {
                 "group": "Connectors",
                 "pages": [
                   "connectors/overview",

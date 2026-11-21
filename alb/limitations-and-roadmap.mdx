@@ -9,7 +9,7 @@ The Application Load Balancer is still being built. This page lists known limita
 ## Limitations
 
 - There is no single composite ALB API yet. An ALB is an `HTTPProxy`, a `TrafficProtectionPolicy`, and optional authentication resources. See [What an ALB is made of](/alb/overview#what-an-alb-is-made-of).
-- Public traffic is HTTP and HTTPS only. Raw TCP and UDP exposure isn't available.
+- An ALB serves HTTP and HTTPS only. To publish raw TCP or UDP traffic, such as a database or a game server, use a [Network Load Balancer](/nlb/overview).
 - Rule exclusions, score thresholds, rate limiting, and circuit breaking aren't available through `datumctl alb`. Use manifests. See [Web application firewall](/alb/configuration/waf).
 - A `connector` backend must be the only backend in its rule.
 - You can't choose which Datum locations serve a load balancer or set its capacity. [Envoy](/platform/envoy) in every location serves every load balancer, and Datum scales the fleet.

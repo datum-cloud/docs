@@ -10,7 +10,7 @@ description: "Datum's Application Load Balancer (ALB) is built on Envoy and prov
 
 Datum's Application Load Balancer (ALB) is an edge proxy built on [Envoy](/platform/envoy), with a [Coraza](https://www.coraza.io/)-based [web application firewall](/alb/configuration/waf) (WAF). It started life as Datum's "AI Gateway", and it's built for AI and agent traffic as much as for websites and APIs.
 
-Application Load Balancers help you protect and route internet traffic to your backend services. We support HTTP(S) 1.1, HTTP/2, HTTP/3, gRPC, and WebSockets. See [How the load balancer handles requests](/alb/request-handling).
+Application Load Balancers help you protect and route internet traffic to your backend services. We support HTTP(S) 1.1, HTTP/2, HTTP/3, gRPC, and WebSockets. See [How the load balancer handles requests](/alb/request-handling). For raw TCP or UDP traffic, such as a database or a game server, use a [Network Load Balancer](/nlb/overview) instead.
 
 <Tip>
   Running NGINX, Apache, Caddy, or Traefik in front of your app? To replace that container with an ALB, see [Use ALB as your HTTP proxy](/guides/alb-as-httpd).

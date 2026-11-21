@@ -27,6 +27,7 @@ kubeconfig
 kubectl
 LLMs
 namespaced
+NLBs
 OAuth
 passthrough
 Paulo
