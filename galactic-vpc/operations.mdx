@@ -64,7 +64,7 @@ If Instances still hold addresses on the network, the network stays in deletion 
 
 ## Manage network services
 
-The `datumctl network service` commands create, describe, change, and delete network services. For more information, see [Network services](/galactic-vpc/networks/network-services).
+The `datumctl network service` commands create, describe, change, and delete network services. They create TCP ports only. For UDP ports, which a [Network Load Balancer](/nlb/overview) can publish, use a manifest. For more information, see [Network services](/galactic-vpc/networks/network-services).
 
 ```bash
 datumctl network service create api --workload=api --port=http:8080

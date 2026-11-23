@@ -61,7 +61,7 @@ Many container platforms run every customer's containers on one shared Linux ker
 
 ```mermaid
 flowchart TB
-  LB["Application Load Balancer<br/>the only public way in"]
+  LB["Application or Network Load Balancer<br/>the only public ways in"]
   N1["Your gVPC network<br/>private IPv6 only"]
   N2["Their network"]
   C1["Your container<br/>hardened defaults: few capabilities,<br/>no privilege escalation, seccomp"]
@@ -70,7 +70,7 @@ flowchart TB
   V2["Their Instance's own virtual machine<br/>and its own kernel"]
   HV["Hypervisor on a shared Datum host<br/>no kernel is shared between customers"]
 
-  LB -->|"HTTP · private"| N1
+  LB -->|"HTTP, TCP, UDP · private"| N1
   N1 <-->|"your network only"| V1
   N2 <-.->|"their network only"| V2
   C1 -->|"runs inside"| V1
@@ -104,7 +104,7 @@ Each class has its own provider, released and operated separately, so a fault in
 Isolation is the foundation, and gVPC carries it to the network. On top of both, every Instance starts with defaults you don't have to remember to set:
 
 - **Few privileges.** A `general-purpose` container starts with a short list of Linux capabilities, enough for common images such as nginx or Postgres to start, instead of the full set. It can't gain new privileges after it starts, and the runtime's default seccomp profile filters its system calls. A container that needs more asks for it explicitly in its workload, where you can see and review it.
-- **No public address.** An Instance has a private IPv6 address on your [gVPC](/galactic-vpc/overview) network and nothing else. Public traffic reaches it only through an [Application Load Balancer](/alb/overview), with TLS and a [web application firewall](/alb/configuration/waf) in front.
+- **No public address.** An Instance has a private IPv6 address on your [gVPC](/galactic-vpc/overview) network and nothing else. Public traffic reaches it only through a load balancer that you attach: an [Application Load Balancer](/alb/overview), with TLS and a [web application firewall](/alb/configuration/waf) in front, or a [Network Load Balancer](/nlb/overview), which forwards the TCP and UDP ports that you choose and nothing else.
 - **Only your network.** Your Instances can reach each other across locations, and never another customer's network, even when both use the same private addresses. Isolation comes from the routing itself. See [Segment routing](/platform/segment-routing).
 - **Secrets stay secret.** Workloads read credentials from Secrets. Describing a workload shows where a value comes from, never the value itself.
 - **Actions are recorded.** Changes to workloads, and every [shell session](/compute/instance-shell) into an Instance, are recorded in your project's [activity logs](/operations/activity-logs). Shell sessions are encrypted all the way to the location that runs the Instance.
@@ -128,6 +128,7 @@ Compute is these ideas put together. Isolation keeps each Instance and each netw
 - **[Locations](/locations):** Instances run in Datum locations that serve Compute.
 - **[gVPC](/galactic-vpc/overview):** every Instance gets a private IPv6 address on a network that spans locations. Datum doesn't start an Instance until its network is ready, and the network keeps it apart from every other customer's.
 - **[Application Load Balancer](/alb/overview):** public HTTP and HTTPS traffic reaches Instances through an ALB.
+- **[Network Load Balancer](/nlb/overview):** public TCP and UDP traffic reaches Instances through an NLB.
 - **[Platform API](/platform/kubernetes):** workloads are declarative resources that you manage with `datumctl`, manifests, or GitOps tooling.
 
 <Card title="Compute documentation" icon="microchip" href="/compute/overview">

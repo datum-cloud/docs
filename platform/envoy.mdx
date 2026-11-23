@@ -3,7 +3,7 @@ title: "Envoy"
 description: "How Datum uses the Envoy proxy and Envoy Gateway as the data plane for the Application Load Balancer."
 ---
 
-[Envoy](https://www.envoyproxy.io/) is the open source, high-performance proxy that handles Layer 7 traffic on Datum. You use it as Datum's [Application Load Balancer (ALB)](/alb/overview). The ALB is built on Envoy and configured through [Envoy Gateway](https://gateway.envoyproxy.io/) and the Kubernetes [Gateway API](https://gateway-api.sigs.k8s.io/). The ALB started life as Datum's "AI Gateway", and it's still built for AI and agent traffic as much as for websites and APIs.
+[Envoy](https://www.envoyproxy.io/) is the open source, high-performance proxy that handles Layer 7 traffic on Datum. You use it as Datum's [Application Load Balancer (ALB)](/alb/overview). The ALB is built on Envoy and configured through [Envoy Gateway](https://gateway.envoyproxy.io/) and the Kubernetes [Gateway API](https://gateway-api.sigs.k8s.io/). The ALB started life as Datum's "AI Gateway", and it's still built for AI and agent traffic as much as for websites and APIs. The [Network Load Balancer](/nlb/overview) doesn't use Envoy: it forwards TCP and UDP packets at the network layer, without a proxy in the path.
 
 ```mermaid
 %%{init: {"flowchart": {"subGraphTitleMargin": {"top": 6, "bottom": 18}}}}%%

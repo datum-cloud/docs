@@ -1,0 +1,51 @@
+---
+title: "NLB limits and quotas"
+sidebarTitle: "Limits and quotas"
+description: "Quotas for Network Load Balancers and routes in each project, and the fixed limits on listeners, addresses, and backends."
+---
+
+This page lists the quotas and fixed limits for [Network Load Balancers](/nlb/overview).
+
+## Quotas
+
+Each project has the following quotas:
+
+| Resource | Quota |
+| --- | --- |
+| `NetworkLoadBalancer` | 5 |
+| `NetworkLoadBalancerRoute` | 25 |
+
+Creating an NLB or route over the quota fails with the following error:
+
+```text
+Error from server (Forbidden): error when creating "nlb.yaml": networkloadbalancers.networking.datumapis.com "db-nlb" is forbidden: You've reached your quota for this resource type (Insufficient quota resources. Contact your account administrator to review quota limits and usage.). Delete unused resources to free up capacity, or contact support to request a higher limit.
+```
+
+Keep the following points in mind:
+
+- Deleting an NLB or route frees its quota right away.
+- A route whose NLB you deleted still counts toward the route quota. Delete routes along with their NLB.
+- A dry run with `datumctl apply --dry-run=server` doesn't check quota.
+
+To ask for a higher quota, contact [Datum support](mailto:support@datum.net).
+
+## Limits
+
+| Item | Limit |
+| --- | --- |
+| Listeners for each NLB | 16 |
+| Address requests for each NLB | 16 |
+| Address requests for each listener | 1 in early access |
+| Ports for each listener | 1. Port ranges aren't available in early access. |
+| Locations listed in an address request's `locations.names` | 64 |
+| Routes serving each listener | 1. Other routes on the listener report `Superseded`. |
+| Listeners for each route (`parentRefs`) | 16 |
+| Backends for each route | 1 in early access |
+| Routes for each network service port, across all NLBs | 1. Other routes report `BackendClaimConflict`. |
+| Ports for each network service | 16 |
+| UDP payload for each datagram | 1392 bytes. Larger datagrams are fragmented and dropped. |
+| Locations with NLB addresses | `us-central-1`, `us-east-1`, `us-west-1` in early access |
+
+Health check timing is fixed. See [Health checks](/nlb/health-checks).
+
+For features that NLBs don't support yet, see [Limitations and roadmap](/nlb/limitations-and-roadmap).

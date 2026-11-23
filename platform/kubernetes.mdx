@@ -110,6 +110,7 @@ Each product is a set of resources plus the controllers that reconcile them. Con
 | You create | Controllers | What runs in each location |
 | --- | --- | --- |
 | `HTTPProxy`, `TrafficProtectionPolicy` | [network services operator](https://github.com/datum-cloud/network-services-operator) and [Envoy Gateway](https://gateway.envoyproxy.io/) | [Envoy](/platform/envoy), as your [ALB](/alb/overview) |
+| `NetworkLoadBalancer`, `NetworkLoadBalancerRoute` | network services operator and [Galactic](/platform/galactic) | Public IPv6 addresses and health-checked forwarding to your Instances, as your [NLB](/nlb/overview) |
 | `Network` | network services operator and [Galactic](/platform/galactic) | Your [gVPC](/galactic-vpc/overview) network |
 | `Workload` with the `general-purpose` runtime class | Compute controllers and [kata-provider](https://github.com/datum-labs/kata-provider) | Each Instance as a container in its own virtual machine, with [Kata Containers](https://katacontainers.io) |
 | `Workload` with the `unikernel` runtime class | Compute controllers and the [unikernel](/compute/runtimes/unikernels) provider | Each Instance as a unikernel |
