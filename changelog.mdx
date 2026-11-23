@@ -8,17 +8,14 @@ noindex: true
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
 <Update label="November 23, 2026" description="Billing" tags={["AX/DX/UX"]}>
-  ## Billing lives on your organization, in four tabs
+  ## Billing lives on your organization
 
-  Your organization's billing page in the [Cloud Portal](https://cloud.datum.net) is now the one place for its billing account, split into tabs you can link to directly.
+  Each organization's billing page in the [Cloud Portal](https://cloud.datum.net) is now the single home for its billing account, organized into Overview, Subscriptions & Pricing, Invoices, and Payment Methods tabs.
 
-  - **One page per organization:** each organization's billing page shows its billing account. The Billing Accounts list in the account menu is gone, and old billing account links redirect to the organization's billing page.
-  - **Four tabs:** Overview, Subscriptions & Pricing, Invoices, and Payment Methods. Each tab has its own URL, so links, refreshes, and the back button land on the right tab.
-  - **This period:** the Overview tab opens with your spend so far, the current billing period, and your next invoice. Spend comes from the same data as the Usage page, so the two agree.
-  - **Everything you pay, in one list:** a Pricing section lists your contract fees, other plan fees, and every usage rate, in the same format as datum.net/pricing, such as "$1.00 per million requests". Discounts show on each row, or once when one discount covers everything. Long lists can be searched.
-  - **Billing details are read-only until you edit:** account name, contact, business name, invoice email, address, and tax IDs show as a summary with an Edit button.
-  - **Invoice numbers:** the invoice list shows the number printed on each invoice, such as `DATUM-0042`, and search matches it. Click an invoice to open it, where you can read, download, or pay it.
-  - **Usage is an organization view:** the project Usage page and the project Settings › Billing tab are removed. The organization's Usage page keeps its project filter.
+  - **See this period at a glance:** spend so far, the billing period, and your next invoice.
+  - **One price list:** contract fees, plan fees, usage rates, and discounts in one place.
+  - **Easier invoices:** invoices show the number printed on them and open where you can read, download, or pay them.
+  - **Usage moves to the organization:** the project Usage page is removed. The organization's Usage page filters by project.
 
   See [Billing](/organizations/billing).
 
@@ -26,26 +23,21 @@ Each entry links to the original announcement in our [changelog discussions](htt
 </Update>
 
 <Update label="November 23, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
-  ## Permission errors name the product, and DNS zones link to their domain
+  ## Clearer permission errors and quicker navigation
 
-  The [Cloud Portal](https://cloud.datum.net) says which part of the product refused a request, and gets you between related pages in fewer clicks.
+  The [Cloud Portal](https://cloud.datum.net) tells you what refused a request and gets you between related pages faster.
 
-  - **Permission errors name the area:** a page you can't open now says, for example, "Permission denied to view DNS." and shows the original denial under "Error details". Before, it only said "You don't have access to this."
-  - **View Domain:** a DNS zone's header has a View Domain button that opens its domain, matching the Manage DNS Zone button on the domain page. On the zone's Nameservers tab, "domain page" in the verification notice is now a link. Both show only when you can read the domain.
-  - **Organization switcher opens projects:** choosing an organization in the switcher opens its projects list, including the organization you're already in. Organization settings are in the organization sidebar.
-  - **Create projects from the Projects page:** the project switcher no longer has "Add project". Create projects from your organization's Projects page.
+  - **Permission errors name the area:** for example, "Permission denied to view DNS.", with the original denial under "Error details".
+  - **DNS zones link to their domain:** a View Domain button takes you from a zone back to its domain.
+  - **Switchers go to projects:** choosing an organization opens its projects list, where you also create new projects.
 
-  Details: [Name the product area on permission error pages](https://github.com/datum-cloud/cloud-portal/issues/1836) (#1836), [Low friction navigation between domain asset and DNS zones](https://github.com/datum-cloud/cloud-portal/issues/1570) (#1570), [Manage the organization's billing account from the org](https://github.com/datum-cloud/cloud-portal/pull/1831) (#1831)
+  Details: [Name the product area on permission error pages](https://github.com/datum-cloud/cloud-portal/issues/1836) (#1836), [Low friction navigation between domain asset and DNS zones](https://github.com/datum-cloud/cloud-portal/issues/1570) (#1570)
 </Update>
 
 <Update label="November 23, 2026" description="Application Load Balancer" tags={["Fix"]}>
   ## One failing route no longer holds up the others
 
-  When one route on a load balancer fails, Datum now keeps setting up the load balancer's other routes.
-
-  - **Before:** a route with a backend error, such as a backend port its endpoints don't have, stopped Datum from setting up the routes after it, and the load balancer's listener status stopped updating. Which routes were hit could change from one retry to the next.
-  - **Now:** each route fails on its own. The other routes are set up and report `Accepted`, and the listener status counts every attached route.
-  - **The failing route still reports its error** and is retried as before.
+  When one route on a load balancer fails, Datum still sets up its other routes and keeps the load balancer's status current. The failing route reports its own error.
 
   See [ALB troubleshooting](/alb/troubleshooting).
 
