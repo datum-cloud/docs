@@ -8,7 +8,8 @@ Patch uses diagnostic tools from the Datum services your project uses, so it can
 Patch is available in the terminal with `datumctl assistant`. Conversations are kept by Datum, so you can pick one up from any machine you're signed in on.
 
 ```bash
-datumctl plugin install assistant
+datumctl plugin index add milo-os milo-os/cli-plugins
+datumctl plugin install milo-os/assistant
 datumctl assistant chat "Why is the api-backend workload not available?"
 ```
 

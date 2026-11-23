@@ -142,7 +142,7 @@ TIME       METHOD   STATUS   PATH                    HOST                       
 
 ### Query access logs across load balancers
 
-The `telemetry` plugin queries every log line in your project, including load balancer access logs, with a [LogQL](https://grafana.com/docs/loki/latest/query/) stream selector. To install it, run `datumctl plugin install telemetry`. For example, to see every request that any load balancer in the project answered with `403`:
+The `telemetry` plugin queries every log line in your project, including load balancer access logs, with a [LogQL](https://grafana.com/docs/loki/latest/query/) stream selector. To install it, add the Milo catalog with `datumctl plugin index add milo-os milo-os/cli-plugins`, then run `datumctl plugin install milo-os/telemetry`. For example, to see every request that any load balancer in the project answered with `403`:
 
 ```bash
 datumctl telemetry logs '{response_code="403"}' --since 1h

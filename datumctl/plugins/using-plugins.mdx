@@ -186,6 +186,13 @@ Listings flag deprecated plugins too:
 - `datumctl plugin search` adds `[deprecated]` before the description and prints the warning for each deprecated result to stderr after the table. With `-o json`, each deprecated result carries a `deprecated` object instead. `-o json` and `-o name` print no warnings.
 - `datumctl plugin browse` adds `(deprecated)` after the plugin name and shows the warning in the plugin's details.
 
+The `assistant`, `billing`, `ipam`, `search`, and `telemetry` plugins have moved from the **datum** catalog to the [Milo catalog](https://github.com/milo-os/cli-plugins), and their **datum** entries are deprecated. They keep installing from the **datum** catalog until Datum removes them. datumctl v0.25.0 and later shows the deprecation warning for them. To switch a plugin, add the Milo catalog and install the plugin from it:
+
+```bash
+datumctl plugin index add milo-os milo-os/cli-plugins
+datumctl plugin install milo-os/telemetry
+```
+
 ## How plugins stay trustworthy
 
 datumctl treats a plugin as untrusted code and protects you in a few ways:

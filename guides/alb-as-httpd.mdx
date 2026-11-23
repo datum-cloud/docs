@@ -634,7 +634,7 @@ TIME       METHOD   STATUS   PATH    HOST                               DURATION
 
 `UPSTREAM` is the Instance's private address, which matches the `INTERNAL IP` column of `datumctl compute instances`.
 
-For every Envoy field, including `response_flags`, query the logs with the `telemetry` plugin. To install it, run `datumctl plugin install telemetry`. A query is a [LogQL](https://grafana.com/docs/loki/latest/query/) stream selector, and without a hostname it matches every ALB in the project. To see the `504` responses for one ALB, match its hostname with the `authority` label:
+For every Envoy field, including `response_flags`, query the logs with the `telemetry` plugin. To install it, add the Milo catalog with `datumctl plugin index add milo-os milo-os/cli-plugins`, then run `datumctl plugin install milo-os/telemetry`. A query is a [LogQL](https://grafana.com/docs/loki/latest/query/) stream selector, and without a hostname it matches every ALB in the project. To see the `504` responses for one ALB, match its hostname with the `authority` label:
 
 ```bash
 datumctl telemetry logs '{authority="tile-desire-9gpyk.datumproxy.net", response_code="504"}' --since 1h

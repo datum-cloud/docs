@@ -161,7 +161,7 @@ Discovery feeds directly into authoring manifests for `datumctl apply` and
 
 ## Search across your resources
 
-When you know roughly what you're looking for but not its kind or exact name, use the `search` plugin. It searches your resources by name and kind, and returns the best matches first. To install it, run `datumctl plugin install search`.
+When you know roughly what you're looking for but not its kind or exact name, use the `search` plugin. It searches your resources by name and kind, and returns the best matches first. To install it, add the Milo catalog with `datumctl plugin index add milo-os milo-os/cli-plugins`, then run `datumctl plugin install milo-os/search`.
 
 ```text
 $ datumctl search api
