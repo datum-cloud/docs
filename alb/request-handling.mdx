@@ -101,7 +101,7 @@ spec:
 
 Apply it with `datumctl apply -f my-app.yaml --project $PROJECT --namespace default`.
 
-`timeouts.request` limits the whole response, from the request reaching the edge to the last byte, so set it longer than the longest stream or download on that rule. It accepts values from `1ns` to `1h`:
+`timeouts.request` limits the whole response, from the request reaching the edge to the last byte, so set it longer than the longest stream or download on that rule. It accepts durations up to `1h`, written in hours, minutes, seconds, or milliseconds, such as `30s`, `10m`, or `1h`:
 
 - A value above `1h` is rejected with `duration must be less than or equal to 1h0m0s`.
 - `0s` is rejected with `duration must be greater than or equal to 1ns`. You can't turn the limit off.
