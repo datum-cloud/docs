@@ -1,49 +1,61 @@
 ---
 title: "Billing"
-description: "Manage billing accounts, payment methods, payment terms, invoices, discounts, and contracts for your Datum organization in the Cloud Portal."
+description: "Manage your Datum organization's billing account in the Cloud Portal: billing details, pricing, payment methods, payment terms, invoices, and contracts."
 ---
 
-Billing in the [Cloud Portal](https://cloud.datum.net) is organized around billing accounts. A billing account holds the payment methods, invoices, and billing details for the usage of the projects linked to it. Every organization keeps at least one billing account.
+Billing in the [Cloud Portal](https://cloud.datum.net) is managed from your organization. Each organization has one billing account, which holds the billing details, pricing, payment methods, and invoices for the usage of every project in the organization.
 
 ## Who can see billing
 
 Only organization [Owners](/organizations/team-management#roles) see billing. For an organization you own, the Cloud Portal shows:
 
 - **Billing** in the organization's navigation.
-- A **Billing** tab in each project's settings.
 - A **Review billing** link on a project suspended for a billing reason. See [Project suspension](/operations/project-suspension).
-- **Billing Accounts** in the user menu in the header, when you own at least one organization.
 
-Editors and Viewers don't see these items. If they open a billing page directly, the Cloud Portal sends them back to the organization overview or the project's general settings.
+Editors and Viewers don't see these items. If they open the billing page directly, the Cloud Portal sends them back to the organization overview.
 
-## Choose which account pays for each project
+## Open your billing account
 
-To see which billing account funds each project, select your organization, then select **Billing**. The page lists every project in the organization with its billing account and when it was linked.
+To open your organization's billing account, select your organization, then select **Billing**. If the organization doesn't have a billing account yet, the Cloud Portal opens the billing step of setup instead. The page has four tabs:
 
-- To move a project to a different billing account, pick one in the **Change** column. The change applies to upcoming invoices.
-- To open a billing account, select its name in the **Billing account** column.
+- **Overview**: what you've spent this period and your [Billing details](#billing-details).
+- **Subscriptions & Pricing**: your [contract](#contracts), when you have one, then [Pricing](#pricing), then **Discounts** when one applies. If none of these exist yet, the tab says the account's prices aren't published yet and asks you to contact support.
+- **Invoices**: past [invoices](#invoices).
+- **Payment Methods**: cards and [payment terms](#payment-methods-and-payment-terms).
 
-You can also set the account from a project: open the project's settings, select **Billing**, and choose an account in **Charge invoices to**. Usage from the project appears on that account's monthly invoice.
+## This period
 
-To add a billing account, select **Add billing account**. If your organization can't have more than one account, the page shows **Request additional billing accounts** instead, which asks Datum support to enable more.
+On the **Overview** tab, **This period** shows two figures:
 
-## Manage a billing account
+- **Spend this period**: your usage so far in the current billing period, before discounts and tax, with the period's dates. It's the same figure as on the [Usage](/organizations/usage) page. To open that page, select **See this period's usage**.
+- **Next invoice**: the date of your next invoice. On a contract, it also shows the invoice's total (with "plus usage" when usage is billed on it), its fees, and its due date when your account has payment terms. Without a contract, it shows **This period's usage**, invoiced at the end of the current billing period.
 
-To see every billing account across the organizations you own, open the user menu in the header and select **Billing Accounts**. Select an account to open its page, which has these sections:
+The next invoice is an estimate.
 
-- **Name**: the account's display name.
-- **Assignments**: every project the account funds, grouped by organization.
-- **Contract**: shown only for accounts on a contract. See [Contracts](#contracts).
-- **Payment methods**: cards and payment terms. See [Payment methods and payment terms](#payment-methods-and-payment-terms).
-- **Invoices**: past invoices. See [Invoices](#invoices).
-- **Discounts**: shown only when a discount applies. See [Discounts](#discounts).
+## Billing details
+
+On the **Overview** tab, **Billing details** shows a summary of the account:
+
+- **Account name**: how the billing account is labeled across the Cloud Portal.
+- **Billing contact**: the contact's name and email.
+- **Business name**.
 - **Invoice email**: where Datum emails invoices and receipts, whether you pay by card or by invoice. Leave it empty to use your billing contact's email.
-- **Billing address & Tax IDs**: the address and tax IDs printed on upcoming invoices. Past invoices don't change. Tax IDs are only required for registered businesses.
-- **Danger zone**: delete the account. This section appears only when the organization has another billing account. Deleting an account is permanent, cancels future invoicing, and detaches every project linked to it. Past invoices stay on file.
+- **Billing address** and **Tax IDs**: printed on upcoming invoices. Tax IDs are only required for registered businesses.
+
+To change any of these, select **Edit**, update the form, and select **Save**. Select **Cancel** to return to the summary without saving. Changes show on upcoming invoices; past invoices don't change.
+
+## Pricing
+
+On the **Subscriptions & Pricing** tab, **Pricing** lists everything the account is charged for in one table, with an **Item** and a **Price** for each row:
+
+- Fees from your contract or plan. A fee shows its quantity, how long it runs, and whether it's billed in advance or in arrears.
+- The rate for each kind of usage, written the way [datum.net/pricing](https://www.datum.net/pricing) writes it, such as "$1.00 per million requests". A rate priced per second also shows its hourly rate.
+
+Prices are before discounts and taxes. When one discount applies to everything, the section notes it once, such as "20% discount on everything". When discounts differ, a **Discount** column shows each row's discount. Datum applies discounts to your invoices automatically. To search a long list, use **Search prices**. To see what you've used this billing cycle, select **See this period's usage**.
 
 ## Payment methods and payment terms
 
-By default, Datum charges your account's default card. In **Payment methods**:
+By default, Datum charges your account's default card. On the **Payment Methods** tab:
 
 - Select **Add a payment method** to add a card.
 - Select **Set as default** on a card to make it the default.
@@ -51,7 +63,7 @@ By default, Datum charges your account's default card. In **Payment methods**:
 
 To pay by invoice instead of by card, select **Apply for payment terms** under the card list. While Datum reviews your application, the section shows it as **Under review**. If the application is declined, select **See why** for the reason.
 
-When payment terms are active, **Payment methods** shows them above your cards, with:
+When payment terms are active, the **Payment Methods** tab shows them above your cards, with:
 
 - **Billing cycle**: when invoices are issued.
 - **Payment due**: the number of days after the invoice date that payment is due.
@@ -62,23 +74,21 @@ Cards on file aren't charged while payment terms are active. If your terms have 
 
 ## Invoices
 
-**Invoices** lists the account's past invoices with their date, amount, invoice number, and status: **Paid**, **Open**, **Past due**, or **Void**. You can search the list, sort it by any column, and download an invoice from its row.
-
-## Discounts
-
-When a discount applies to the account, **Discounts** shows it. A discount that's the same for every service appears as one line, such as "20% discount on all usage". Otherwise, the section lists the discount for each service. Datum applies discounts to your invoices automatically.
+The **Invoices** tab lists the account's past invoices with their date, amount, invoice number, and status: **Paid**, **Open**, **Past due**, or **Void**. The invoice number is the one printed on the invoice, such as `DATUM-0042`. You can search the list by invoice number and sort it by any column. To open an invoice, select its row or **View**. The invoice opens in a new tab, where you can read it, download a PDF, or pay it.
 
 ## Contracts
 
-If your account is billed under a contract set up with Datum, the **Contract** section shows it. The section is read-only and includes:
+If your account is billed under a contract set up with Datum, the **Contract** card on the **Subscriptions & Pricing** tab shows it. The card is read-only and includes:
 
 - The contract's start date, in UTC, with an **Active** or **Upcoming** badge.
 - **Billing cycle**: the day of the month the contract bills on.
+- **Fees**: how many fees the contract has. The fees themselves, with their amounts, quantities, and terms, are listed under [Pricing](#pricing).
 - **Usage**: whether usage is billed on top of your fees.
-- The contract's fixed fees, shown before discounts. A one-time fee shows its amount. A recurring fee shows its amount per month, quarter, or year, how often it's charged (such as **Every quarter**), and whether it's **Billed in advance** or **Billed in arrears**. A recurring fee that runs for a set term also shows how long it runs and when it ends, such as "For 3 years, until November 12, 2029".
 - **Upcoming invoices**: the next invoice, plus any invoice in the coming year that charges a one-time, quarterly, or annual fee. Each one lists its fees, their total (with "plus usage" when usage is billed on it), and its due date when your account has payment terms. Upcoming invoices are estimates, before discounts and tax.
 
-One-time fees are charged when the contract starts. Fees billed in advance are charged at the start of each period, beginning on the start date. Fees billed in arrears are invoiced at the end of each period, with that period's usage. Every contract invoice falls on the contract's billing day. Once the contract starts, your billing cycles follow its billing day, both in payment terms and on the [Usage](/organizations/usage) page. To change your contract, contact support.
+One-time fees are charged when the contract starts. Fees billed in advance are charged at the start of each period, beginning on the start date. Fees billed in arrears are invoiced at the end of each period, with that period's usage. Once the contract starts, your billing cycles follow its billing day, both in payment terms and on the [Usage](/organizations/usage) page.
+
+A contract can also bill on the same day as the rest of your account. Its first period then runs from the start date to the next billing day and is charged in part, and the **Contract** card says until when. After that, invoices fall on your account's billing day, with quarterly fees charged in January, April, July, and October and annual fees in January.
 
 ## Related
 
