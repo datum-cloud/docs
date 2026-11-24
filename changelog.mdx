@@ -7,6 +7,19 @@ noindex: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
+<Update label="November 24, 2026" description="DNS" tags={["Fix"]}>
+  ## DNS activity logs show every record change
+
+  Activity logs for your DNS record sets now record each change that takes effect, and only those.
+
+  - **Deleted records show up:** removing a record adds a deleted entry to the record set's activity.
+  - **No phantom changes:** dry runs and refused requests no longer appear as changes.
+
+  See [Activity logs](/operations/activity-logs).
+
+  Details: [DNS record deletions vanish from activity timelines](https://github.com/datum-cloud/dns/issues/241) (#241)
+</Update>
+
 <Update label="November 23, 2026" description="Billing" tags={["AX/DX/UX"]}>
   ## Billing lives on your organization
 
