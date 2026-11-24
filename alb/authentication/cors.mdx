@@ -1,0 +1,80 @@
+---
+title: "CORS"
+sidebarTitle: "CORS"
+description: "Let browser apps on other origins call your load balancer, with cross-origin resource sharing (CORS) handled at the edge."
+---
+
+Browsers block a web page from reading responses from another origin unless that origin allows it with [CORS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS) headers. A `cors` block in a `SecurityPolicy` lets [Envoy](/platform/envoy) answer for your origin: it replies to preflight requests at the edge and adds the CORS headers to responses, so your app doesn't have to.
+
+## Set up CORS
+
+Save this as `cors.yaml`, with the origins of the sites that call your API:
+
+```yaml
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ALB_NAME-cors
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: ALB_NAME
+  cors:
+    allowOrigins:
+      - "https://app.example.com"
+      - "https://*.example.com"
+    allowMethods: ["GET", "POST", "PUT", "DELETE"]
+    allowHeaders: ["authorization", "content-type"]
+    exposeHeaders: ["x-request-id"]
+    allowCredentials: true
+    maxAge: "10m"
+```
+
+```bash
+datumctl apply -f cors.yaml
+```
+
+| Field | What it does |
+| --- | --- |
+| `allowOrigins` | Origins allowed to call, as `scheme://host[:port]`. A `*` matches any one part of a hostname, and `"*"` alone allows every origin. |
+| `allowMethods` | Methods allowed in cross-origin requests |
+| `allowHeaders` | Request headers the page may send, such as `authorization` |
+| `exposeHeaders` | Response headers the page may read |
+| `allowCredentials` | Allows cookies and `Authorization` headers on cross-origin requests. Can't be combined with `"*"` in `allowOrigins`. |
+| `maxAge` | How long the browser may cache a preflight answer |
+
+## CORS with authentication
+
+A route takes one `SecurityPolicy`, so put `cors` in the same policy as your authentication, such as `jwt` or `apiKeyAuth`:
+
+```yaml
+spec:
+  cors:
+    allowOrigins: ["https://app.example.com"]
+    allowMethods: ["GET", "POST"]
+    allowHeaders: ["authorization", "content-type"]
+  jwt:
+    providers:
+      - name: corp
+        # ...
+```
+
+Envoy answers preflight (`OPTIONS`) requests before authentication runs, so browsers can check CORS without a token. Error responses such as `401` and `403` also carry the CORS headers, so your page can read them and send the person to sign in.
+
+## Check it
+
+Send a preflight request the way a browser would:
+
+```bash
+curl -s -o /dev/null -D - -X OPTIONS \
+  -H 'Origin: https://app.example.com' \
+  -H 'Access-Control-Request-Method: POST' \
+  https://HOSTNAME/api | grep -i '^access-control'
+```
+
+An allowed origin gets `access-control-allow-origin: https://app.example.com`. Any other origin gets no `access-control-allow-origin` header, and the browser blocks the response.
+
+<Note>
+  CORS only tells browsers what to allow. It doesn't stop scripts, servers, or `curl` from calling your API. Use [authentication](/alb/authentication/overview) for that.
+</Note>

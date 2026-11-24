@@ -173,8 +173,14 @@
                     "root": "alb/authentication/overview",
                     "pages": [
                       "alb/authentication/basic-auth",
+                      "alb/authentication/api-keys",
+                      "alb/authentication/jwt",
+                      "alb/authentication/oidc",
                       "alb/authentication/oidc-google",
-                      "alb/authentication/oidc-auth0"
+                      "alb/authentication/oidc-auth0",
+                      "alb/authentication/authorization",
+                      "alb/authentication/cors",
+                      "alb/authentication/per-path"
                     ]
                   },
                   {

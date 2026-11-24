@@ -1,15 +1,15 @@
 ---
 title: "Basic authentication"
 sidebarTitle: "Basic Auth"
-description: "Require a username and password before requests reach your origin, with datumctl alb auth or an Envoy Gateway SecurityPolicy."
+description: "Require a username and password before requests reach your origin, with datumctl alb auth or an Envoy Gateway SecurityPolicy, including per-user passwords."
 ---
 
-HTTP basic authentication protects a load balancer with a username and password. [Envoy](/platform/envoy) checks the credentials on every request, at the edge, before the request reaches your origin. Requests without valid credentials get `401 Unauthorized`.
+HTTP Basic Auth protects a load balancer with a username and password. [Envoy](/platform/envoy) checks the credentials on every request, at the edge, before the request reaches your origin. Requests without valid credentials get `401 Unauthorized`, and browsers show a sign-in prompt.
 
 There are two ways to set it up:
 
-- **`datumctl alb auth`** is the quickest. One command sets the users, creates the Secret, and attaches the policy.
-- **A `SecurityPolicy` manifest** gives you full control, for example to keep the configuration in Git or to protect a single route.
+- **`datumctl alb auth`** is the quickest. One command sets the users, creates the Secret, and attaches the policy. Every user gets the same password.
+- **A `SecurityPolicy` manifest** gives you full control: a different password for each user, the username passed to your origin, configuration kept in Git, or protection for a single path.
 
 ## Set up Basic Auth with datumctl alb
 
@@ -34,7 +34,13 @@ To protect a load balancer, pass one or more users, and give their password on s
   </Tab>
 </Tabs>
 
-To admit several users with the same password, repeat `--user`, as in `--user admin --user editor`. To check a change without applying it, add `--dry-run`.
+To admit several users, repeat `--user`, as in `--user admin --user editor`. They all share the one password. Each `alb auth set` replaces the whole user list, so pass every user each time. To check a change without applying it, add `--dry-run`.
+
+`alb auth set` creates a Secret named `ALB_NAME-basic-auth` and a `SecurityPolicy` named `ALB_NAME` that targets the load balancer's **Gateway**, so it covers every route.
+
+<Warning>
+  A `SecurityPolicy` that targets one of the load balancer's **routes** replaces the Gateway's policy for that route. If you add any route-level policy, even one with only CORS, Basic Auth from `alb auth set` stops applying to that route, and `datumctl alb describe` still shows it as enabled. To combine Basic Auth with anything else, use a [manifest](#set-up-basic-auth-with-a-securitypolicy) and put every setting in one route-level policy.
+</Warning>
 
 To see which usernames are allowed, run the following command:
 
@@ -55,322 +61,146 @@ curl -s -o /dev/null -w '%{http_code}\n' https://HOSTNAME/            # 401
 curl -s -o /dev/null -w '%{http_code}\n' -u admin https://HOSTNAME/   # prompts for the password, then 200
 ```
 
+### Give each user their own password
+
+`alb auth set` gives every user the same password. To give each user their own, replace the `.htpasswd` lines in the Secret it created:
+
+```bash
+entry() { printf '%s:{SHA}%s\n' "$1" "$(printf '%s' "$2" | openssl dgst -sha1 -binary | base64)"; }
+htpasswd=$( { entry admin 'first-long-random-password'; entry editor 'second-long-random-password'; } | base64 | tr -d '\n')
+datumctl patch secret ALB_NAME-basic-auth --type=merge \
+  -p "{\"data\":{\".htpasswd\":\"$htpasswd\"}}"
+```
+
+Envoy picks up the change within seconds, and `alb auth list` and `alb describe` still show the users. Running `alb auth set` again replaces them with one shared password.
+
 ## Set up Basic Auth with a SecurityPolicy
 
-The rest of this page shows how to configure the same thing with [Envoy Gateway](https://gateway.envoyproxy.io/) resources, using `datumctl apply`.
+A manifest takes two resources: a Secret holding an `htpasswd` list, and a `SecurityPolicy` that points at it and at the load balancer's route. The route has the same name as the load balancer. See [Where a SecurityPolicy attaches](/alb/authentication/overview#where-a-securitypolicy-attaches).
 
----
+Use a manifest when you want Basic Auth together with other settings, such as CORS, in one policy, or on a single path. `datumctl alb auth list` and `datumctl alb describe` don't show Basic Auth set up this way, so don't also run `alb auth set` on the same load balancer.
 
-### How it works
+### Step 1: Generate an htpasswd entry for each user
 
-At a high level, this setup:
+Envoy accepts **SHA entries only** (`{SHA}`). Other formats, such as bcrypt and APR1, aren't supported. SHA is a fast, unsalted hash, so use long random passwords.
 
-1. Generates credentials in **htpasswd (SHA)** format
-2. Stores credentials in a **Kubernetes Secret**
-3. Labels the Secret so it is synced to edge clusters
-4. Attaches a **SecurityPolicy** to an `HTTPRoute`
-5. Verifies authentication behavior
+<Tabs>
+  <Tab title="macOS / Linux">
 
----
+  ```bash
+  entry() { printf '%s:{SHA}%s\n' "$1" "$(printf '%s' "$2" | openssl dgst -sha1 -binary | base64)"; }
+  entry alice 'first-long-random-password'
+  entry bob   'second-long-random-password'
+  ```
 
-## Prerequisites
+  </Tab>
+  <Tab title="Windows (PowerShell)">
 
-- `datumctl` installed and authenticated
-- A valid **Project**
-- Existing:
-  - `Gateway`
-  - `HTTPRoute`
-- Permission to create:
-  - `Secret`
-  - `SecurityPolicy`
+  ```powershell
+  function Entry($user, $password) {
+    $sha1 = [System.Security.Cryptography.SHA1]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($password))
+    "${user}:{SHA}$([Convert]::ToBase64String($sha1))"
+  }
+  Entry alice 'first-long-random-password'
+  Entry bob   'second-long-random-password'
+  ```
 
-Verify access:
+  </Tab>
+</Tabs>
 
-```bash
-datumctl get gateway
-datumctl get httproute
-```
+Each line looks like `alice:{SHA}fAYATt6GBC1fG3rV/+TsArfpfqs=`.
 
----
+### Step 2: Create the Secret and the policy
 
-## Critical requirement: secret syncing
-
-Secrets and ConfigMaps referenced by gateway configurations are **not automatically synced** to edge clusters.
-
-To make a Secret available to edge gateways, it **must** include the following label:
+The Secret must use the key `.htpasswd`, have one line per user, and carry the `gateway-sync` label. Save this as `basic-auth.yaml`, with your own entries:
 
 ```yaml
-networking.datumapis.com/gateway-sync: "true"
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ALB_NAME-htpasswd
+  labels:
+    networking.datumapis.com/gateway-sync: "true"
+type: Opaque
+stringData:
+  .htpasswd: |
+    alice:{SHA}fAYATt6GBC1fG3rV/+TsArfpfqs=
+    bob:{SHA}7zQr7w5Y9jpYtGS5eu5Mwj1Qxz4=
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ALB_NAME-basic-auth
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: ALB_NAME
+  basicAuth:
+    users:
+      name: ALB_NAME-htpasswd
+    forwardUsernameHeader: X-Username
 ```
 
-### Why this matters
-
-- Without this label, the gateway receives the policy but **not the Secret**
-- Envoy fails to load the Basic Auth credentials
-- All requests return **HTTP 500** instead of a login prompt
-
-This requirement exists to prevent accidental replication of unrelated secrets.
-
----
-
-## Configuration steps
-
-### Step 1: Set variables
-
-<Tabs>
-  <Tab title="macOS / Linux">
-
-  ```bash
-  project="your-project-id"
-  namespace="default"
-  route="your-route-name"
-  username="demo"
-  password="ChangeMe123!"
-  ```
-
-  </Tab>
-  <Tab title="Windows (PowerShell)">
-
-  ```powershell
-  $project   = "your-project-id"
-  $namespace = "default"
-  $route     = "your-route-name"
-  $username  = "demo"
-  $password  = "ChangeMe123!"
-  ```
-
-  </Tab>
-</Tabs>
-
----
-
-### Step 2: Generate htpasswd entry (SHA)
-
-Envoy Gateway currently supports **SHA-based htpasswd entries only**.
-
-Other formats, such as bcrypt and APR1, are **not supported** and cause failures.
-
-<Tabs>
-  <Tab title="macOS / Linux">
-
-  ```bash
-  hash=$(printf "%s" "$password" | shasum | awk '{print $1}' | xxd -r -p | base64)
-  htpasswd=$(printf "%s:{SHA}%s\n" "$username" "$hash")
-  b64=$(printf "%s" "$htpasswd" | base64)
-  ```
-
-  </Tab>
-  <Tab title="Windows (PowerShell)">
-
-  ```powershell
-  $bytes = [Text.Encoding]::UTF8.GetBytes($password)
-  $sha1  = [System.Security.Cryptography.SHA1]::Create().ComputeHash($bytes)
-  $hash  = [Convert]::ToBase64String($sha1)
-
-  $htpasswd = "${username}:{SHA}${hash}`n"
-  $b64 = [Convert]::ToBase64String(
-    [Text.Encoding]::UTF8.GetBytes($htpasswd)
-  )
-  ```
-
-  </Tab>
-</Tabs>
-
----
-
-### Step 3: Create the secret
-
-The Secret must:
-
-- Use the key `.htpasswd`
-- Exist in the same namespace as the `SecurityPolicy`
-- Include the **gateway-sync** label
-
-<Tabs>
-  <Tab title="macOS / Linux">
-
-  ```bash
-  cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
-  apiVersion: v1
-  kind: Secret
-  metadata:
-    name: ${route}-basic-auth
-    labels:
-      networking.datumapis.com/gateway-sync: "true"
-  type: Opaque
-  data:
-    .htpasswd: $b64
-  EOF
-  ```
-
-  </Tab>
-  <Tab title="Windows (PowerShell)">
-
-  ```powershell
-  @"
-  apiVersion: v1
-  kind: Secret
-  metadata:
-    name: ${route}-basic-auth
-    labels:
-      networking.datumapis.com/gateway-sync: "true"
-  type: Opaque
-  data:
-    .htpasswd: $b64
-  "@ | datumctl apply --project $project --namespace $namespace -f -
-  ```
-
-  </Tab>
-</Tabs>
-
----
-
-### Step 4: Attach Basic Auth with a SecurityPolicy
-
-Attach the policy to the **HTTPRoute**. This is the most reliable attachment point.
-
-<Tabs>
-  <Tab title="macOS / Linux">
-
-  ```bash
-  cat <<EOF | datumctl apply --project $project --namespace $namespace -f -
-  apiVersion: gateway.envoyproxy.io/v1alpha1
-  kind: SecurityPolicy
-  metadata:
-    name: ${route}-basic-auth
-  spec:
-    targetRefs:
-      - group: gateway.networking.k8s.io
-        kind: HTTPRoute
-        name: $route
-    basicAuth:
-      users:
-        kind: Secret
-        name: ${route}-basic-auth
-  EOF
-  ```
-
-  </Tab>
-  <Tab title="Windows (PowerShell)">
-
-  ```powershell
-  @"
-  apiVersion: gateway.envoyproxy.io/v1alpha1
-  kind: SecurityPolicy
-  metadata:
-    name: ${route}-basic-auth
-  spec:
-    targetRefs:
-      - group: gateway.networking.k8s.io
-        kind: HTTPRoute
-        name: $route
-    basicAuth:
-      users:
-        kind: Secret
-        name: ${route}-basic-auth
-  "@ | datumctl apply --project $project --namespace $namespace -f -
-  ```
-
-  </Tab>
-</Tabs>
-
----
-
-## Verification
-
-### Unauthenticated request
+Apply it:
 
 ```bash
-curl -I https://your-app.example.com
+datumctl apply -f basic-auth.yaml
 ```
 
-Expected response:
+`forwardUsernameHeader` is optional. With it, your origin receives the signed-in user's name, such as `X-Username: bob`. Envoy sets the header itself, so a client can't fake it.
 
-```
-HTTP/1.1 401 Unauthorized
-WWW-Authenticate: Basic
-```
+<Warning>
+  Envoy also forwards the client's `Authorization` header to your origin, and that header carries the password, only base64-encoded. Trust your origin with it, or have the origin ignore it.
+</Warning>
 
-Browsers display a login prompt.
-
----
-
-### Authenticated request
+### Step 3: Check it
 
 ```bash
-curl -I -u demo:ChangeMe123! https://your-app.example.com
+curl -s -o /dev/null -w '%{http_code}\n' https://HOSTNAME/                                         # 401
+curl -s -o /dev/null -w '%{http_code}\n' -u alice:first-long-random-password https://HOSTNAME/    # 200
 ```
 
-Expected response:
+A new or changed policy takes up to a minute to reach every location.
 
+## Change or remove users
+
+To add, remove, or change a user, edit the `.htpasswd` lines and apply the Secret again. Envoy picks up the change within seconds, with no change to the policy.
+
+To remove Basic Auth set up with a manifest, delete the policy and the Secret while the load balancer still exists:
+
+```bash
+datumctl delete securitypolicy ALB_NAME-basic-auth
+datumctl delete secret ALB_NAME-htpasswd
 ```
-HTTP/1.1 200 OK
-```
 
----
+To remove Basic Auth set up with `datumctl alb auth set`, run `datumctl alb auth unset ALB_NAME`.
 
-## Clean up or disable Basic Auth
-
-<Tabs>
-  <Tab title="macOS / Linux">
-
-  ```bash
-  datumctl delete securitypolicy ${route}-basic-auth \
-    --project $project --namespace $namespace --ignore-not-found
-
-  datumctl delete secret ${route}-basic-auth \
-    --project $project --namespace $namespace --ignore-not-found
-  ```
-
-  </Tab>
-  <Tab title="Windows (PowerShell)">
-
-  ```powershell
-  datumctl delete securitypolicy ${route}-basic-auth `
-    --project $project --namespace $namespace --ignore-not-found
-
-  datumctl delete secret ${route}-basic-auth `
-    --project $project --namespace $namespace --ignore-not-found
-  ```
-
-  </Tab>
-</Tabs>
-
----
+<Note>
+  **Known issue:** `datumctl alb auth unset` and `datumctl alb delete` leave the Secret `ALB_NAME-basic-auth` behind, and deleting it can leave it in `Terminating` indefinitely, held by the finalizer `gateway.networking.datumapis.com/gateway-resource-replicator`. The Secret no longer protects anything. Don't remove the finalizer yourself. Contact support if you need it gone.
+</Note>
 
 ## Troubleshooting
 
-### Common failure modes
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| `500` on every request | The Secret is missing the `gateway-sync` label, or the policy names the wrong Secret. | Add the label, or fix `users.name` in the policy. |
+| `401` with the right password | The entry isn't `{SHA}`, or the hash was made from a password with a trailing newline. | Regenerate the entry with `printf '%s'`, not `echo`. |
+| No sign-in prompt | The policy isn't attached, or another policy already targets the route. | Check `targetRefs`, and run `datumctl describe securitypolicy` to look for `Conflicted`. |
+| No password needed after you add CORS, JWT, or another policy | A route-level policy replaced the Gateway-level Basic Auth from `alb auth set`. | Put `basicAuth` in the route's policy, and run `alb auth unset`. |
+| `alb auth list` doesn't show your users | Basic Auth was set up with a manifest. | Read the Secret, or use `alb auth set`. |
 
-| Symptom | Root cause | Resolution |
-|---------|------------|------------|
-| HTTP 500 on all requests | Secret not synced to edge | Add `gateway-sync` label |
-| 500 even with credentials | Secret missing at edge | Re-apply Secret with label |
-| No login prompt | Policy not attached | Verify `targetRefs` |
-| Works after deleting policy | Invalid Secret reference | Fix Secret and label |
-
-### Useful debug commands
+Useful commands:
 
 ```bash
-datumctl get secret --project $project --namespace $namespace
-datumctl get securitypolicy --project $project --namespace $namespace
-datumctl get httproute --project $project --namespace $namespace
+datumctl get securitypolicies
+datumctl get secrets
+datumctl get httproutes
 ```
 
----
+## When to use something else
 
-## Best practices
+Basic Auth is a shared-secret check. There's no sign-out, no expiry, and every request carries the password. For production:
 
-- Use Basic Auth for development, demos, and staging environments
-- Rotate credentials regularly
-- Store credentials securely using CI secrets or a secret manager
-- Use JWT, OIDC, or SSO for production authentication
-
----
-
-## Summary
-
-- You configure HTTP Basic Auth with an **Envoy Gateway `SecurityPolicy`**
-- Secrets **must be explicitly synced** to edge clusters using the `gateway-sync` label
-- `{SHA}` htpasswd format is required. Other formats, such as bcrypt and APR1, are not supported
-- Attaching policies to `HTTPRoute` is the most reliable approach
+- Use [OIDC](/alb/authentication/oidc) for people, so they sign in with your identity provider and leaving the company removes their access.
+- Use [API keys](/alb/authentication/api-keys) or [JWT](/alb/authentication/jwt) for machines, so each client has its own credential that you can revoke without changing the others.
