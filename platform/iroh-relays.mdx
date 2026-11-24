@@ -78,7 +78,7 @@ The first `serve` walks you through setup: it starts the daemon, uses your `datu
 
 Connectors find each other by name or public key, never by IP address. `dial` opens a port on your own machine, so in the example above, `ssh -p 2222 localhost` reaches the other Connector's SSH server through the tunnel, directly or through a relay.
 
-Public traffic reaches a `--public` service through Datum's edge. A request arrives at an [Application Load Balancer](/alb/overview), and Datum's Iroh gateway forwards it to your Connector by its endpoint ID. Your service answers on `localhost`, and nothing on your machine is exposed to the internet. The [Desktop Apps](/desktop-apps) use the same tunnels.
+Public traffic reaches a `--public` service through Datum's edge. A request arrives at an [Application Load Balancer](/alb/overview), and Datum's Iroh gateway forwards it to your Connector by its endpoint ID. Your service answers on `localhost`, and nothing on your machine is exposed to the internet. The [Desktop Apps](/connectors/desktop-apps) use the same tunnels.
 
 <Note>
   To pin a tunnel to specific relays, for example while you troubleshoot, set `DATUM_CONNECT_RELAY_URLS` to a comma-separated list of relay URLs before you start the daemon.
@@ -98,7 +98,7 @@ Iroh connects any two endpoints, wherever they run. With the `connect` plugin, a
   <Card title="Tunnels" icon="arrows-left-right" href="/connectors/tunnels">
     Datum's Iroh-powered Connector.
   </Card>
-  <Card title="Desktop Apps" icon="laptop" href="/desktop-apps">
+  <Card title="Desktop Apps" icon="laptop" href="/connectors/desktop-apps">
     Expose a local environment to the internet over a tunnel.
   </Card>
   <Card title="Locations" icon="location-dot" href="/locations">
