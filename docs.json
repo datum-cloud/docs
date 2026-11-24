@@ -199,6 +199,7 @@
                 "pages": [
                   "connectors/overview",
                   "connectors/tunnels",
+                  "connectors/desktop-apps",
                   "connectors/operations",
                   "connectors/observability",
                   "connectors/troubleshooting",
@@ -379,18 +380,6 @@
               "guides/overview",
               "guides/alb-as-httpd",
               "guides/migrate-from-vercel"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "Desktop",
-        "icon": "laptop",
-        "groups": [
-          {
-            "group": "Getting started",
-            "pages": [
-              "desktop-apps"
             ]
           }
         ]
@@ -803,6 +792,10 @@
     {
       "source": "/runtime/dns/:slug*",
       "destination": "/domain-dns/dns"
+    },
+    {
+      "source": "/desktop-apps",
+      "destination": "/connectors/desktop-apps"
     }
   ]
 }
