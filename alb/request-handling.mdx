@@ -9,7 +9,7 @@ Datum's Application Load Balancer (ALB) runs on Datum's edge, the proxies that s
 | Question | Short answer |
 |---|---|
 | Where is the client's IP address? | The last entry of `X-Forwarded-For`, and `X-Envoy-External-Address`. See [Find the client's IP address](#find-the-client’s-ip-address). |
-| How long can a response stay open? | About 15 seconds by default, streaming included. You can raise it to 1 hour. See [How long a response can stay open](#how-long-a-response-can-stay-open). |
+| How long can a response stay open? | One hour by default, streaming included. Each rule can set a shorter limit. See [How long a response can stay open](#how-long-a-response-can-stay-open). |
 | Is plain HTTP redirected to HTTPS? | Only when Force HTTPS or a redirect rule is on. See [Plain HTTP](#plain-http). |
 
 ## Find the client's IP address
@@ -71,100 +71,41 @@ The edge doesn't remove headers such as `Server` or `X-Powered-By`, and it doesn
 
 ## How long a response can stay open
 
-By default, an HTTP response must **finish within about 15 seconds** of the request reaching the edge. If it doesn't, the edge ends it:
+By default, an HTTP response must **finish within one hour** of the request reaching the edge. If it doesn't, the edge ends it:
 
 - If your origin hasn't started answering by then, the client gets a `504 Gateway Timeout` from the edge.
-- If your origin has started answering, the edge cuts the response off at about 15 seconds, even while data is still flowing. This includes streaming responses such as Server-Sent Events (SSE), LLM token streams, and long MCP responses.
+- If your origin has started answering, the edge cuts the response off, even while data is still flowing. This includes streaming responses such as Server-Sent Events (SSE), LLM token streams, and long MCP responses.
 
 WebSockets are the exception. See [WebSockets](#websockets).
 
-### Raise the limit
+### Change the limit
 
-`HTTPProxy` has no timeout field. Set the limit with a `BackendTrafficPolicy`, up to `1h`, attached to the `Gateway` that Datum creates for your proxy. The `Gateway` has the same name as the `HTTPProxy`.
+Each `HTTPProxy` rule carries a `timeouts.request` field, which defaults to `1h`. It covers the whole response, from the request arriving at the edge to the last byte, so set it longer than your longest stream or download. Lower it to make a hung origin fail fast:
 
-<Warning>
-Don't attach the policy to the proxy's `HTTPRoute`. Datum attaches its own `BackendTrafficPolicy` to that route when the proxy has a network service origin, a load balancing algorithm, or health checks, and a route accepts only one. The older policy wins, and the other reports `Accepted: False` with reason `Conflicted`. Either your timeout has no effect, or the proxy loses its algorithm and health checks while it still reports `Programmed`. A policy on the `Gateway` merges with Datum's, so both apply.
-</Warning>
+```yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: HTTPProxy
+metadata:
+  name: your-proxy
+spec:
+  rules:
+  - timeouts:
+      request: 30s
+    backends:
+    - endpoint: https://origin.example.com
+```
 
-<Tabs>
-  <Tab title="macOS / Linux">
+One hour is the maximum. A larger value is rejected with `duration must be less than or equal to 1h0m0s`, and `0s` is refused because it would also turn off the idle timeout. To restore the default, remove the `timeouts` block and apply the rule again.
 
-  ```bash
-  PROJECT="your-project-id"
-  PROXY_NAME="your-proxy"
-
-  cat <<EOF | datumctl apply --project $PROJECT --namespace default -f -
-  apiVersion: gateway.envoyproxy.io/v1alpha1
-  kind: BackendTrafficPolicy
-  metadata:
-    name: ${PROXY_NAME}-timeout
-  spec:
-    targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: ${PROXY_NAME}
-    timeout:
-      http:
-        requestTimeout: 1h
-  EOF
-  ```
-
-  </Tab>
-  <Tab title="Windows (PowerShell)">
-
-  ```powershell
-  $PROJECT    = "your-project-id"
-  $PROXY_NAME = "your-proxy"
-
-  @"
-  apiVersion: gateway.envoyproxy.io/v1alpha1
-  kind: BackendTrafficPolicy
-  metadata:
-    name: $PROXY_NAME-timeout
-  spec:
-    targetRefs:
-    - group: gateway.networking.k8s.io
-      kind: Gateway
-      name: $PROXY_NAME
-    timeout:
-      http:
-        requestTimeout: 1h
-  "@ | datumctl apply --project $PROJECT --namespace default -f -
-  ```
-
-  </Tab>
-</Tabs>
-
-`requestTimeout` limits the whole response, from the request arriving to the last byte, so set it longer than your longest stream or download. A larger value is rejected with `duration must be less than or equal to 1h0m0s`.
-
-A `Gateway` accepts only one `BackendTrafficPolicy`. If you've already attached one to it, such as for rate limiting, add the `timeout` block to that policy instead of creating a second one.
-
-If you added the timeout to an existing policy, remove its `timeout` block and apply the policy again. If you created a dedicated policy with the example above, delete it to restore the default:
-
-<Tabs>
-  <Tab title="macOS / Linux">
-
-  ```bash
-  datumctl delete backendtrafficpolicy ${PROXY_NAME}-timeout --project $PROJECT --namespace default
-  ```
-
-  </Tab>
-  <Tab title="Windows (PowerShell)">
-
-  ```powershell
-  datumctl delete backendtrafficpolicy "$PROXY_NAME-timeout" --project $PROJECT --namespace default
-  ```
-
-  </Tab>
-</Tabs>
+Before November 2026, the default was about 15 seconds, and the only way to raise it was a `BackendTrafficPolicy`. A rule's `timeouts.request` now overrides that policy's `requestTimeout`, so you can delete a policy you attached for that purpose.
 
 ### WebSockets
 
-The 15-second limit doesn't end a WebSocket. In testing, an upgraded connection stayed open while messages flowed, and through idle gaps of 2 minutes over 6 minutes in total. No idle limit has been measured.
+The response timeout doesn't end a WebSocket. In testing, an upgraded connection stayed open while messages flowed, and through idle gaps of 2 minutes over 6 minutes in total. No idle limit has been measured.
 
 ### gRPC
 
-In testing, bidirectional gRPC streams of 25 and 45 seconds weren't cut at 15 seconds. This isn't a documented guarantee. If your calls can run longer than 15 seconds, [raise the limit](#raise-the-limit).
+A gRPC stream is a response like any other, so the rule's `timeouts.request` bounds it. In testing under the earlier 15-second default, bidirectional streams of 25 and 45 seconds weren't cut, which isn't a documented guarantee.
 
 ## Plain HTTP
 

@@ -482,7 +482,7 @@ The ALB checks that a user signed in, but not who they are. It has no equivalent
 
 An app that worked behind its old proxy can still fail behind the ALB, because some defaults differ. Check each item before you move production traffic:
 
-- **Response timeout**: about 15 seconds by default, streaming included. Raise it for slow APIs, server-sent events, and LLM streams. See [Response timeout](#response-timeout).
+- **Response timeout**: one hour by default, streaming included. Lower it per rule to fail fast on a hung origin. See [Response timeout](#response-timeout).
 - **Uploads**: the WAF rejects large request bodies, even in Observe mode. See [WAF](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#waf) in the reference and [WAF configuration](/alb/configuration/waf).
 - **WebSockets**: supported to Compute workloads, and not ended by the response timeout. See [WebSockets](/alb/request-handling#websockets).
 - **Rate limits**: counted per edge node, not across the whole ALB. See [Rate limits](https://github.com/datum-labs/shorts/blob/main/gists/alb/alb-as-httpd-reference.md#rate-limits).
@@ -490,48 +490,28 @@ An app that worked behind its old proxy can still fail behind the ALB, because s
 
 ### Response timeout
 
-A response that takes longer than about 15 seconds gets `504`, whatever your app does. To see it, request a route in your app that takes about 20 seconds. In the following example, `/slow` is such a route:
+A response must finish within one hour of the request reaching the edge, streaming included. If your origin hasn't started answering by then, the client gets `504`, whatever your app does. Slow APIs, server-sent events, and LLM streams complete within that limit without any change.
 
-```bash
-curl -s -o /dev/null -w '%{http_code} %{time_total}s\n' https://tile-desire-9gpyk.datumproxy.net/slow
-```
+To fail fast on a hung route, lower the limit on the rule that serves it. Save the live HTTPProxy as in [Redirect and rewrite URLs](#redirect-and-rewrite-urls), add a `timeouts` block to the rule, and apply the file:
 
-```text
-504 15.125767s
-```
-
-To raise the limit, attach a `BackendTrafficPolicy` to the ALB's Gateway, which has the same name as the ALB:
-
-```yaml timeout.yaml
-apiVersion: gateway.envoyproxy.io/v1alpha1
-kind: BackendTrafficPolicy
-metadata:
-  name: web-timeout
-spec:
-  targetRefs:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: web
-  timeout:
-    http:
-      requestTimeout: 120s
+```yaml httpproxy.yaml
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /api
+    timeouts:
+      request: 30s
+    backends:
+    - networkService:
+        name: api
+        port: http
 ```
 
 ```bash
-datumctl apply -f timeout.yaml
+datumctl apply -f httpproxy.yaml
 ```
 
-```text
-backendtrafficpolicy.gateway.envoyproxy.io/web-timeout created
-```
-
-After the change reaches the edge, usually within a minute, the same 20-second request succeeds:
-
-```text
-200 20.157289s
-```
-
-Unlike NGINX `proxy_read_timeout`, which limits the gap between reads, this limits the whole response. For streaming, WebSocket, and gRPC behavior, see [How long a response can stay open](/alb/request-handling#how-long-a-response-can-stay-open).
+The limit can't go above one hour or be turned off. Unlike NGINX `proxy_read_timeout`, which limits the gap between reads, this limits the whole response. For streaming, WebSocket, and gRPC behavior, see [How long a response can stay open](/alb/request-handling#how-long-a-response-can-stay-open).
 
 ### TLS and custom domains
 
