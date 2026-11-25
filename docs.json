@@ -165,7 +165,8 @@
                       "alb/configuration/waf",
                       "alb/configuration/wildcard-hostnames",
                       "alb/configuration/load-balancing",
-                      "alb/configuration/failover"
+                      "alb/configuration/failover",
+                      "alb/configuration/gateway-api"
                     ]
                   },
                   {

@@ -78,6 +78,8 @@ Portal create always POSTs an `HTTPProxy`, then attempts a matching `TrafficProt
 
 To learn how Datum runs Envoy, see [Envoy](/platform/envoy). See [HTTPProxy](/alb/httpproxy/overview) for schemas and `datumctl` examples.
 
+You can also skip the HTTPProxy and write the Gateway and HTTPRoute yourself. See [Gateway API](/alb/configuration/gateway-api).
+
 ## Features
 
 Each Application Load Balancer deploys with a default hostname and enforces HTTPS (you can disable this).

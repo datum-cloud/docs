@@ -1,0 +1,255 @@
+---
+title: "Configure an ALB with the Kubernetes Gateway API"
+description: "Create a Datum Application Load Balancer directly from Gateway API Gateway and HTTPRoute resources instead of an HTTPProxy."
+sidebarTitle: "Gateway API"
+---
+
+<Note>
+**Working with this resource via an AI agent?** Datum publishes an [HTTPRoute skill](/agents/skills/httproute) for path routing, traffic splitting, redirects, and rewrites.
+</Note>
+
+Every Datum project serves the standard [Kubernetes Gateway API](https://gateway-api.sigs.k8s.io/) (`gateway.networking.k8s.io/v1`). An [`HTTPProxy`](/alb/httpproxy/overview) is a convenience layer on top of it: the network services operator turns each HTTPProxy into a `Gateway` and an `HTTPRoute` with the same name. You can skip the HTTPProxy and write those resources yourself.
+
+Use the Gateway API when you:
+
+- already have Gateway API manifests or tooling and want to reuse them
+- need `HTTPRoute` features that HTTPProxy doesn't expose
+- want one Gateway to carry several separately managed routes
+
+Use an [HTTPProxy](/alb/httpproxy/overview) when you want the shortest path to a working load balancer with sensible defaults, such as HTTP-to-HTTPS redirects.
+
+## Resources
+
+| Resource | API version | Purpose |
+|---|---|---|
+| `GatewayClass` | `gateway.networking.k8s.io/v1` | Provided by Datum. Use `datum-external-global-proxy` |
+| `Gateway` | `gateway.networking.k8s.io/v1` | The load balancer: its generated hostname and listeners |
+| `HTTPRoute` | `gateway.networking.k8s.io/v1` | Matching, filters, and backends for requests on a Gateway |
+| `EndpointSlice` | `discovery.k8s.io/v1` | The origin that a route forwards to |
+| `BackendTLSPolicy` | `gateway.networking.k8s.io/v1` | Optional TLS settings for the connection to the origin |
+
+Confirm what your project serves:
+
+```bash
+datumctl get gatewayclasses
+datumctl api-resources | grep gateway.networking.k8s.io
+```
+
+## Create a load balancer
+
+This example sends all traffic to `https://httpbin.org`.
+
+<Steps>
+  <Step title="Write the manifests">
+    Save the following as `gateway.yaml`:
+
+    ```yaml gateway.yaml
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: Gateway
+    metadata:
+      name: my-app
+      namespace: default
+    spec:
+      gatewayClassName: datum-external-global-proxy
+    ---
+    apiVersion: discovery.k8s.io/v1
+    kind: EndpointSlice
+    metadata:
+      name: my-app-origin
+      namespace: default
+    addressType: FQDN
+    endpoints:
+      - addresses: ["httpbin.org"]
+        conditions:
+          ready: true
+    ports:
+      - name: https
+        port: 443
+        protocol: TCP
+        appProtocol: https
+    ---
+    apiVersion: gateway.networking.k8s.io/v1
+    kind: HTTPRoute
+    metadata:
+      name: my-app
+      namespace: default
+    spec:
+      parentRefs:
+        - name: my-app
+      rules:
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /
+          filters:
+            - type: URLRewrite
+              urlRewrite:
+                hostname: httpbin.org
+          backendRefs:
+            - group: discovery.k8s.io
+              kind: EndpointSlice
+              name: my-app-origin
+              port: 443
+    ```
+
+    The Gateway has no `listeners`. Datum adds default HTTP (port 80) and HTTPS (port 443) listeners for the Gateway's generated hostname. The `URLRewrite` filter sets the `Host` header to the name the origin expects, the same thing an HTTPProxy does for an FQDN origin.
+
+    Setting `addressType: FQDN` prints a deprecation warning from Kubernetes. You can ignore it; Datum uses FQDN EndpointSlices for HTTPProxy origins too.
+  </Step>
+  <Step title="Preview and apply">
+    ```bash
+    datumctl apply -f gateway.yaml --dry-run=server
+    datumctl apply -f gateway.yaml
+    ```
+  </Step>
+  <Step title="Get the generated hostname">
+    ```bash
+    datumctl get gateway my-app -o jsonpath='{.status.addresses[0].value}'
+    ```
+
+    The result looks like `road-thrown-jxqtn.datumproxy.net`. The Gateway also gets `v4.` and `v6.` forms of that name. Wait for the Gateway's `Programmed` condition and the HTTPRoute's `Accepted` condition to be `True`:
+
+    ```bash
+    datumctl describe gateway my-app
+    datumctl describe httproute my-app
+    ```
+  </Step>
+  <Step title="Send a request">
+    ```bash
+    curl https://<generated-hostname>/get
+    ```
+
+    A healthy status doesn't guarantee the edge is serving yet. If the request fails, retry after a short wait.
+  </Step>
+</Steps>
+
+## Add a custom hostname
+
+Add a pair of listeners for each hostname. Every listener you define needs a `hostname`, because the hostname-less default listeners already use ports 80 and 443.
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: my-app
+  namespace: default
+spec:
+  gatewayClassName: datum-external-global-proxy
+  listeners:
+    - name: http-app
+      protocol: HTTP
+      port: 80
+      hostname: app.example.com
+    - name: https-app
+      protocol: HTTPS
+      port: 443
+      hostname: app.example.com
+      tls:
+        mode: Terminate
+        options:
+          gateway.networking.datumapis.com/certificate-issuer: auto
+```
+
+The `certificate-issuer: auto` option tells Datum to issue and renew the certificate for that hostname. You can't bring your own certificate with `certificateRefs`.
+
+The hostname serves traffic only after you prove you own its domain. Follow [Custom domains](/alb/operations/custom-domains) to verify the domain and point DNS at the Gateway's generated hostname.
+
+## Redirect HTTP to HTTPS
+
+Unlike an HTTPProxy, a Gateway doesn't redirect HTTP to HTTPS by default. A route with no `sectionName` takes requests on both ports. To redirect, attach your main route to the HTTPS listener only, and add a second route on the HTTP listener:
+
+```yaml
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app
+  namespace: default
+spec:
+  parentRefs:
+    - name: my-app
+      sectionName: default-https
+  rules:
+    # ...your rules from above
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app-redirect
+  namespace: default
+spec:
+  parentRefs:
+    - name: my-app
+      sectionName: default-http
+  rules:
+    - filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+```
+
+`default-http` and `default-https` are the listeners Datum adds for the generated hostname. For a custom hostname, use the names of your own listeners, such as `http-app` and `https-app`.
+
+## Add a WAF
+
+Attach a [`TrafficProtectionPolicy`](/alb/configuration/waf) to your Gateway the same way you would for an HTTPProxy:
+
+```yaml
+apiVersion: networking.datumapis.com/v1alpha
+kind: TrafficProtectionPolicy
+metadata:
+  name: my-app
+  namespace: default
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: Gateway
+      name: my-app
+  mode: Observe
+```
+
+## Differences from HTTPProxy
+
+- **No HTTP-to-HTTPS redirect by default.** See [Redirect HTTP to HTTPS](#redirect-http-to-https).
+- **Hostnames live on the Gateway, not the route.** Set `hostname` on listeners. `HTTPRoute.spec.hostnames` is rejected.
+- **You manage the origin resources.** HTTPProxy creates the EndpointSlices for you; here you write them.
+
+## Validation rules
+
+Datum accepts a subset of the Gateway API. A request that breaks one of these rules is rejected with an error that names the field.
+
+**Gateway**
+
+| Field | Rule |
+|---|---|
+| `spec.gatewayClassName` | Required |
+| `spec.addresses`, `spec.infrastructure`, `spec.tls` | Not permitted |
+| `listeners[].port` / `protocol` | Port 80 with `HTTP`, or port 443 with `HTTPS` |
+| `listeners[].hostname` | Required on every listener you define |
+| `listeners[].tls` | `mode: Terminate` with the `certificate-issuer` option; `certificateRefs` not permitted |
+| `listeners[].allowedRoutes` | `namespaces.from` must be `Same`; `kinds` not permitted |
+
+**HTTPRoute**
+
+| Field | Rule |
+|---|---|
+| `spec.hostnames` | Not permitted |
+| `parentRefs[]` | Must be a `Gateway` in the same namespace |
+| `rules[].filters[].type` | `RequestHeaderModifier`, `ResponseHeaderModifier`, `RequestRedirect`, `URLRewrite`, `CORS`, or `ExtensionRef` (to an Envoy Gateway `HTTPRouteFilter`) |
+| `rules[].backendRefs[].filters[].type` | `RequestHeaderModifier`, `ResponseHeaderModifier`, `URLRewrite` (hostname only), or `ExtensionRef` |
+| `rules[].backendRefs[]` | `group` and `kind` required. Use `discovery.k8s.io` `EndpointSlice` (with `port`) or `gateway.envoyproxy.io` `Backend`, in the same namespace |
+
+`RequestMirror` isn't supported, and you can't reference a Kubernetes `Service` as a backend.
+
+## Clean up
+
+```bash
+datumctl delete -f gateway.yaml
+```
+
+## Related
+
+- [HTTPProxy](/alb/httpproxy/overview): the higher-level resource built on these APIs
+- [WAF](/alb/configuration/waf): `TrafficProtectionPolicy` modes and rule settings
+- [Custom domains](/alb/operations/custom-domains): verify a domain and point DNS at a Gateway
+- [Gateway API reference](https://gateway-api.sigs.k8s.io/reference/spec/)
