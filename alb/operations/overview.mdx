@@ -17,7 +17,7 @@ datumctl alb create NEW_ALB_NAME --endpoint ORIGIN_URL
 Replace the following:
 
 - `NEW_ALB_NAME`: a name for the load balancer, such as `my-app`.
-- `ORIGIN_URL`: the `http` or `https` URL of your origin, such as `https://origin.example.com`. The host must be a public DNS name or a publicly routable IP address. To reach an origin on a private network, use a [Connector](/connectors/tunnels) instead.
+- `ORIGIN_URL`: the `http` or `https` URL of your origin, such as `https://origin.example.com`. The host must be a public DNS name or a publicly routable IP address. To reach Compute Instances on your gVPC network, use `--network-service`. To reach a service on your own machine or network, use a [Connector](/connectors/tunnels).
 
 The command waits up to 2 minutes for Datum to assign a generated hostname, then prints it:
 
