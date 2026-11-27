@@ -72,6 +72,8 @@ Read the response codes:
 
 The response flags in `-o wide` are the most useful field when nothing else explains it — they say whether the connection to your origin failed, timed out, or found nothing healthy.
 
+If `datumctl alb describe my-app` reports `Programmed=False` with reason `BackendAddressNotPublic`, an origin's hostname resolves to a private or other non-public address. Datum's edge refuses to connect to those addresses, so requests to that origin fail. The message names the origin, the hostname, the address it resolved to, and its range. Point the hostname at a public address. To reach Compute Instances on your gVPC network, use `--network-service`. To reach a service on your own machine or network, use a [Connector](/connectors/tunnels). Datum resolves the hostname again about every 5 minutes, and the status clears once it resolves to a public address.
+
 For a network service origin, check the service exists and declares the port name you used. `--port` takes a name like `http`, never a number, and Datum will not invent a service that does not exist.
 
 ## A change that was accepted and never took effect
