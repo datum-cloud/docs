@@ -44,17 +44,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Health checks silently stop when a customer adds a route timeout policy](https://github.com/datum-cloud/network-services-operator/issues/880) (#880), [Refuse internal addresses in tenant upstreams](https://github.com/datum-cloud/network-services-operator/pull/956) (#956)
 </Update>
 
-<Update label="November 24, 2026" description="DNS" tags={["Fix"]}>
-  ## DNS activity logs record every change
-
-  Activity logs for DNS record sets now record each change that takes effect, and only those. Removing a record adds a deleted entry to the record set's activity. Dry runs and refused requests no longer appear as changes.
-
-  See [Activity logs](/operations/activity-logs).
-
-  Details: [DNS record deletions vanish from activity timelines](https://github.com/datum-cloud/dns/issues/241) (#241)
-</Update>
-
-<Update label="November 23, 2026" description="Billing" tags={["AX/DX/UX"]}>
+<Update label="November 25, 2026" description="Billing" tags={["AX/DX/UX"]}>
   ## Billing lives on your organization
 
   Each organization's billing page in the [Cloud Portal](https://cloud.datum.net) is now the single home for its billing account, organized into Overview, Subscriptions & Pricing, Invoices, and Payment Methods tabs.
@@ -69,7 +59,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Manage the organization's billing account from the org](https://github.com/datum-cloud/cloud-portal/pull/1831) (#1831), [Split the organization billing page into tabs](https://github.com/datum-cloud/cloud-portal/pull/1842) (#1842), [Show invoice numbers and open invoices from the billing page](https://github.com/datum-cloud/cloud-portal/pull/1840) (#1840)
 </Update>
 
-<Update label="November 23, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
+<Update label="November 25, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
   ## Clearer permission errors and quicker navigation
 
   The [Cloud Portal](https://cloud.datum.net) tells you what refused a request and gets you between related pages faster.
@@ -79,6 +69,16 @@ Each entry links to the original announcement in our [changelog discussions](htt
   - **Switchers go to projects:** choosing an organization opens its projects list, where you also create new projects.
 
   Details: [Name the product area on permission error pages](https://github.com/datum-cloud/cloud-portal/issues/1836) (#1836), [Low friction navigation between domain asset and DNS zones](https://github.com/datum-cloud/cloud-portal/issues/1570) (#1570)
+</Update>
+
+<Update label="November 24, 2026" description="DNS" tags={["Fix"]}>
+  ## DNS activity logs record every change
+
+  Activity logs for DNS record sets now record each change that takes effect, and only those. Removing a record adds a deleted entry to the record set's activity. Dry runs and refused requests no longer appear as changes.
+
+  See [Activity logs](/operations/activity-logs).
+
+  Details: [DNS record deletions vanish from activity timelines](https://github.com/datum-cloud/dns/issues/241) (#241)
 </Update>
 
 <Update label="November 23, 2026" description="Application Load Balancer" tags={["Fix"]}>
