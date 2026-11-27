@@ -7,7 +7,7 @@ noindex: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
-<Update label="November 25, 2026" description="Billing" tags={["AX/DX/UX"]}>
+<Update label="November 25, 2026" description="Account and billing" tags={["Improved"]}>
   ## Usage cost before discounts
 
   The [Cloud Portal](https://cloud.datum.net) now shows what discounted usage costs before the discount. Owners can also keep the billing contact current.
@@ -21,7 +21,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Show what usage costs before discounts](https://github.com/datum-cloud/cloud-portal/pull/1850) (#1850), [Let owners change the billing contact's email](https://github.com/datum-cloud/cloud-portal/pull/1849) (#1849)
 </Update>
 
-<Update label="November 25, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
+<Update label="November 25, 2026" description="Cloud Portal" tags={["Improved"]}>
   ## Error notifications name the area
 
   Error notifications in the [Cloud Portal](https://cloud.datum.net) now use the same wording as its error pages. A refused change names the product area that denied it, for example "Permission denied for changes to DNS." Select **Show details** to see the original error and request ID, ready to copy.
@@ -29,7 +29,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Explain API errors in toasts and keep the raw text under details](https://github.com/datum-cloud/cloud-portal/issues/1838) (#1838)
 </Update>
 
-<Update label="November 25, 2026" description="Application Load Balancer" tags={["Fix"]}>
+<Update label="November 25, 2026" description="Networking" tags={["Fix"]}>
   ## Load balancers refuse unsafe settings
 
   The Application Load Balancer (ALB) now refuses settings it used to accept and then mishandle.
@@ -44,7 +44,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Health checks silently stop when a customer adds a route timeout policy](https://github.com/datum-cloud/network-services-operator/issues/880) (#880), [Refuse internal addresses in tenant upstreams](https://github.com/datum-cloud/network-services-operator/pull/956) (#956)
 </Update>
 
-<Update label="November 25, 2026" description="Billing" tags={["AX/DX/UX"]}>
+<Update label="November 25, 2026" description="Account and billing" tags={["Improved"]}>
   ## Billing lives on your organization
 
   Each organization's billing page in the [Cloud Portal](https://cloud.datum.net) is now the single home for its billing account, organized into Overview, Subscriptions & Pricing, Invoices, and Payment Methods tabs.
@@ -59,7 +59,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Manage the organization's billing account from the org](https://github.com/datum-cloud/cloud-portal/pull/1831) (#1831), [Split the organization billing page into tabs](https://github.com/datum-cloud/cloud-portal/pull/1842) (#1842), [Show invoice numbers and open invoices from the billing page](https://github.com/datum-cloud/cloud-portal/pull/1840) (#1840)
 </Update>
 
-<Update label="November 25, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
+<Update label="November 25, 2026" description="Cloud Portal" tags={["Improved"]}>
   ## Clearer permission errors and quicker navigation
 
   The [Cloud Portal](https://cloud.datum.net) tells you what refused a request and gets you between related pages faster.
@@ -71,7 +71,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Name the product area on permission error pages](https://github.com/datum-cloud/cloud-portal/issues/1836) (#1836), [Low friction navigation between domain asset and DNS zones](https://github.com/datum-cloud/cloud-portal/issues/1570) (#1570)
 </Update>
 
-<Update label="November 24, 2026" description="DNS" tags={["Fix"]}>
+<Update label="November 24, 2026" description="DNS and domains" tags={["Fix"]}>
   ## DNS activity logs record every change
 
   Activity logs for DNS record sets now record each change that takes effect, and only those. Removing a record adds a deleted entry to the record set's activity. Dry runs and refused requests no longer appear as changes.
@@ -81,7 +81,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [DNS record deletions vanish from activity timelines](https://github.com/datum-cloud/dns/issues/241) (#241)
 </Update>
 
-<Update label="November 23, 2026" description="Application Load Balancer" tags={["Fix"]}>
+<Update label="November 23, 2026" description="Networking" tags={["Fix"]}>
   ## One failing route no longer blocks the others
 
   The Application Load Balancer (ALB) now sets up every working route on a load balancer even when one route fails. The load balancer's status stays current, and the failing route reports its own error.
@@ -91,7 +91,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Program a Gateway's other routes when one route fails](https://github.com/datum-cloud/network-services-operator/pull/934) (#934)
 </Update>
 
-<Update label="November 21, 2026" description="Network Load Balancer" tags={["AX/DX/UX", "Early access"]}>
+<Update label="November 21, 2026" description="Networking" tags={["New", "Early access"]}>
   ## NLB traffic in the portal
 
   The [Cloud Portal](https://cloud.datum.net) now charts the inbound traffic each Network Load Balancer (NLB) receives, on the NLB page and on your project home.
@@ -108,7 +108,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Show NLB traffic metrics](https://github.com/datum-cloud/network-services-operator/issues/805) (#805), [Show network load balancer traffic on the project home](https://github.com/datum-cloud/cloud-portal/issues/1832) (#1832)
 </Update>
 
-<Update label="November 20, 2026" description="Application Load Balancer" tags={["Fix"]}>
+<Update label="November 20, 2026" description="Networking" tags={["Fix"]}>
   ## Responses stay open for up to an hour
 
   The Application Load Balancer (ALB) no longer cuts responses off after about 15 seconds. Streams, Server-Sent Events, large downloads, and slow APIs can now finish.
@@ -122,7 +122,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Streaming responses are cut off after fifteen seconds](https://github.com/datum-cloud/network-services-operator/issues/459) (#459)
 </Update>
 
-<Update label="November 18, 2026" description="datumctl" tags={["AX/DX/UX"]}>
+<Update label="November 18, 2026" description="datumctl" tags={["Improved"]}>
   ## Five plugins move to the Milo catalog
 
   The `assistant`, `billing`, `ipam`, `search`, and `telemetry` plugins are now maintained in the Milo catalog. `datumctl` v0.25.0 and later tells you how to switch.
@@ -163,7 +163,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [List the org namespace in org-wide console mode and stop stray stack traces](https://github.com/datum-cloud/datumctl/pull/365) (#365), [Follow console context switches under a session override](https://github.com/datum-cloud/datumctl/pull/366) (#366)
 </Update>
 
-<Update label="November 17, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
+<Update label="November 17, 2026" description="Cloud Portal" tags={["New"]}>
   ## Agent onboarding from project home
 
   The project home page in the [Cloud Portal](https://cloud.datum.net) can now set up a coding agent for your project with one paste.
@@ -178,7 +178,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Add 'Onboard your agent to Datum' copy-prompt pill to project home](https://github.com/datum-cloud/cloud-portal/issues/1797) (#1797)
 </Update>
 
-<Update label="November 17, 2026" description="Organizations" tags={["Fix"]}>
+<Update label="November 17, 2026" description="Account and billing" tags={["Fix"]}>
   ## Seven-day invitations and editor service access
 
   Invitations now last long enough for new users to sign up, and organization editors can turn on services without an owner.
@@ -193,7 +193,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Invitations expire before new users can sign up and accept them](https://github.com/datum-cloud/cloud-portal/issues/1823) (#1823), [Let organization editors manage service entitlements](https://github.com/datum-cloud/datum/pull/330) (#330)
 </Update>
 
-<Update label="November 17, 2026" description="Organizations" tags={["AX/DX/UX"]}>
+<Update label="November 17, 2026" description="Account and billing" tags={["New"]}>
   ## Join an organization by email domain
 
   Organization owners can now let anyone with a work email at the company's domains join the organization without an invitation.
@@ -209,7 +209,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Let people join an organization by email domain, and email owners when someone joins](https://github.com/datum-cloud/cloud-portal/issues/1709) (#1709)
 </Update>
 
-<Update label="November 13, 2026" description="gVPC" tags={["Fix"]}>
+<Update label="November 13, 2026" description="Networking" tags={["Fix"]}>
   ## Fewer network dropouts for instances
 
   Instances on a Galactic VPC network now keep internet access and DNS lookups through two failures that used to interrupt them. Replies from the internet could drop for several seconds at a time, repeatedly, while every component reported healthy. Datum now delivers those replies while it relearns the route to the instance. An instance recreated on another host could also lose DNS lookups for minutes. Datum now removes the old host's record when the instance stops there.
@@ -219,7 +219,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [NAT replies to a tenant node drop for seconds when the kernel collects its next hop's neighbor entry](https://github.com/datum-cloud/galactic/issues/1392) (#1392), [Attachment status flips between nodes after an instance moves, dropping its routes](https://github.com/datum-cloud/galactic/issues/1385) (#1385)
 </Update>
 
-<Update label="November 13, 2026" description="Billing" tags={["AX/DX/UX"]}>
+<Update label="November 13, 2026" description="Account and billing" tags={["Improved"]}>
   ## Contract fee terms and upcoming invoices
 
   The **Contract** section of a billing account in the [Cloud Portal](https://cloud.datum.net) now shows how often each fee is charged and which invoices are coming.
@@ -235,7 +235,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Show customers how and when their contract's fees are billed](https://github.com/datum-cloud/cloud-portal/pull/1815) (#1815)
 </Update>
 
-<Update label="November 13, 2026" description="DNS" tags={["Fix"]}>
+<Update label="November 13, 2026" description="DNS and domains" tags={["Fix"]}>
   ## DKIM and underscore records in the portal
 
   The Cloud Portal now accepts DNS records whose names have an underscore after a dot, such as a DKIM record at `<selector>._domainkey`. Before, adding one failed with "A lowercase RFC 1123 subdomain must consist of lower case alphanumeric characters". The record keeps its name exactly as you typed it.
@@ -245,7 +245,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Let DKIM and other underscore records be added](https://github.com/datum-cloud/cloud-portal/pull/1817) (#1817)
 </Update>
 
-<Update label="November 13, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
+<Update label="November 13, 2026" description="Cloud Portal" tags={["Improved"]}>
   ## Keyboard access and plain permission messages
 
   The [Cloud Portal](https://cloud.datum.net) now supports keyboard access to tables and explains permission errors in plain language.
@@ -275,7 +275,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Manage Private DNS from the command line](https://github.com/datum-cloud/dns-operator/issues/419) (#419)
 </Update>
 
-<Update label="November 11, 2026" description="Application Load Balancer" tags={["Fix"]}>
+<Update label="November 11, 2026" description="Networking" tags={["Fix"]}>
   ## New proxies answer within seconds
 
   A new Application Load Balancer (ALB) proxy now answers its first request within seconds in every region, including when its workload runs in a different region than the edge. Before, a cross-region proxy returned `503` for about 2 minutes 48 seconds, and sometimes until an unrelated change rebuilt the edge. In production, a new cross-region proxy answered in 17.5 seconds with no `503` responses, and 30 follow-up requests all succeeded. Every instance also now sees changes to VPC network settings, including after a platform restart.
@@ -285,7 +285,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Publish VPC backend records as soon as a proxy needs them](https://github.com/datum-cloud/network-services-operator/pull/896) (#896), [Fix new HTTP proxies returning 503 for minutes](https://github.com/datum-cloud/network-services-operator/pull/892) (#892)
 </Update>
 
-<Update label="November 11, 2026" description="Application Load Balancer" tags={["Fix"]}>
+<Update label="November 11, 2026" description="Networking" tags={["Fix"]}>
   ## New load balancers serve traffic sooner
 
   A new Application Load Balancer (ALB) no longer returns `503` for several minutes when its compute workload runs in a different location than the edge serving the request. Datum now rebuilds the load balancer's routing as soon as it learns which network the workload is on.
@@ -295,7 +295,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Fix new HTTP proxies returning 503 for minutes](https://github.com/datum-cloud/network-services-operator/pull/892) (#892)
 </Update>
 
-<Update label="November 10, 2026" description="Private DNS" tags={["Fix", "Early access"]}>
+<Update label="November 10, 2026" description="DNS and domains" tags={["Fix", "Early access"]}>
   ## Private DNS answers faster and stays up
 
   Private DNS now keeps answers current as instances come and go, and keeps answering through rollouts and failures.
@@ -310,7 +310,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Keep Private DNS working through updates and failures](https://github.com/datum-cloud/dns-operator/issues/417) (#417), [Keep private DNS records up to date](https://github.com/datum-cloud/dns-operator/issues/415) (#415), [Restrict private DNS access to approved networks](https://github.com/datum-cloud/dns-operator/issues/416) (#416)
 </Update>
 
-<Update label="November 10, 2026" description="Application Load Balancer" tags={["AX/DX/UX"]}>
+<Update label="November 10, 2026" description="Networking" tags={["Improved"]}>
   ## Shareable ALB log views
 
   The **Logs** tab of an Application Load Balancer (ALB) in the [Cloud Portal](https://cloud.datum.net) now keeps your view when you refresh or share it.
@@ -325,7 +325,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Keep ALB logs in the URL, count filters across the window, and fix local sign-in](https://github.com/datum-cloud/cloud-portal/pull/1807) (#1807)
 </Update>
 
-<Update label="November 10, 2026" description="Private DNS" tags={["Fix", "Early access"]}>
+<Update label="November 10, 2026" description="DNS and domains" tags={["Fix", "Early access"]}>
   ## Private zone limits and labels
 
   Private DNS now enforces a limit of 256 private zones per network, including the managed `datum.internal` zone. An association past the limit reports `Accepted=False` with reason `ZoneLimitExceeded`, instead of stopping the network from picking up zone changes. Zones already attached keep their place, the managed zone always fits, and associating the same zone twice uses one slot. In the Cloud Portal, private zones show **Private** in the **Host** column and have no **Nameservers** tab. Each network's managed zone is described as "Private DNS for the `<network>` VPC".
@@ -335,7 +335,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Manage Private DNS through the API](https://github.com/datum-cloud/dns-operator/issues/414) (#414)
 </Update>
 
-<Update label="November 10, 2026" description="Private DNS" tags={["Early access", "Connect"]}>
+<Update label="November 10, 2026" description="DNS and domains" tags={["New", "Early access"]}>
   ## Private DNS for Galactic VPC networks
 
   Resources on a [Galactic VPC](/galactic-vpc/overview) network can now reach each other by name, with answers that resolve only from inside that network.
@@ -353,7 +353,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Manage Private DNS through the API](https://github.com/datum-cloud/dns-operator/issues/414) (#414), [Keep private DNS records up to date](https://github.com/datum-cloud/dns-operator/issues/415) (#415), [Restrict private DNS access to approved networks](https://github.com/datum-cloud/dns-operator/issues/416) (#416)
 </Update>
 
-<Update label="November 9, 2026" description="Network Load Balancer" tags={["AX/DX/UX", "Early access"]}>
+<Update label="November 9, 2026" description="Networking" tags={["Improved", "Early access"]}>
   ## NLB page follows the traffic path
 
   The Network Load Balancer (NLB) page in the [Cloud Portal](https://cloud.datum.net) now reads in the order traffic flows: public addresses, then listeners, then backends. Each backend shows its health and which listeners use it, with a per-location breakdown on hover. Deleting a listener now works on the first try, and the **Add listener** dialog no longer flashes a warning as it closes.
@@ -363,7 +363,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Give the NLB page a traffic path layout](https://github.com/datum-cloud/network-services-operator/pull/890) (#890)
 </Update>
 
-<Update label="November 9, 2026" description="datumctl" tags={["AX/DX/UX"]}>
+<Update label="November 9, 2026" description="datumctl" tags={["New"]}>
   ## Set up datumctl from a coding agent
 
   `datumctl` v0.24.0 lets coding agents and scripts sign in and install plugins without an interactive terminal.
@@ -380,7 +380,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Let coding agents sign in and install every plugin](https://github.com/datum-cloud/datumctl/pull/358) (#358)
 </Update>
 
-<Update label="November 9, 2026" description="gVPC" tags={["AX/DX/UX"]}>
+<Update label="November 9, 2026" description="Networking" tags={["New"]}>
   ## Traffic charts for each network
 
   Networks in the [Cloud Portal](https://cloud.datum.net) now have a **Metrics** tab that charts traffic in and out for every Instance on the network.
@@ -394,7 +394,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Chart VPC interface traffic in the portal plugin](https://github.com/datum-cloud/network-services-operator/pull/877) (#877)
 </Update>
 
-<Update label="November 9, 2026" description="Application Load Balancer" tags={["AX/DX/UX"]}>
+<Update label="November 9, 2026" description="Networking" tags={["Improved"]}>
   ## Create a load balancer from a workload
 
   **Add to a load balancer** on a compute workload's **Overview** now opens the new Application Load Balancer (ALB) dialog with that workload chosen. The dialog selects the workload's network service, picks its port when it has only one, and uses the workload's name as the display name. If the workload has no network service, the dialog says so. Links that open the create dialog now open it reliably.
@@ -404,7 +404,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Open the create load balancer dialog with a workload chosen](https://github.com/datum-cloud/cloud-portal/pull/1800) (#1800)
 </Update>
 
-<Update label="November 9, 2026" description="Billing" tags={["AX/DX/UX"]}>
+<Update label="November 9, 2026" description="Account and billing" tags={["New"]}>
   ## Contracts in billing settings
 
   If your billing account is on a contract, the [Cloud Portal](https://cloud.datum.net) now shows it in a **Contract** section on the billing account page.
@@ -420,7 +420,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Show customers their contract](https://github.com/datum-cloud/cloud-portal/pull/1795) (#1795)
 </Update>
 
-<Update label="November 9, 2026" description="gVPC" tags={["Fix"]}>
+<Update label="November 9, 2026" description="Networking" tags={["Fix"]}>
   ## Read-only users can open VPC pages
 
   Members with read-only access can now open the Galactic VPC pages in the [Cloud Portal](https://cloud.datum.net) without a permission error. Create, edit, **Enable IPv6**, and delete controls for networks and network services are hidden when you don't have permission to use them.
@@ -430,7 +430,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Let read-only users open the VPC pages](https://github.com/datum-cloud/network-services-operator/pull/862) (#862)
 </Update>
 
-<Update label="November 9, 2026" description="Application Load Balancer" tags={["Fix"]}>
+<Update label="November 9, 2026" description="Networking" tags={["Fix", "Early access"]}>
   ## Wildcard hostname status no longer stalls
 
   An Application Load Balancer (ALB) whose only problem is a wildcard hostname that isn't enabled for your project now reports `ListenersNotValid`. Before, it stayed `Pending` indefinitely.
@@ -450,7 +450,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Report a valid version string with unreleased builds](https://github.com/datum-cloud/datumctl/pull/278) (#278)
 </Update>
 
-<Update label="November 3, 2026" description="Network Load Balancer" tags={["Connect", "Early access"]}>
+<Update label="November 3, 2026" description="Networking" tags={["New", "Early access"]}>
   ## Network Load Balancer for TCP and UDP
 
   A Network Load Balancer (NLB) now publishes a network service on a public TCP or UDP port.
@@ -467,7 +467,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Add network load balancers to the portal](https://github.com/datum-cloud/network-services-operator/pull/812) (#812)
 </Update>
 
-<Update label="November 2, 2026" description="Billing" tags={["GA"]}>
+<Update label="November 2, 2026" description="Account and billing" tags={["New"]}>
   ## Billing is generally available
 
   Organization owners can now manage billing in the [Cloud Portal](https://cloud.datum.net) without a feature flag.
@@ -484,7 +484,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Make billing GA for org owners](https://github.com/datum-cloud/cloud-portal/pull/1770) (#1770)
 </Update>
 
-<Update label="October 28, 2026" description="Application Load Balancer" tags={["Deliver"]}>
+<Update label="October 28, 2026" description="Networking" tags={["Improved"]}>
   ## DNS status for external hostnames
 
   When a custom hostname's DNS is hosted outside Datum, the [Cloud Portal](https://cloud.datum.net) now shows whether it points at your Application Load Balancer (ALB). **DNS Ready** appears once Datum sees the CNAME or matching IPs. **Awaiting DNS** appears until then, with a tooltip that names the record to add, and the chip no longer spins indefinitely. An ALB whose single backend carries the Host override can now be edited in the portal.
@@ -504,7 +504,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Show activity times in UTC](https://github.com/datum-cloud/datumctl/pull/339) (#339)
 </Update>
 
-<Update label="October 23, 2026" description="Patch" tags={["AX/DX/UX"]}>
+<Update label="October 23, 2026" description="Networking" tags={["New"]}>
   ## Patch can change your load balancers
 
   Patch, the Datum assistant, can now update Application Load Balancer (ALB) settings, headers, hostnames, routes, and origins. Every change is previewed and validated before it's written. A change applies only if the load balancer hasn't changed since the preview. Changes made by Patch stay editable in the Cloud Portal.
@@ -514,7 +514,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Publish ALB change tools that preview before they write](https://github.com/datum-cloud/network-services-operator/pull/695) (#695)
 </Update>
 
-<Update label="October 22, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
+<Update label="October 22, 2026" description="Cloud Portal" tags={["New"]}>
   ## Guided setup for new projects
 
   A new project's home page in the Cloud Portal now walks you from your first network to a running service. Create the project's network from the home page, then pick a toolbox action or ask Patch. Once resources exist, the page suggests the next step.
@@ -524,7 +524,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Guide a new project from its first network to a running service](https://github.com/datum-cloud/cloud-portal/pull/1685) (#1685)
 </Update>
 
-<Update label="October 19, 2026" description="Application Load Balancer" tags={["Build", "Connect"]}>
+<Update label="October 19, 2026" description="Networking" tags={["New"]}>
   ## gRPC APIs on Datum
 
   The Application Load Balancer (ALB) now supports HTTP/2 from clients to origins, so you can run gRPC APIs on Datum and call them at their ALB hostname.
@@ -540,7 +540,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   [Read the announcement](https://github.com/orgs/datum-cloud/discussions/310)
 </Update>
 
-<Update label="October 19, 2026" description="Domains" tags={["AX/DX/UX"]}>
+<Update label="October 19, 2026" description="DNS and domains" tags={["Improved"]}>
   ## Warning for domains in another project
 
   When you add a domain that another project in your organization already holds, the [Cloud Portal](https://cloud.datum.net) now warns you. The warning names the project and its verification state, and links to the existing domain. Choose **Add here anyway** to continue. Bulk and CSV adds don't prompt, and the task summary marks matching rows instead.
@@ -550,7 +550,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   Details: [Warn when adding a domain that already exists in another project](https://github.com/datum-cloud/cloud-portal/issues/1673) (#1673)
 </Update>
 
-<Update label="October 13, 2026" description="datumctl" tags={["AX/DX/UX"]}>
+<Update label="October 13, 2026" description="datumctl" tags={["New"]}>
   ## New plugins and assistant capabilities
 
   The official catalog now has `compute`, `alb`, and `network` plugins that you install with `datumctl plugin install <name>`.
@@ -566,7 +566,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   [Read the announcement](https://github.com/orgs/datum-cloud/discussions/306)
 </Update>
 
-<Update label="October 13, 2026" description="datumctl" tags={["Release"]}>
+<Update label="October 13, 2026" description="datumctl" tags={["New"]}>
   ## Upgrade every plugin at once
 
   `datumctl` v0.22.0 can upgrade all your plugins with one command. `datumctl plugin upgrade --all` upgrades every installed plugin that has a newer release, fetching each from the catalog or GitHub repository it was installed from, with the same checksum and compatibility checks as a fresh install. If one plugin fails, the others still upgrade and the failures are listed at the end. Upgrading a third-party catalog plugin by name now looks in its own catalog.
@@ -576,7 +576,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   [Read the announcement](https://github.com/orgs/datum-cloud/discussions/304)
 </Update>
 
-<Update label="October 7, 2026" description="Application Load Balancer" tags={["Deliver", "Early access"]}>
+<Update label="October 7, 2026" description="Networking" tags={["New", "Early access"]}>
   ## Wildcard hostnames
 
   An Application Load Balancer (ALB) can now serve every subdomain of a domain you own. Add a hostname such as `*.example.com` to get one automatically issued and renewed certificate for all names one level below it.
@@ -593,7 +593,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   [Read the announcement](https://github.com/orgs/datum-cloud/discussions/303)
 </Update>
 
-<Update label="September 29, 2026" description="Patch" tags={["AX/DX/UX"]}>
+<Update label="September 29, 2026" description="datumctl" tags={["New"]}>
   ## Patch reads Compute, DNS, and ALB data
 
   Patch, the Datum assistant, can now query Compute, DNS, and Application Load Balancer (ALB) data directly, so it troubleshoots from the actual cause.
