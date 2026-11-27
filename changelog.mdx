@@ -8,13 +8,13 @@ noindex: true
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
 <Update label="November 25, 2026" description="Billing" tags={["AX/DX/UX"]}>
-  ## See what your discounts save
+  ## Usage cost before discounts
 
-  The [Cloud Portal](https://cloud.datum.net) now shows what your usage is worth before discounts and lets owners keep the billing contact current.
+  The [Cloud Portal](https://cloud.datum.net) now shows what discounted usage costs before the discount. Owners can also keep the billing contact current.
 
-  - **Cost before discounts:** discounted usage shows its full cost struck through beside what you owe.
-  - **Edit the billing contact's email:** owners can now change where billing notifications go.
-  - **Cleared fields stay cleared:** emptying a field in Billing details now removes it.
+  - **Cost before discounts:** discounted usage shows its full cost struck through beside the amount you owe.
+  - **Billing contact email:** owners can change the address that receives billing notifications.
+  - **Cleared fields stay cleared:** emptying a field in Billing details now removes the saved value.
 
   See [Billing](/organizations/billing).
 
@@ -22,36 +22,32 @@ Each entry links to the original announcement in our [changelog discussions](htt
 </Update>
 
 <Update label="November 25, 2026" description="Cloud Portal" tags={["AX/DX/UX"]}>
-  ## Error messages explain what went wrong
+  ## Error notifications name the area
 
-  Error notifications in the [Cloud Portal](https://cloud.datum.net) now explain a failed action in the same words as error pages.
-
-  - **Errors name the area:** a refused change says which product area denied it.
-  - **Raw error on request:** "Show details" reveals the original error and request ID, ready to copy.
+  Error notifications in the [Cloud Portal](https://cloud.datum.net) now use the same wording as its error pages. A refused change names the product area that denied it, for example "Permission denied for changes to DNS." Select **Show details** to see the original error and request ID, ready to copy.
 
   Details: [Explain API errors in toasts and keep the raw text under details](https://github.com/datum-cloud/cloud-portal/issues/1838) (#1838)
 </Update>
 
 <Update label="November 25, 2026" description="Application Load Balancer" tags={["Fix"]}>
-  ## Load balancers refuse unsafe and conflicting settings
+  ## Load balancers refuse unsafe settings
 
-  Application Load Balancers now reject settings that used to be accepted and then quietly misbehave.
+  The Application Load Balancer (ALB) now refuses settings it used to accept and then mishandle.
 
-  - **Public origins only:** origins on private or internal addresses are refused, with a message naming the value.
-  - **Connectors still reach private networks:** proxies that tunnel through a connector keep reaching private addresses on your side.
-  - **Existing load balancers keep serving:** their next edit is refused until a private origin is replaced.
-  - **Health checks stay on:** a policy that would replace them is refused, and an older one shows as not applied.
+  - **Public origins only:** an origin on a private or internal address is refused, and the message names the value.
+  - **Connectors still reach private networks:** a proxy that tunnels through a connector still reaches private addresses on your side.
+  - **Existing ALBs keep serving:** stored origins are not re-checked, but the next edit is refused until you replace a private origin.
+  - **Health checks stay on:** a policy that would replace the health checks Datum sets for the ALB is refused. One attached earlier shows as not applied.
+
+  See [Load balancing and health checks](/alb/configuration/load-balancing).
 
   Details: [Health checks silently stop when a customer adds a route timeout policy](https://github.com/datum-cloud/network-services-operator/issues/880) (#880), [Refuse internal addresses in tenant upstreams](https://github.com/datum-cloud/network-services-operator/pull/956) (#956)
 </Update>
 
 <Update label="November 24, 2026" description="DNS" tags={["Fix"]}>
-  ## DNS activity logs show every record change
+  ## DNS activity logs record every change
 
-  Activity logs for your DNS record sets now record each change that takes effect, and only those.
-
-  - **Deleted records show up:** removing a record adds a deleted entry to the record set's activity.
-  - **No phantom changes:** dry runs and refused requests no longer appear as changes.
+  Activity logs for DNS record sets now record each change that takes effect, and only those. Removing a record adds a deleted entry to the record set's activity. Dry runs and refused requests no longer appear as changes.
 
   See [Activity logs](/operations/activity-logs).
 
