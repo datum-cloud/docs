@@ -265,7 +265,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   The `datumctl dns` plugin no longer guesses when several zones share a domain, so a record can't land in another VPC's zone.
 
   - **Ambiguous zones refused:** every VPC's default private zone is `datum.internal`, so when several zones match, the command stops and lists each zone with the VPCs that use it.
-  - **New `--vpc` flag:** `--vpc <name>` picks the zone that VPC resolves, on every `record` command and on `zone describe`, `delete`, `nameservers`, `import`, and `export`.
+  - **New `--vpc` flag:** `--vpc <name>` picks the zone that VPC resolves, on every `record` command and on `zone describe`, `delete`, `nameservers`, `import`, and `export`, for private zones only.
   - **Zones by object name:** pass a zone's object name in place of the domain, for example `datumctl dns record list managed-3f9c2a`.
 
   Deleting a private zone asks you to confirm with its object name. Projects where each domain has one zone see no change.
@@ -344,7 +344,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   - **Your own private zones:** associate private zones with a network for internal names.
   - **Network isolation:** a network can't use another network's private DNS, and the same names can be reused across networks without leaking answers.
   - **Regions:** a private zone is served only in the regions its networks use, and is withdrawn from regions it leaves.
-- **Healthy servers only:** lookups go only to healthy DNS servers, so server updates no longer stall lookups until they time out.
+  - **Healthy servers only:** lookups go only to healthy DNS servers, so server updates no longer stall lookups until they time out.
 
   Private DNS is in preview, and Instances have IPv6 addresses only. The managed `datum.internal` zone can't be deleted while its network uses it, though deleting the project still removes it. A CNAME that points into another private zone now returns the target's answer over UDP. The DNS Admin role can no longer create service-owned name registrations or naming policies, and keeps read access.
 
@@ -586,7 +586,7 @@ Each entry links to the original announcement in our [changelog discussions](htt
   datumctl alb describe my-app
   ```
 
-  Publish the `_acme-challenge` CNAME record that `describe` shows, and the certificate is typically issued within a few minutes. The record stays the same at renewal. Wildcard hostnames are early access and off by default, so contact Datum to enable them for your project. They require the alb plugin v0.32.3 or later. `*.example.com` covers `app.example.com` but not `a.b.example.com`.
+  Publish the `_acme-challenge` CNAME record that `describe` shows, and the certificate is typically issued within a few minutes. The record stays the same at renewal. Wildcard hostnames are early access and off by default, so contact Datum to enable them for your project. They require the alb plugin v0.32.3 or later (`datumctl plugin upgrade alb`). A wildcard matches one label level only: `*.example.com` covers `app.example.com` but not `a.b.example.com`.
 
   See [Wildcard hostnames](/alb/configuration/wildcard-hostnames).
 
