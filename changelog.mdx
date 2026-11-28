@@ -7,6 +7,21 @@ noindex: true
 
 Each entry links to the original announcement in our [changelog discussions](https://github.com/orgs/datum-cloud/discussions/categories/changelog), where you can ask questions and leave feedback. To see what is coming next, read the [roadmap](/platform/roadmap).
 
+<Update label="November 26, 2026" description="Networking" tags={["Improved"]}>
+  ## Backends that resolve privately show why
+
+  The Application Load Balancer (ALB) now reports a backend whose hostname resolves to a private or reserved address, instead of showing the route as serving. Datum resolves the name from its control plane.
+
+  - **Status names the address:** the HTTPProxy shows as not programmed with the reason `BackendAddressNotPublic`, naming the backend, the address and its range.
+  - **Rechecked every five minutes:** the reason appears when a name turns private and clears once it resolves to a public address.
+  - **More ranges refused:** the IPv6 discard-only range `100::/64` and IPv4-mapped forms of internal IPv4 addresses are now refused, and a stored HTTPProxy that uses one is refused at its next edit.
+  - **VPC backends stay in their project:** a Galactic VPC backend binds only to its own project's network, so a label can no longer steer traffic into another project's network.
+
+  To reach a private origin, use a connector. See [ALB troubleshooting](/alb/troubleshooting).
+
+  Details: [Report backends resolving to private IPs](https://github.com/datum-cloud/network-services-operator/pull/980) (#980), [Bind VPC backends to their own slices](https://github.com/datum-cloud/network-services-operator/pull/960) (#960)
+</Update>
+
 <Update label="November 25, 2026" description="Account and billing" tags={["Improved"]}>
   ## Usage cost before discounts
 
